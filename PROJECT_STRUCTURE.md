@@ -3,199 +3,283 @@
 ## 📁 Directory Overview
 
 ```
-bookrate/
+bookrate-fresh/                    # Main application directory
 ├── app/
-│   ├── Console/               # Artisan commands
-│   ├── Exceptions/            # Exception handlers
+│   ├── Console/
+│   │   └── Commands/
+│   │       └── IndexSearchCommand.php  # Meilisearch indexing
 │   ├── Http/
-│   │   ├── Controllers/       # Controllers (MVC)
-│   │   │   ├── Auth/         # Authentication controllers
-│   │   │   ├── BookController.php
-│   │   │   ├── ReviewController.php
-│   │   │   └── ...           # Other controllers
-│   │   ├── Middleware/        # Custom middleware
-│   │   ├── Requests/          # Form request validation
-│   │   └── Resources/         # API resources
-│   ├── Models/                # Eloquent models
-│   │   ├── User.php
-│   │   ├── Book.php
+│   │   └── Controllers/
+│   │       ├── Auth/
+│   │       │   ├── LoginController.php
+│   │       │   └── RegisterController.php
+│   │       ├── BookController.php
+│   │       ├── BookshelfController.php
+│   │       ├── CommentController.php
+│   │       ├── ReadingStatusController.php
+│   │       ├── ReactionController.php
+│   │       ├── ReviewController.php
+│   │       └── SearchController.php
+│   ├── Models/                     # Eloquent models
 │   │   ├── Author.php
+│   │   ├── AuditLog.php
+│   │   ├── Book.php
+│   │   ├── Bookshelf.php
+│   │   ├── BookshelfItem.php
+│   │   ├── BookTag.php
+│   │   ├── Comment.php
+│   │   ├── Edition.php
+│   │   ├── Follow.php
+│   │   ├── Publisher.php
+│   │   ├── ReadingStatus.php
+│   │   ├── Reaction.php
+│   │   ├── Report.php
 │   │   ├── Review.php
-│   │   └── ...               # Other models
-│   ├── Policies/              # Authorization policies
+│   │   ├── Series.php
+│   │   └── User.php
+│   ├── Policies/                   # Authorization policies
 │   │   ├── BookPolicy.php
-│   │   ├── ReviewPolicy.php
-│   │   └── CommentPolicy.php
-│   ├── Services/              # Business logic services
-│   │   ├── ReviewService.php
-│   │   └── AuditService.php
-│   └── Providers/             # Service providers
+│   │   ├── BookshelfPolicy.php
+│   │   ├── CommentPolicy.php
+│   │   ├── ReadingStatusPolicy.php
+│   │   └── ReviewPolicy.php
+│   ├── Providers/
+│   │   └── AppServiceProvider.php
+│   └── Services/                   # Business logic
+│       ├── AuditService.php
+│       ├── ReviewService.php
+│       └── SearchService.php
 ├── bootstrap/
-├── config/
+│   ├── app.php
+│   └── providers.php
+├── config/                         # Laravel configuration
+│   ├── app.php
+│   ├── auth.php
+│   ├── cache.php
+│   ├── database.php
+│   ├── filesystems.php
+│   ├── logging.php
+│   ├── mail.php
+│   ├── queue.php
+│   ├── services.php
+│   └── session.php
 ├── database/
-│   ├── factories/             # Model factories
-│   ├── migrations/            # Database migrations
-│   └── seeders/              # Database seeders
-├── docker/
+│   ├── factories/                  # Model factories
+│   │   ├── AuthorFactory.php
+│   │   ├── BookFactory.php
+│   │   ├── EditionFactory.php
+│   │   ├── PublisherFactory.php
+│   │   ├── ReviewFactory.php
+│   │   ├── SeriesFactory.php
+│   │   └── UserFactory.php
+│   ├── migrations/                 # Database migrations
+│   │   ├── 0001_01_01_000000_create_users_table.php
+│   │   ├── 0001_01_01_000001_create_cache_table.php
+│   │   ├── 0001_01_01_000002_create_jobs_table.php
+│   │   ├── 2024_01_01_000000_update_users_table.php
+│   │   ├── 2024_01_01_000001_create_authors_table.php
+│   │   ├── 2024_01_01_000002_create_publishers_table.php
+│   │   ├── 2024_01_01_000003_create_series_table.php
+│   │   ├── 2024_01_01_000004_create_books_table.php
+│   │   ├── 2024_01_01_000005_create_book_tags_table.php
+│   │   ├── 2024_01_01_000006_create_editions_table.php
+│   │   ├── 2024_01_01_000007_create_reviews_table.php
+│   │   ├── 2024_01_01_000008_create_comments_table.php
+│   │   ├── 2024_01_01_000009_create_reactions_table.php
+│   │   ├── 2024_01_01_000010_create_bookshelves_table.php
+│   │   ├── 2024_01_01_000011_create_reading_statuses_table.php
+│   │   ├── 2024_01_01_000012_create_follows_table.php
+│   │   ├── 2024_01_01_000013_create_notifications_table.php
+│   │   ├── 2024_01_01_000014_create_reports_table.php
+│   │   └── 2024_01_01_000015_create_audit_logs_table.php
+│   └── seeders/                    # Database seeders
+│       ├── AuthorSeeder.php
+│       ├── BookSeeder.php
+│       ├── BookTagSeeder.php
+│       ├── DatabaseSeeder.php
+│       ├── PublisherSeeder.php
+│       ├── SeriesSeeder.php
+│       └── UserSeeder.php
+├── docker/                         # Docker configuration
+│   ├── mysql/
+│   │   └── my.cnf
 │   ├── nginx/
-│   ├── php/
-│   └── mysql/
-├── public/                    # Public assets
+│   │   └── default.conf
+│   └── php/
+│       ├── Dockerfile
+│       └── php.ini
+├── public/                         # Public assets
+│   ├── index.php
+│   ├── favicon.ico
+│   └── robots.txt
 ├── resources/
-│   ├── views/                # Blade templates
 │   ├── css/
-│   └── js/
+│   │   └── app.css
+│   ├── js/
+│   │   ├── app.js
+│   │   └── bootstrap.js
+│   └── views/
+│       └── welcome.blade.php
 ├── routes/
-│   ├── web.php               # Web routes
-│   ├── api.php               # API routes
-│   └── channels.php
-├── storage/
-├── tests/
-├── docker-compose.yml
+│   ├── api.php                    # API routes
+│   ├── console.php                # Console routes
+│   └── web.php                    # Web routes (42+ endpoints)
+├── storage/                        # Storage files
+│   ├── app/
+│   ├── framework/
+│   └── logs/
+├── tests/                          # PHPUnit tests
+│   ├── Feature/
+│   │   └── ExampleTest.php
+│   ├── Unit/
+│   │   └── ExampleTest.php
+│   └── TestCase.php
+├── vendor/                         # Composer dependencies
+├── .gitignore
+├── artisan                         # Laravel CLI
 ├── composer.json
-└── README.md
+├── composer.lock
+├── docker-compose.yml              # Docker Compose config
+├── package.json
+├── phpunit.xml
+├── README.md                       # Full documentation
+├── SUCCESS.md                      # Verification guide
+├── FINAL_STATUS.md                 # Current status
+├── UPDATED_STATUS.md               # Feature list
+├── API_EXAMPLES.md                 # API usage examples
+├── SETUP_NOTES.md                  # Configuration guide
+├── COMPLETE_SUMMARY.md             # Quick overview
+├── PHASE2_COMPLETE.md              # New features
+└── vite.config.js
 ```
 
-## 🔑 Key Files
+---
 
-### Models
-- **User**: Users with roles (guest, user, moderator, admin)
-- **Book**: Books with ratings and reviews
-- **Author**: Book authors
-- **Publisher**: Publishers
-- **Series**: Book series
-- **BookTag**: Tags/categories
-- **Edition**: Different editions of books
-- **Review**: User reviews
-- **Comment**: Comments on reviews/books
-- **Reaction**: Reactions to reviews
-- **Bookshelf**: Custom user bookshelves
-- **BookshelfItem**: Items in bookshelves
-- **ReadingStatus**: Reading progress tracking
-- **Follow**: Following users/authors/books
-- **Report**: Content reports
-- **AuditLog**: Admin/mod actions logs
+## 📊 Key Components
 
-### Controllers
-- **Auth/RegisterController**: User registration
-- **Auth/LoginController**: User login/logout
-- **BookController**: CRUD operations for books
-- **ReviewController**: Review management
-- **CommentController**: Comment management (TODO)
-- **AdminController**: Admin panel (TODO)
+### Models (18)
+- User management: User
+- Content: Book, Author, Publisher, Series, Edition, BookTag
+- UGC: Review, Comment, Reaction
+- Social: Bookshelf, BookshelfItem, ReadingStatus, Follow
+- Management: Report, AuditLog, Notification
 
-### Services
-- **ReviewService**: Business logic for reviews
-- **AuditService**: Audit logging
-- **NotificationService**: Notifications (TODO)
-- **SearchService**: Meilisearch integration (TODO)
+### Controllers (10)
+- Auth: LoginController, RegisterController
+- Content: BookController, ReviewController, CommentController
+- Social: BookshelfController, ReadingStatusController, ReactionController
+- Search: SearchController
 
-### Policies
-- **BookPolicy**: Book authorization
-- **ReviewPolicy**: Review authorization
-- **CommentPolicy**: Comment authorization
+### Services (3)
+- ReviewService: Review business logic
+- AuditService: Logging and auditing
+- SearchService: Meilisearch integration
+
+### Policies (5)
+- BookPolicy, ReviewPolicy, CommentPolicy
+- BookshelfPolicy, ReadingStatusPolicy
+
+---
+
+## 🎯 API Routes
+
+### Public (3)
+- GET / - API info
+- GET /books - List books
+- GET /books/{id} - Book details
+- GET /search - Search endpoint
+
+### Auth (3)
+- POST /auth/register
+- POST /auth/login
+- POST /auth/logout
+
+### Protected (38)
+- Books: 3 endpoints
+- Reviews: 5 endpoints
+- Comments: 5 endpoints
+- Reactions: 3 endpoints
+- Bookshelves: 7 endpoints
+- Reading Status: 5 endpoints
+
+**Total: 44 routes configured**
+
+---
 
 ## 🗄️ Database Schema
 
-See `database/migrations/` for complete schema:
-- `2024_01_01_000000_update_users_table.php` - User table updates
-- `2024_01_01_000001_create_authors_table.php` - Authors
-- `2024_01_01_000002_create_publishers_table.php` - Publishers
-- `2024_01_01_000003_create_series_table.php` - Series
-- `2024_01_01_000004_create_books_table.php` - Books
-- `2024_01_01_000005_create_book_tags_table.php` - Tags & pivot
-- `2024_01_01_000006_create_editions_table.php` - Editions
-- `2024_01_01_000007_create_reviews_table.php` - Reviews
-- `2024_01_01_000008_create_comments_table.php` - Comments
-- `2024_01_01_000009_create_reactions_table.php` - Reactions
-- `2024_01_01_000010_create_bookshelves_table.php` - Bookshelves
-- `2024_01_01_000011_create_reading_statuses_table.php` - Reading status
-- `2024_01_01_000012_create_follows_table.php` - Follows
-- `2024_01_01_000013_create_notifications_table.php` - Notifications
-- `2024_01_01_000014_create_reports_table.php` - Reports
-- `2024_01_01_000015_create_audit_logs_table.php` - Audit logs
+### Tables (19)
+1. users - Extended with role
+2. authors - Book authors
+3. publishers - Publishers
+4. series - Book series
+5. books - Main book catalog
+6. book_tags - Categories
+7. book_tag_pivot - Book-tag relationship
+8. editions - Book editions
+9. reviews - User reviews
+10. comments - Comments on reviews/books
+11. reactions - Helpful/like reactions
+12. bookshelves - Custom shelves
+13. bookshelf_items - Books in shelves
+14. reading_statuses - Reading progress
+15. follows - User follows
+16. notifications - In-app alerts
+17. reports - Content reports
+18. audit_logs - Activity logging
+19. Laravel internal tables (cache, jobs, etc.)
 
-## 🚀 Features Implemented
+---
 
-### ✅ Completed
-- [x] Docker setup with Nginx, PHP, MySQL, Redis, Meilisearch
-- [x] Database migrations for all entities
-- [x] Eloquent models with relationships
-- [x] Authentication system (register/login/logout)
-- [x] Book CRUD operations
-- [x] Review system with ratings
-- [x] Policies for authorization
-- [x] Services for business logic
-- [x] Database seeders for test data
-- [x] Model factories
+## 🐳 Docker Services
 
-### 🔨 In Progress
-- [ ] Comments management
-- [ ] Reactions (helpful/like)
-- [ ] Bookshelf features
-- [ ] Reading status tracking
-- [ ] Search with Meilisearch
-- [ ] Admin panel
-- [ ] Moderation tools
-- [ ] Notifications
-- [ ] Following system
-- [ ] Reports handling
-- [ ] Frontend views (Blade templates)
-- [ ] Tests
+### Running Containers
+1. **nginx** - Web server (port 8080)
+2. **app** - PHP-FPM application
+3. **db** - MySQL 8.0 (port 33060)
+4. **redis** - Cache (port 63790)
+5. **meilisearch** - Search engine (port 7700)
 
-## 📝 Next Steps
+---
 
-1. **Install Composer** and run `composer install`
-2. **Setup .env** file from `.env.example`
-3. **Run migrations**: `php artisan migrate`
-4. **Seed database**: `php artisan db:seed`
-5. **Start development**: `php artisan serve`
+## 📦 Dependencies
 
-Or use Docker:
-1. `docker-compose up -d`
-2. `docker-compose exec app composer install`
-3. `docker-compose exec app php artisan key:generate`
-4. `docker-compose exec app php artisan migrate --seed`
+### Backend
+- Laravel 11
+- PHP 8.3
+- MySQL 8.0
+- Redis 7
+- Meilisearch 1.5
 
-## 🔗 API Endpoints
+### Laravel Packages
+- spatie/laravel-sluggable
+- spatie/laravel-permission
+- spatie/laravel-data
+- intervention/image
+- league/commonmark
+- predis/predis
+- meilisearch/meilisearch-php
 
-### Authentication
-- `POST /auth/register` - Register new user
-- `POST /auth/login` - Login
-- `POST /auth/logout` - Logout
+---
 
-### Books
-- `GET /books` - List books (with filters)
-- `GET /books/{id}` - Get book details
-- `POST /books` - Create book (admin/moderator)
-- `PUT /books/{book}` - Update book (admin/moderator)
-- `DELETE /books/{book}` - Delete book (admin)
+## 🚀 Quick Commands
 
-### Reviews
-- `GET /reviews` - List reviews
-- `GET /reviews/{review}` - Get review
-- `POST /reviews` - Create review (authenticated)
-- `PUT /reviews/{review}` - Update review (owner/moderator)
-- `DELETE /reviews/{review}` - Delete review (owner/moderator)
-
-## 🧪 Testing
-
-Run tests:
 ```bash
-php artisan test
+# Start application
+cd bookrate-fresh
+docker-compose up -d
+
+# Run migrations
+docker-compose exec app php artisan migrate:fresh --seed
+
+# Index search
+docker-compose exec app php artisan meilisearch:index
+
+# View logs
+docker-compose logs -f app
 ```
 
-## 📚 Documentation
+---
 
-- [README.md](README.md) - Project overview
-- [INSTALL.md](INSTALL.md) - Installation guide
-- [requirement.md](requirement.md) - Full requirements
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+This is your complete BookRate project structure! 🎉
 
