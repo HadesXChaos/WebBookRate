@@ -13,7 +13,7 @@ from .sitemaps import BookSitemap, AuthorSitemap, ReviewSitemap
 from .views import (
     home_view, explore_view, login_view, register_view,
     user_profile_view, user_shelves_view, settings_view,
-    search_view, notifications_view
+    search_view, notifications_view, logout_view_frontend
 )
 from books.models import Book
 from reviews.models import Review
@@ -47,7 +47,7 @@ urlpatterns = [
     path('explore/', explore_view, name='explore'),
     path('login/', login_view, name='login'),
     path('register/', register_view, name='register'),
-    path('logout/', lambda request: redirect('/api/auth/logout/'), name='logout'),
+    path('logout/', logout_view_frontend, name='logout'),
     path('search/', search_view, name='search'),
     path('users/<str:username>/', user_profile_view, name='user_profile'),
     path('shelves/', user_shelves_view, name='user_shelves'),

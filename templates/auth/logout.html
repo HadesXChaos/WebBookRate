@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Đăng xuất - BookReview.vn{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 500px; padding-top: 3rem;">
+    <div class="card">
+        <div class="card-body" style="text-align: center;">
+            <p>Đang đăng xuất...</p>
+        </div>
+    </div>
+</div>
+
+<form id="logout-form" method="post" action="{% url 'logout' %}" style="display: none;">
+    {% csrf_token %}
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit logout form
+    document.getElementById('logout-form').submit();
+});
+</script>
+{% endblock %}
+

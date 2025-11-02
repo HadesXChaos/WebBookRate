@@ -6,6 +6,7 @@ from django.views.generic import TemplateView, DetailView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib import messages
+from django.contrib.auth import logout
 
 from users.models import User
 from books.models import Book
@@ -79,4 +80,24 @@ def notifications_view(request):
         from django.shortcuts import redirect
         return redirect('login')
     return render(request, 'social/notifications.html')
+
+
+def logout_view_frontend(request):
+    """Frontend logout view - handles both GET and POST"""
+    if request.method == 'POST':
+        # Delete auth token if using token auth
+        if request.user.is_authenticated:
+            try:
+                if hasattr(request.user, 'auth_token'):
+                    request.user.auth_token.delete()
+            except:
+                pass
+            
+            # Logout from session
+            logout(request)
+            messages.success(request, 'Đăng xuất thành công!')
+        return redirect('home')
+    else:
+        # For GET requests, render a page that auto-submits POST
+        return render(request, 'auth/logout.html')
 

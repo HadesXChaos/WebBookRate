@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Kệ sách của tôi - BookReview.vn{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1200px;">
+    <!-- Page Header -->
+    <div style="margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div>
+                <h1>Kệ sách của tôi</h1>
+                <p style="color: #64748b;">Quản lý và tổ chức sách của bạn</p>
+            </div>
+            <button class="btn btn-primary" id="create-shelf-btn">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="margin-right: 0.5rem;">
+                    <path d="M10 4V16M4 10H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Tạo kệ sách mới
+            </button>
+        </div>
+    </div>
+
+    <!-- Shelves Grid -->
+    <div id="shelves-grid" class="grid grid-3" style="gap: 1.5rem; margin-bottom: 2rem;">
+        <div class="loading">Đang tải...</div>
+    </div>
+
+    <!-- Create Shelf Modal -->
+    <div id="create-shelf-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2>Tạo kệ sách mới</h2>
+                <button class="modal-close" id="close-create-modal">&times;</button>
+            </div>
+            <form id="create-shelf-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label">Tên kệ sách *</label>
+                    <input type="text" name="name" class="form-input" required placeholder="Ví dụ: Sách yêu thích">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Mô tả</label>
+                    <textarea name="description" class="form-input" rows="4" placeholder="Mô tả về kệ sách này..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Hiển thị</label>
+                    <select name="visibility" class="form-select">
+                        <option value="public">Công khai</option>
+                        <option value="private">Riêng tư</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Tạo</button>
+                    <button type="button" class="btn btn-outline" id="cancel-create-modal" style="flex: 1;">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userId = {% if user.is_authenticated %}{{ user.id }}{% else %}null{% endif %};
+    let shelves = [];
+    
+    // Get CSRF token helper
+    function getCsrfToken() {
+        const token = document.querySelector('[name=csrfmiddlewaretoken]');
+        return token ? token.value : '';
+    }
+    
+    // Load shelves
+    function loadShelves() {
+        fetch('/api/shelves/')
+            .then(res => res.json())
+            .then(data => {
+                shelves = data.results || [];
+                renderShelves();
+            })
+            .catch(err => {
+                console.error('Error loading shelves:', err);
+                document.getElementById('shelves-grid').innerHTML = '<p>Có lỗi xảy ra khi tải dữ liệu.</p>';
+            });
+    }
+    
+    // Render shelves
+    function renderShelves() {
+        const container = document.getElementById('shelves-grid');
+        if (shelves.length === 0) {
+            container.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; background: white; border-radius: 1rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
+                    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" style="margin-bottom: 1rem; opacity: 0.5;">
+                        <rect x="8" y="12" width="48" height="40" rx="4" stroke="currentColor" stroke-width="2"/>
+                        <path d="M16 24H48M16 32H40M16 40H48" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <h3 style="margin-bottom: 0.5rem;">Chưa có kệ sách nào</h3>
+                    <p style="color: #64748b; margin-bottom: 1.5rem;">Tạo kệ sách đầu tiên để bắt đầu tổ chức sách của bạn!</p>
+                    <button class="btn btn-primary" onclick="document.getElementById('create-shelf-btn').click()">Tạo kệ sách mới</button>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = shelves.map(shelf => `
+            <div class="card" style="transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;" 
+                 onclick="window.location.href='/shelves/${shelf.id}/'">
+                <div class="card-body">
+                    ${shelf.cover_image ? `
+                        <img src="${shelf.cover_image}" alt="${shelf.name}" 
+                             style="width: 100%; height: 200px; object-fit: cover; border-radius: 0.5rem; margin-bottom: 1rem;">
+                    ` : `
+                        <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 0.5rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center;">
+                            <svg width="64" height="64" viewBox="0 0 64 64" fill="none" style="opacity: 0.3;">
+                                <rect x="8" y="12" width="48" height="40" rx="4" stroke="white" stroke-width="2"/>
+                                <path d="M16 24H48M16 32H40M16 40H48" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                    `}
+                    <h3 style="margin-bottom: 0.5rem;">
+                        <a href="/shelves/${shelf.id}/" style="text-decoration: none; color: inherit;">${shelf.name}</a>
+                    </h3>
+                    ${shelf.description ? `<p style="color: #64748b; font-size: 0.875rem; margin-bottom: 0.75rem;">${shelf.description}</p>` : ''}
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 0.75rem; border-top: 1px solid #e2e8f0;">
+                        <span style="color: #64748b; font-size: 0.875rem;">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 0.25rem;">
+                                <path d="M2 4H14V12C14 12.5523 13.5523 13 13 13H3C2.44772 13 2 12.5523 2 12V4Z" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M2 4L8 8L14 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            ${shelf.book_count || 0} cuốn sách
+                        </span>
+                        <span style="color: #64748b; font-size: 0.875rem;">
+                            ${shelf.visibility === 'public' ? '🌐 Công khai' : '🔒 Riêng tư'}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    // Modal handlers
+    const createShelfBtn = document.getElementById('create-shelf-btn');
+    const createModal = document.getElementById('create-shelf-modal');
+    const closeModalBtn = document.getElementById('close-create-modal');
+    const cancelModalBtn = document.getElementById('cancel-create-modal');
+    
+    createShelfBtn.addEventListener('click', () => {
+        createModal.style.display = 'flex';
+    });
+    
+    closeModalBtn.addEventListener('click', () => {
+        createModal.style.display = 'none';
+    });
+    
+    cancelModalBtn.addEventListener('click', () => {
+        createModal.style.display = 'none';
+    });
+    
+    createModal.addEventListener('click', (e) => {
+        if (e.target === createModal) {
+            createModal.style.display = 'none';
+        }
+    });
+    
+    // Create shelf form
+    document.getElementById('create-shelf-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const data = {
+            name: formData.get('name'),
+            description: formData.get('description'),
+            visibility: formData.get('visibility')
+        };
+        
+        fetch('/api/shelves/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(data => {
+            createModal.style.display = 'none';
+            this.reset();
+            loadShelves();
+            // Show success message
+            const message = document.createElement('div');
+            message.className = 'alert alert-success';
+            message.textContent = 'Đã tạo kệ sách thành công!';
+            message.style.cssText = 'position: fixed; top: 80px; right: 1rem; z-index: 1000; padding: 1rem; background: #10b981; color: white; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);';
+            document.body.appendChild(message);
+            setTimeout(() => message.remove(), 3000);
+        })
+        .catch(err => {
+            console.error('Error creating shelf:', err);
+            alert('Có lỗi xảy ra khi tạo kệ sách. Vui lòng thử lại.');
+        });
+    });
+    
+    // Load shelves on page load
+    loadShelves();
+});
+</script>
+
+<style>
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    color: #64748b;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.25rem;
+}
+
+.modal-close:hover {
+    background: #f1f5f9;
+    color: #334155;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+</style>
+{% endblock %}
+
