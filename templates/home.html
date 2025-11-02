@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}BookReview.vn - Đánh giá sách{% endblock %}
+{% block meta_description %}Khám phá, đánh giá và chia sẻ sách hay cùng cộng đồng yêu sách{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <h1>Khám phá thế giới sách</h1>
+        <p>Chia sẻ đánh giá, khám phá sách hay và kết nối với cộng đồng yêu sách</p>
+        <form class="hero-search" action="{% url 'search' %}" method="get" role="search">
+            <input 
+                type="search" 
+                name="q" 
+                placeholder="Tìm kiếm sách, tác giả..." 
+                aria-label="Tìm kiếm"
+                class="search-input"
+            >
+            <button type="submit" class="search-button" aria-label="Tìm kiếm">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16z" stroke="currentColor" stroke-width="2"/>
+                    <path d="m19 19-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </form>
+    </div>
+</section>
+
+<!-- Trending Books Section -->
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Thịnh hành tuần</h2>
+            <a href="{% url 'explore' %}?sort=trending" class="section-link">Xem tất cả →</a>
+        </div>
+        <div class="grid grid-4" id="trending-books">
+            <!-- Books will be loaded via JavaScript -->
+            <div class="loading">Đang tải...</div>
+        </div>
+    </div>
+</section>
+
+<!-- New Reviews Section -->
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Reviews mới nhất</h2>
+            <a href="{% url 'reviews:review_list' %}" class="section-link">Xem tất cả →</a>
+        </div>
+        <div id="new-reviews">
+            <!-- Reviews will be loaded via JavaScript -->
+            <div class="loading">Đang tải...</div>
+        </div>
+    </div>
+</section>
+
+<!-- Recommended Books Section -->
+{% if user.is_authenticated %}
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Đề xuất cho bạn</h2>
+            <a href="{% url 'explore' %}" class="section-link">Xem tất cả →</a>
+        </div>
+        <div class="grid grid-4" id="recommended-books">
+            <!-- Books will be loaded via JavaScript -->
+            <div class="loading">Đang tải...</div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Popular Genres Section -->
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Thể loại phổ biến</h2>
+            <a href="{% url 'books:genre_list' %}" class="section-link">Xem tất cả →</a>
+        </div>
+        <div class="grid grid-2" id="popular-genres">
+            <!-- Genres will be loaded via JavaScript -->
+            <div class="loading">Đang tải...</div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load trending books
+    fetch('/api/books/?ordering=-rating_count')
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById('trending-books');
+            if (data.results && data.results.length > 0) {
+                container.innerHTML = data.results.slice(0, 8).map(book => `
+                    <div class="book-card">
+                        <a href="/books/${book.slug}/">
+                            <div class="book-cover">
+                                <img src="${book.cover || '/static/images/default-book.svg'}" 
+                                     alt="${book.title}" loading="lazy">
+                            </div>
+                            <div class="book-info">
+                                <h3 class="book-title">${book.title}</h3>
+                                <p class="book-author">${book.authors?.[0]?.name || 'N/A'}</p>
+                                <div class="book-rating">
+                                    <div class="rating-stars" data-rating="${book.avg_rating || 0}"></div>
+                                    <span class="rating-value">${(book.avg_rating || 0).toFixed(1)}</span>
+                                    <span class="rating-count">(${book.rating_count || 0})</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                `).join('');
+                
+                // Render stars
+                container.querySelectorAll('[data-rating]').forEach(el => {
+                    BookReview.renderStars(parseFloat(el.dataset.rating), el);
+                });
+            } else {
+                container.innerHTML = '<p>Chưa có sách nào.</p>';
+            }
+        })
+        .catch(err => {
+            console.error('Error loading trending books:', err);
+            document.getElementById('trending-books').innerHTML = '<p>Có lỗi xảy ra khi tải dữ liệu.</p>';
+        });
+
+    // Load new reviews
+    fetch('/api/reviews/?ordering=-created_at')
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById('new-reviews');
+            if (data.results && data.results.length > 0) {
+                container.innerHTML = data.results.slice(0, 5).map(review => `
+                    <div class="card" style="margin-bottom: 1rem;">
+                        <div class="card-body">
+                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                                <img src="${review.user?.profile?.avatar || '/static/images/default-avatar.svg'}" 
+                                     alt="${review.user?.username}" 
+                                     style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                                <div>
+                                    <strong><a href="/users/${review.user?.username}/">${review.user?.username}</a></strong>
+                                    <span style="color: #64748b; font-size: 0.875rem;"> đánh giá</span>
+                                    <a href="/books/${review.book?.slug}/">${review.book?.title}</a>
+                                </div>
+                            </div>
+                            <div class="rating-stars" data-rating="${review.rating || 0}"></div>
+                            <h4 style="margin-top: 0.5rem;"><a href="/reviews/${review.id}/">${review.title}</a></h4>
+                            <p style="color: #64748b; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                                ${review.body_html || review.body || ''}
+                            </p>
+                            <div style="display: flex; gap: 1rem; margin-top: 0.5rem; font-size: 0.875rem; color: #64748b;">
+                                <span>${new Date(review.created_at).toLocaleDateString('vi-VN')}</span>
+                                <a href="/reviews/${review.id}/#comments">💬 ${review.comment_count || 0} bình luận</a>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                // Render stars
+                container.querySelectorAll('[data-rating]').forEach(el => {
+                    BookReview.renderStars(parseFloat(el.dataset.rating), el);
+                });
+            } else {
+                container.innerHTML = '<p>Chưa có review nào.</p>';
+            }
+        })
+        .catch(err => {
+            console.error('Error loading new reviews:', err);
+            document.getElementById('new-reviews').innerHTML = '<p>Có lỗi xảy ra khi tải dữ liệu.</p>';
+        });
+
+    {% if user.is_authenticated %}
+    // Load recommended books (if authenticated)
+    fetch('/api/books/?ordering=-avg_rating')
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById('recommended-books');
+            if (data.results && data.results.length > 0) {
+                container.innerHTML = data.results.slice(0, 8).map(book => `
+                    <div class="book-card">
+                        <a href="/books/${book.slug}/">
+                            <div class="book-cover">
+                                <img src="${book.cover || '/static/images/default-book.svg'}" 
+                                     alt="${book.title}" loading="lazy">
+                            </div>
+                            <div class="book-info">
+                                <h3 class="book-title">${book.title}</h3>
+                                <p class="book-author">${book.authors?.[0]?.name || 'N/A'}</p>
+                                <div class="book-rating">
+                                    <div class="rating-stars" data-rating="${book.avg_rating || 0}"></div>
+                                    <span class="rating-value">${(book.avg_rating || 0).toFixed(1)}</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                `).join('');
+                
+                // Render stars
+                container.querySelectorAll('[data-rating]').forEach(el => {
+                    BookReview.renderStars(parseFloat(el.dataset.rating), el);
+                });
+            } else {
+                container.innerHTML = '<p>Chưa có sách nào.</p>';
+            }
+        })
+        .catch(err => {
+            console.error('Error loading recommended books:', err);
+        });
+    {% endif %}
+
+    // Load popular genres
+    fetch('/api/books/genres/')
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById('popular-genres');
+            if (data.results && data.results.length > 0) {
+                container.innerHTML = data.results.slice(0, 6).map(genre => `
+                    <a href="/books/genres/${genre.slug}/" class="card">
+                        <div class="card-body">
+                            <h3>${genre.name}</h3>
+                            <p style="color: #64748b;">${genre.book_count || 0} cuốn sách</p>
+                        </div>
+                    </a>
+                `).join('');
+            } else {
+                container.innerHTML = '<p>Chưa có thể loại nào.</p>';
+            }
+        })
+        .catch(err => {
+            console.error('Error loading genres:', err);
+        });
+});
+</script>
+{% endblock %}
+

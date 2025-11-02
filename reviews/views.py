@@ -1,0 +1,119 @@
+from rest_framework import generics, status, permissions
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from django.contrib.contenttypes.models import ContentType
+from django_filters.rest_framework import DjangoFilterBackend
+
+from .models import Review, ReviewImage, Comment, Like
+from .serializers import (
+    ReviewListSerializer, ReviewDetailSerializer, ReviewImageSerializer,
+    CommentSerializer, LikeSerializer
+)
+from .permissions import IsOwnerOrReadOnly
+
+
+class ReviewListView(generics.ListCreateAPIView):
+    """Review List and Create"""
+    queryset = Review.objects.filter(status='public', is_active=True).select_related(
+        'book', 'user'
+    ).prefetch_related('images').order_by('-created_at')
+    serializer_class = ReviewListSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['book', 'user']
+    
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return ReviewDetailSerializer
+        return ReviewListSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """Review Detail, Update, Delete"""
+    queryset = Review.objects.filter(is_active=True).select_related(
+        'book', 'user'
+    ).prefetch_related('images')
+    serializer_class = ReviewDetailSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+
+    def perform_update(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+@api_view(['POST', 'DELETE'])
+@permission_classes([permissions.IsAuthenticated])
+def review_like_view(request, pk):
+    """Like/Unlike Review"""
+    try:
+        review = Review.objects.get(pk=pk, is_active=True)
+    except Review.DoesNotExist:
+        return Response({'error': 'Review not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    content_type = ContentType.objects.get_for_model(Review)
+    like, created = Like.objects.get_or_create(
+        user=request.user,
+        content_type=content_type,
+        object_id=review.id
+    )
+    
+    if request.method == 'DELETE':
+        like.delete()
+        return Response({'message': 'Unliked'}, status=status.HTTP_200_OK)
+    
+    if not created:
+        return Response({'message': 'Already liked'}, status=status.HTTP_200_OK)
+    
+    return Response({'message': 'Liked'}, status=status.HTTP_201_CREATED)
+
+
+class CommentListView(generics.ListCreateAPIView):
+    """Comment List and Create"""
+    queryset = Comment.objects.filter(status='public', is_active=True, parent__isnull=True).select_related(
+        'review', 'user'
+    ).order_by('created_at')
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['review']
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """Comment Detail, Update, Delete"""
+    queryset = Comment.objects.filter(is_active=True)
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+
+    def perform_update(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+@api_view(['POST', 'DELETE'])
+@permission_classes([permissions.IsAuthenticated])
+def comment_like_view(request, pk):
+    """Like/Unlike Comment"""
+    try:
+        comment = Comment.objects.get(pk=pk, is_active=True)
+    except Comment.DoesNotExist:
+        return Response({'error': 'Comment not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    content_type = ContentType.objects.get_for_model(Comment)
+    like, created = Like.objects.get_or_create(
+        user=request.user,
+        content_type=content_type,
+        object_id=comment.id
+    )
+    
+    if request.method == 'DELETE':
+        like.delete()
+        return Response({'message': 'Unliked'}, status=status.HTTP_200_OK)
+    
+    if not created:
+        return Response({'message': 'Already liked'}, status=status.HTTP_200_OK)
+    
+    return Response({'message': 'Liked'}, status=status.HTTP_201_CREATED)

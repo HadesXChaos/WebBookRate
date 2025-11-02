@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cài đặt - BookReview.vn{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 800px;">
+    <h1 style="margin-bottom: 2rem;">Cài đặt</h1>
+    
+    <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-header">
+            <h2>Hồ sơ</h2>
+        </div>
+        <div class="card-body">
+            <form id="profile-form" method="post" enctype="multipart/form-data" action="/api/auth/profile/">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label">Avatar</label>
+                    <input type="file" name="avatar" accept="image/*" class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Bio</label>
+                    <textarea name="bio" class="form-textarea" rows="4" placeholder="Giới thiệu về bạn...">{{ user.profile.bio|default:'' }}</textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Website</label>
+                    <input type="url" name="website" class="form-input" value="{{ user.profile.website|default:'' }}" placeholder="https://...">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-header">
+            <h2>Thông báo</h2>
+        </div>
+        <div class="card-body">
+            <form id="notification-settings-form">
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" name="email_notifications" checked style="width: auto;">
+                        <span>Nhận thông báo qua email</span>
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" name="review_notifications" checked style="width: auto;">
+                        <span>Thông báo khi có review mới</span>
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" name="comment_notifications" checked style="width: auto;">
+                        <span>Thông báo khi có bình luận</span>
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h2>Bảo mật</h2>
+        </div>
+        <div class="card-body">
+            <a href="/password-change/" class="btn btn-outline">Đổi mật khẩu</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

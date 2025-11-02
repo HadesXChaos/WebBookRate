@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ review.title }} - BookReview.vn{% endblock %}
+{% block meta_description %}{{ review.body|truncatewords:30 }}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px;">
+    <!-- Breadcrumb -->
+    <nav style="margin-bottom: 1rem; color: #64748b; font-size: 0.875rem;">
+        <a href="/">Trang chủ</a> / 
+        <a href="/books/{{ review.book.slug }}/">{{ review.book.title }}</a> / 
+        <span>Review</span>
+    </nav>
+    
+    <!-- Review Header -->
+    <article class="review-header" style="margin-bottom: 2rem;">
+        <div class="card">
+            <div class="card-body">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <img src="{% if review.user.profile.avatar %}{{ review.user.profile.avatar.url }}{% else %}{% static 'images/default-avatar.svg' %}{% endif %}" 
+                         alt="{{ review.user.username }}" 
+                         style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover;">
+                    <div style="flex: 1;">
+                        <div><strong><a href="/users/{{ review.user.username }}/">{{ review.user.username }}</a></strong></div>
+                        <div style="color: #64748b; font-size: 0.875rem;">
+                            đánh giá <a href="/books/{{ review.book.slug }}/">{{ review.book.title }}</a>
+                        </div>
+                        <div style="color: #64748b; font-size: 0.875rem;">
+                            {{ review.created_at|date:"d/m/Y H:i" }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="rating-stars" data-rating="{{ review.rating }}"></div>
+                
+                <h1 style="margin-top: 1rem; margin-bottom: 1rem;">{{ review.title }}</h1>
+                
+                {% if user == review.user %}
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                    <a href="/reviews/{{ review.id }}/edit/" class="btn btn-sm btn-outline">Chỉnh sửa</a>
+                    <button class="btn btn-sm btn-outline" onclick="deleteReview({{ review.id }})">Xóa</button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </article>
+    
+    <!-- Review Content -->
+    <article class="review-content" style="margin-bottom: 2rem;">
+        <div class="card">
+            <div class="card-body">
+                <div class="review-body" style="line-height: 1.8; color: #475569;">
+                    {{ review.body_html|safe|default:review.body }}
+                </div>
+                
+                {% if review.images.all %}
+                <div class="review-images" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+                    {% for image in review.images.all %}
+                        <img src="{{ image.image.url }}" alt="Review image {{ forloop.counter }}" 
+                             style="width: 100%; height: auto; border-radius: 0.5rem; cursor: pointer;"
+                             onclick="openImageModal('{{ image.image.url }}')">
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <!-- Review Actions -->
+                <div style="display: flex; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
+                    <button class="btn btn-outline" 
+                            data-like-url="/api/reviews/{{ review.id }}/like/"
+                            id="like-btn">
+                        <span id="like-icon">{% if review.is_liked %}❤️{% else %}🤍{% endif %}</span>
+                        <span id="like-count">{{ review.like_count|default:0 }}</span>
+                    </button>
+                    <button class="btn btn-outline" onclick="shareReview()">
+                        📤 Chia sẻ
+                    </button>
+                    {% if user != review.user %}
+                    <button class="btn btn-outline" onclick="reportReview({{ review.id }})">
+                        🚨 Báo cáo
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </article>
+    
+    <!-- Comments Section -->
+    <section class="comments-section" id="comments">
+        <div class="card">
+            <div class="card-header">
+                <h2>Bình luận ({{ review.comment_count|default:0 }})</h2>
+            </div>
+            <div class="card-body">
+                {% if user.is_authenticated %}
+                <div class="comment-form" style="margin-bottom: 2rem;">
+                    <form id="comment-form">
+                        {% csrf_token %}
+                        <textarea name="body" 
+                                  placeholder="Viết bình luận của bạn..." 
+                                  class="form-textarea"
+                                  rows="4"
+                                  required></textarea>
+                        <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">
+                            Gửi bình luận
+                        </button>
+                    </form>
+                </div>
+                {% else %}
+                <p style="text-align: center; padding: 2rem; color: #64748b;">
+                    <a href="/login/">Đăng nhập</a> để bình luận
+                </p>
+                {% endif %}
+                
+                <div id="comments-list">
+                    <!-- Comments will be loaded via JavaScript -->
+                    <div class="loading">Đang tải...</div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Image Modal -->
+<div id="image-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; align-items: center; justify-content: center; cursor: pointer;" onclick="closeImageModal()">
+    <img id="modal-image" src="" alt="" style="max-width: 90%; max-height: 90%; object-fit: contain;">
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const reviewId = {{ review.id }};
+    
+    // Render stars
+    document.querySelectorAll('[data-rating]').forEach(el => {
+        BookReview.renderStars(parseFloat(el.dataset.rating), el);
+    });
+    
+    // Like button
+    const likeBtn = document.getElementById('like-btn');
+    if (likeBtn) {
+        likeBtn.addEventListener('click', async function() {
+            const url = this.dataset.likeUrl;
+            const icon = document.getElementById('like-icon');
+            const countEl = document.getElementById('like-count');
+            const isLiked = icon.textContent.includes('❤️');
+            
+            try {
+                const method = isLiked ? 'DELETE' : 'POST';
+                await BookReview.utils.apiRequest(url, method);
+                icon.textContent = isLiked ? '🤍' : '❤️';
+                countEl.textContent = isLiked ? parseInt(countEl.textContent) - 1 : parseInt(countEl.textContent) + 1;
+            } catch (err) {
+                BookReview.utils.showAlert('Có lỗi xảy ra. Vui lòng thử lại.', 'error');
+            }
+        });
+    }
+    
+    // Load comments
+    function loadComments() {
+        fetch(`/api/reviews/comments/?review_id=${reviewId}`)
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById('comments-list');
+                if (data.results && data.results.length > 0) {
+                    container.innerHTML = data.results.map(comment => `
+                        <div class="comment-item" style="padding: 1rem; border-bottom: 1px solid #e2e8f0; margin-bottom: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                                <img src="${comment.user?.profile?.avatar || '/static/images/default-avatar.svg'}" 
+                                     alt="${comment.user?.username}" 
+                                     style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                                <div>
+                                    <strong><a href="/users/${comment.user?.username}/">${comment.user?.username}</a></strong>
+                                    <span style="color: #64748b; font-size: 0.875rem; margin-left: 0.5rem;">${new Date(comment.created_at).toLocaleDateString('vi-VN')}</span>
+                                </div>
+                            </div>
+                            <div style="color: #475569; line-height: 1.7;">${comment.body || ''}</div>
+                            <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                                <button class="icon-button" style="font-size: 0.875rem; color: #64748b;">
+                                    ❤️ ${comment.like_count || 0}
+                                </button>
+                                <button class="icon-button" style="font-size: 0.875rem; color: #64748b;" onclick="replyToComment(${comment.id})">
+                                    💬 Trả lời
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #64748b;">Chưa có bình luận nào.</p>';
+                }
+            })
+            .catch(err => {
+                console.error('Error loading comments:', err);
+                document.getElementById('comments-list').innerHTML = '<p>Có lỗi xảy ra khi tải dữ liệu.</p>';
+            });
+    }
+    
+    // Comment form
+    const commentForm = document.getElementById('comment-form');
+    if (commentForm) {
+        commentForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const body = this.querySelector('[name="body"]').value;
+            
+            try {
+                await BookReview.utils.apiRequest(`/api/reviews/${reviewId}/comments/`, 'POST', { body });
+                BookReview.utils.showAlert('Đã thêm bình luận thành công!', 'success');
+                this.reset();
+                loadComments();
+            } catch (err) {
+                BookReview.utils.showAlert('Có lỗi xảy ra. Vui lòng thử lại.', 'error');
+            }
+        });
+    }
+    
+    // Initial load
+    loadComments();
+});
+
+function deleteReview(id) {
+    if (confirm('Bạn có chắc chắn muốn xóa review này?')) {
+        fetch(`/api/reviews/${id}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': BookReview.utils.getCsrfToken()
+            }
+        })
+        .then(res => {
+            if (res.ok) {
+                window.location.href = '/';
+            } else {
+                throw new Error('Failed to delete review');
+            }
+        })
+        .catch(err => {
+            BookReview.utils.showAlert('Có lỗi xảy ra. Vui lòng thử lại.', 'error');
+        });
+    }
+}
+
+function shareReview() {
+    if (navigator.share) {
+        navigator.share({
+            title: '{{ review.title }}',
+            text: '{{ review.body|truncatewords:20 }}',
+            url: window.location.href
+        });
+    } else {
+        // Fallback: copy to clipboard
+        navigator.clipboard.writeText(window.location.href);
+        BookReview.utils.showAlert('Đã copy link vào clipboard!', 'success');
+    }
+}
+
+function reportReview(id) {
+    // Implement report functionality
+    BookReview.utils.showAlert('Tính năng đang phát triển', 'info');
+}
+
+function replyToComment(id) {
+    // Implement reply functionality
+    BookReview.utils.showAlert('Tính năng đang phát triển', 'info');
+}
+
+function openImageModal(url) {
+    document.getElementById('modal-image').src = url;
+    document.getElementById('image-modal').style.display = 'flex';
+}
+
+function closeImageModal() {
+    document.getElementById('image-modal').style.display = 'none';
+}
+</script>
+{% endblock %}
+

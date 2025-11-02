@@ -1,0 +1,282 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ book.title }} - BookReview.vn{% endblock %}
+{% block meta_description %}{{ book.description|truncatewords:30 }}{% endblock %}
+{% block og_title %}{{ book.title }}{% endblock %}
+{% block og_description %}{{ book.description|truncatewords:30 }}{% endblock %}
+{% block og_image %}{% if book.cover %}{{ book.cover.url }}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Book Header -->
+    <section class="book-header" style="display: flex; gap: 2rem; margin-bottom: 2rem; padding: 2rem 0;">
+        <div class="book-cover-large" style="flex-shrink: 0;">
+            <img src="{% if book.cover %}{{ book.cover.url }}{% else %}{% static 'images/default-book.svg' %}{% endif %}" 
+                 alt="{{ book.title }}" 
+                 style="width: 200px; height: auto; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+        </div>
+        
+        <div class="book-info-large" style="flex: 1;">
+            <h1 style="margin-bottom: 0.5rem;">{{ book.title }}</h1>
+            
+            <div class="book-authors" style="margin-bottom: 1rem;">
+                <span style="color: #64748b;">Bởi</span>
+                {% for author in book.authors.all %}
+                    <a href="/api/books/authors/{{ author.slug }}/" style="color: #2563eb; font-weight: 500;">{{ author.name }}</a>{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </div>
+            
+            <div class="book-rating" style="margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem;">
+                <div class="rating-stars" data-rating="{{ book.avg_rating|default:0 }}"></div>
+                <span style="font-size: 1.25rem; font-weight: 600;">{{ book.avg_rating|default:0|floatformat:1 }}</span>
+                <span style="color: #64748b;">({{ book.rating_count|default:0 }} đánh giá)</span>
+            </div>
+            
+            <div class="book-meta" style="margin-bottom: 1.5rem; color: #64748b; font-size: 0.9375rem;">
+                {% if book.year %}Năm xuất bản: {{ book.year }}<br>{% endif %}
+                {% if book.pages %}Số trang: {{ book.pages }}<br>{% endif %}
+                {% if book.publisher %}Nhà xuất bản: <a href="/api/books/publishers/{{ book.publisher.slug }}/">{{ book.publisher.name }}</a><br>{% endif %}
+                {% if book.genres.all %}
+                    Thể loại: 
+                    {% for genre in book.genres.all %}
+                        <a href="/api/books/genres/{{ genre.slug }}/">{{ genre.name }}</a>{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                {% endif %}
+            </div>
+            
+            {% if user.is_authenticated %}
+            <div class="book-actions" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button class="btn btn-primary" id="add-to-shelf-btn">
+                    Thêm vào kệ sách
+                </button>
+                <a href="/reviews/create/?book={{ book.id }}" class="btn btn-outline">
+                    Viết review
+                </a>
+                <button class="btn btn-outline" id="follow-book-btn" data-book-id="{{ book.id }}">
+                    <span id="follow-text">Theo dõi</span>
+                </button>
+            </div>
+            {% else %}
+            <div class="book-actions">
+                <a href="/login/" class="btn btn-primary">Đăng nhập để đánh giá</a>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+    
+    <!-- Book Description -->
+    {% if book.description %}
+    <section class="book-description" style="margin-bottom: 2rem;">
+        <div class="card">
+            <div class="card-body">
+                <h2 style="margin-bottom: 1rem;">Giới thiệu</h2>
+                <p style="line-height: 1.8; color: #475569;">{{ book.description|linebreaks }}</p>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- Rating Distribution -->
+    <section class="rating-distribution" style="margin-bottom: 2rem;">
+        <div class="card">
+            <div class="card-body">
+                <h2 style="margin-bottom: 1rem;">Phân bố điểm</h2>
+                <div id="rating-chart" style="min-height: 200px;">
+                    <!-- Chart will be rendered via JavaScript -->
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Reviews Section -->
+    <section class="reviews-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2>Đánh giá ({{ book.rating_count|default:0 }})</h2>
+            <div style="display: flex; gap: 0.5rem;">
+                <button class="btn btn-sm btn-outline" data-sort="latest">Mới nhất</button>
+                <button class="btn btn-sm btn-outline" data-sort="rating">Điểm cao</button>
+                <button class="btn btn-sm btn-outline" data-sort="helpful">Hữu ích nhất</button>
+            </div>
+        </div>
+        
+        <div id="reviews-list">
+            <!-- Reviews will be loaded via JavaScript -->
+            <div class="loading">Đang tải...</div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 2rem;">
+            <button class="btn btn-outline" id="load-more-reviews">Tải thêm</button>
+        </div>
+    </section>
+</div>
+
+<!-- Add to Shelf Modal -->
+{% if user.is_authenticated %}
+<div id="shelf-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
+    <div class="card" style="max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
+        <div class="card-header">
+            <h3>Thêm vào kệ sách</h3>
+        </div>
+        <div class="card-body" id="shelf-list">
+            <!-- Shelves will be loaded via JavaScript -->
+            <div class="loading">Đang tải...</div>
+        </div>
+        <div class="card-footer">
+            <button class="btn btn-outline" id="close-shelf-modal">Đóng</button>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const bookId = {{ book.id }};
+    
+    // Render stars
+    document.querySelectorAll('[data-rating]').forEach(el => {
+        BookReview.renderStars(parseFloat(el.dataset.rating), el);
+    });
+    
+    // Load reviews
+    function loadReviews(sort = 'latest', page = 1) {
+        const sortParam = sort === 'latest' ? '-created_at' : sort === 'rating' ? '-rating' : '-like_count';
+        fetch(`/api/reviews/?book_id=${bookId}&ordering=${sortParam}&page=${page}`)
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById('reviews-list');
+                if (data.results && data.results.length > 0) {
+                    container.innerHTML = data.results.map(review => `
+                        <div class="card" style="margin-bottom: 1rem;">
+                            <div class="card-body">
+                                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                                    <img src="${review.user?.profile?.avatar || '/static/images/default-avatar.svg'}" 
+                                         alt="${review.user?.username}" 
+                                         style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;">
+                                    <div style="flex: 1;">
+                                        <div><strong><a href="/users/${review.user?.username}/">${review.user?.username}</a></strong></div>
+                                        <div class="rating-stars" data-rating="${review.rating || 0}"></div>
+                                        <div style="color: #64748b; font-size: 0.875rem;">${new Date(review.created_at).toLocaleDateString('vi-VN')}</div>
+                                    </div>
+                                </div>
+                                <h3><a href="/reviews/${review.id}/">${review.title}</a></h3>
+                                <div style="color: #475569; line-height: 1.8;">${review.body_html || review.body || ''}</div>
+                                <div style="display: flex; gap: 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+                                    <button class="icon-button" data-like-url="/api/reviews/${review.id}/like/">
+                                        ${review.is_liked ? '❤️' : '🤍'} <span data-like-count>${review.like_count || 0}</span>
+                                    </button>
+                                    <a href="/reviews/${review.id}/#comments" style="color: #64748b;">💬 ${review.comment_count || 0} bình luận</a>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    // Render stars and init like buttons
+                    container.querySelectorAll('[data-rating]').forEach(el => {
+                        BookReview.renderStars(parseFloat(el.dataset.rating), el);
+                    });
+                    
+                    // Re-init like buttons
+                    document.querySelectorAll('[data-like-url]').forEach(btn => {
+                        btn.addEventListener('click', async function(e) {
+                            e.preventDefault();
+                            const url = this.dataset.likeUrl;
+                            const countEl = this.querySelector('[data-like-count]');
+                            const isLiked = this.innerHTML.includes('❤️');
+                            
+                            try {
+                                const method = isLiked ? 'DELETE' : 'POST';
+                                await BookReview.utils.apiRequest(url, method);
+                                this.innerHTML = isLiked ? `🤍 <span data-like-count>${parseInt(countEl.textContent) - 1}</span>` : `❤️ <span data-like-count>${parseInt(countEl.textContent) + 1}</span>`;
+                            } catch (err) {
+                                BookReview.utils.showAlert('Có lỗi xảy ra. Vui lòng thử lại.', 'error');
+                            }
+                        });
+                    });
+                } else {
+                    container.innerHTML = '<p>Chưa có đánh giá nào.</p>';
+                }
+            })
+            .catch(err => {
+                console.error('Error loading reviews:', err);
+                document.getElementById('reviews-list').innerHTML = '<p>Có lỗi xảy ra khi tải dữ liệu.</p>';
+            });
+    }
+    
+    // Sort buttons
+    document.querySelectorAll('[data-sort]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('[data-sort]').forEach(b => b.classList.remove('btn-primary'));
+            this.classList.add('btn-primary');
+            loadReviews(this.dataset.sort);
+        });
+    });
+    
+    // Initial load
+    loadReviews();
+    
+    {% if user.is_authenticated %}
+    // Add to shelf modal
+    const shelfModal = document.getElementById('shelf-modal');
+    const addToShelfBtn = document.getElementById('add-to-shelf-btn');
+    
+    addToShelfBtn.addEventListener('click', function() {
+        // Load user shelves
+        fetch('/api/shelves/')
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById('shelf-list');
+                if (data.results && data.results.length > 0) {
+                    container.innerHTML = data.results.map(shelf => `
+                        <div style="padding: 1rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; margin-bottom: 0.5rem; cursor: pointer;" 
+                             onclick="addToShelf(${shelf.id}, ${bookId})">
+                            <h4>${shelf.name}</h4>
+                            <p style="color: #64748b; font-size: 0.875rem;">${shelf.book_count || 0} cuốn sách</p>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p>Bạn chưa có kệ sách nào. <a href="/shelves/create/">Tạo kệ sách mới</a></p>';
+                }
+                shelfModal.style.display = 'flex';
+            });
+    });
+    
+    document.getElementById('close-shelf-modal').addEventListener('click', function() {
+        shelfModal.style.display = 'none';
+    });
+    
+    function addToShelf(shelfId, bookId) {
+        fetch(`/api/shelves/${shelfId}/books/${bookId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': BookReview.utils.getCsrfToken()
+            }
+        })
+        .then(res => {
+            if (res.ok) {
+                BookReview.utils.showAlert('Đã thêm vào kệ sách thành công!', 'success');
+                shelfModal.style.display = 'none';
+            } else {
+                throw new Error('Failed to add to shelf');
+            }
+        })
+        .catch(err => {
+            BookReview.utils.showAlert('Có lỗi xảy ra. Vui lòng thử lại.', 'error');
+        });
+    }
+    
+    // Follow book
+    const followBtn = document.getElementById('follow-book-btn');
+    if (followBtn) {
+        followBtn.addEventListener('click', function() {
+            // Implement follow logic
+            BookReview.utils.showAlert('Tính năng đang phát triển', 'info');
+        });
+    }
+    {% endif %}
+});
+</script>
+{% endblock %}
+

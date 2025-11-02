@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Thông báo - BookReview.vn{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 800px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1>Thông báo</h1>
+        <button class="btn btn-outline" id="mark-all-read">Đánh dấu tất cả đã đọc</button>
+    </div>
+    
+    <div id="notifications-list">
+        <div class="loading">Đang tải...</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function loadNotifications() {
+        fetch('/api/social/notifications/')
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById('notifications-list');
+                if (data.results && data.results.length > 0) {
+                    container.innerHTML = data.results.map(notif => `
+                        <div class="card ${notif.is_read ? '' : 'unread'}" style="margin-bottom: 1rem; ${!notif.is_read ? 'border-left: 4px solid #2563eb;' : ''}">
+                            <div class="card-body">
+                                <div style="display: flex; justify-content: space-between; align-items: start;">
+                                    <div style="flex: 1;">
+                                        <p style="margin-bottom: 0.5rem;">${notif.message || notif.content || ''}</p>
+                                        <span style="color: #64748b; font-size: 0.875rem;">${new Date(notif.created_at).toLocaleString('vi-VN')}</span>
+                                    </div>
+                                    ${!notif.is_read ? '<span style="width: 8px; height: 8px; background: #2563eb; border-radius: 50%; flex-shrink: 0; margin-left: 1rem; margin-top: 0.25rem;"></span>' : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p style="text-align: center; padding: 3rem; color: #64748b;">Chưa có thông báo nào.</p>';
+                }
+            })
+            .catch(err => {
+                console.error('Error loading notifications:', err);
+                document.getElementById('notifications-list').innerHTML = '<p>Có lỗi xảy ra khi tải dữ liệu.</p>';
+            });
+    }
+    
+    document.getElementById('mark-all-read').addEventListener('click', function() {
+        fetch('/api/social/notifications/mark-all-read/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': BookReview.utils.getCsrfToken()
+            }
+        })
+        .then(() => {
+            BookReview.utils.showAlert('Đã đánh dấu tất cả đã đọc!', 'success');
+            loadNotifications();
+        })
+        .catch(err => {
+            BookReview.utils.showAlert('Có lỗi xảy ra. Vui lòng thử lại.', 'error');
+        });
+    });
+    
+    loadNotifications();
+});
+</script>
+{% endblock %}
+

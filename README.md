@@ -1,120 +1,208 @@
-# BookRate - Community Book Review Platform
+# BookReview.vn
 
-> **📁 The project is located in the `bookrate-fresh/` directory**
+Web đánh giá sách giúp người dùng khám phá, đọc nhận xét, chấm điểm, theo dõi tiến độ đọc và tương tác cộng đồng.
 
-A comprehensive book review and rating platform built with Laravel 11, featuring reviews, ratings, bookshelves, and social features.
+## Công nghệ
 
-## 🚀 Quick Start
+- **Backend:** Django 4.2 + Django REST Framework
+- **Database:** PostgreSQL
+- **Cache:** Redis
+- **Task Queue:** Celery
+- **Storage:** S3-compatible (MinIO cho development)
+- **Containerization:** Docker + Docker Compose
+
+## Yêu cầu
+
+- Python 3.11+
+- PostgreSQL 15+
+- Redis 7+
+- Docker & Docker Compose (khuyến nghị)
+
+## Cài đặt
+
+### 1. Clone repository
 
 ```bash
-# Navigate to project directory
-cd bookrate-fresh
+git clone <repository-url>
+cd "Web Feedback Book"
+```
 
-# Start Docker containers
+### 2. Tạo môi trường ảo
+
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# hoặc
+venv\Scripts\activate  # Windows
+```
+
+### 3. Cài đặt dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Cấu hình môi trường
+
+Sao chép file `.env.example` thành `.env` và chỉnh sửa:
+
+```bash
+cp .env.example .env
+```
+
+### 5. Chạy migrations
+
+```bash
+python manage.py migrate
+```
+
+### 6. Tạo superuser
+
+```bash
+python manage.py createsuperuser
+```
+
+### 7. Chạy development server
+
+```bash
+python manage.py runserver
+```
+
+## Sử dụng Docker
+
+### Chạy với Docker Compose
+
+```bash
 docker-compose up -d
-
-# The application will be available at:
-# http://localhost:8080
 ```
 
-**That's it!** The application is pre-configured and ready to use.
+Dịch vụ sẽ chạy tại:
+- **Web:** http://localhost:8000
+- **MinIO Console:** http://localhost:9001
+- **PostgreSQL:** localhost:5432
+- **Redis:** localhost:6379
 
----
-
-## 📋 Technology Stack
-
-- **Backend:** Laravel 11 (PHP 8.3+)
-- **Database:** MySQL 8.0
-- **Cache/Search:** Redis + Meilisearch
-- **Frontend:** Blade + TailwindCSS + Alpine.js
-- **Container:** Docker Compose
-
----
-
-## 📚 Documentation
-
-### Start Here
-- 📖 [SUCCESS.md](bookrate-fresh/SUCCESS.md) - Verification guide
-- 📖 [FINAL_STATUS.md](bookrate-fresh/FINAL_STATUS.md) - Current status
-- 📖 [API_EXAMPLES.md](bookrate-fresh/API_EXAMPLES.md) - API usage examples
-
-### Complete Guides
-- 📖 [bookrate-fresh/README.md](bookrate-fresh/README.md) - Full documentation
-- 📖 [requirement.md](requirement.md) - Original requirements
-- 📖 [WHAT_WAS_BUILT.md](WHAT_WAS_BUILT.md) - What's included
-
----
-
-## ✅ Features Implemented
-
-### Core Features (100%)
-- ✅ User registration & authentication
-- ✅ Books catalog with advanced filtering
-- ✅ Reviews & ratings system
-- ✅ Comments on reviews/books
-- ✅ Reactions (helpful/like/insightful)
-- ✅ Custom bookshelves
-- ✅ Reading status tracking
-- ✅ Advanced search (Meilisearch)
-
-### API Endpoints (42+)
-- ✅ Complete CRUD for all entities
-- ✅ RESTful design
-- ✅ Comprehensive validation
-- ✅ Authorization policies
-
-### Database (19 tables)
-- ✅ Normalized schema
-- ✅ Proper indexes
-- ✅ Relationships
-- ✅ Test data seeded
-
----
-
-## 🎯 Project Status
-
-**Overall Progress**: 65% of Full MVP  
-**Backend Completion**: 85%  
-**Ready For**: Frontend development  
-
----
-
-## 🧪 Testing
+### Tạo superuser trong Docker
 
 ```bash
-cd bookrate-fresh
-
-# Login credentials
-Email: admin@bookrate.local
-Password: password
-
-# Test API
-curl http://localhost:8080/books
-curl http://localhost:8080/search?q=potter
+docker-compose exec web python manage.py createsuperuser
 ```
 
----
+### Chạy migrations trong Docker
 
-## 📞 Support
+```bash
+docker-compose exec web python manage.py migrate
+```
 
-- Check [bookrate-fresh/SETUP_NOTES.md](bookrate-fresh/SETUP_NOTES.md) for configuration
-- See [TODO.md](TODO.md) for roadmap
-- Read [CONTRIBUTING.md](CONTRIBUTING.md) for development
+## Cấu trúc dự án
 
----
+```
+.
+├── bookreview/          # Django project settings
+├── users/              # User authentication & profiles
+├── books/              # Books, authors, genres, publishers
+├── reviews/            # Reviews, comments, likes
+├── shelves/            # Shelves & reading progress
+├── social/             # Follow, notifications, collections
+├── moderation/         # Reports & moderator actions
+├── search/             # Search functionality
+├── templates/          # Templates
+├── static/             # Static files
+├── media/              # Media files
+├── requirements.txt    # Python dependencies
+├── docker-compose.yml  # Docker Compose configuration
+└── README.md          # This file
+```
 
-## 📝 License
+## API Endpoints
 
-MIT License - see [LICENSE](LICENSE) file
+### Authentication
+- `POST /api/auth/register/` - Đăng ký
+- `POST /api/auth/login/` - Đăng nhập
+- `POST /api/auth/logout/` - Đăng xuất
+- `GET /api/auth/profile/` - Xem/chỉnh sửa profile
 
----
+### Books
+- `GET /api/books/` - Danh sách sách
+- `GET /api/books/{slug}/` - Chi tiết sách
+- `GET /api/books/authors/` - Danh sách tác giả
+- `GET /api/books/genres/` - Danh sách thể loại
 
-## 🏆 Success!
+### Reviews
+- `GET /api/reviews/` - Danh sách review
+- `POST /api/reviews/` - Tạo review
+- `GET /api/reviews/{id}/` - Chi tiết review
+- `PATCH /api/reviews/{id}/` - Chỉnh sửa review
+- `DELETE /api/reviews/{id}/` - Xóa review
+- `POST /api/reviews/{id}/like/` - Like review
+- `DELETE /api/reviews/{id}/like/` - Unlike review
 
-**Your BookRate platform is ready to use!**
+### Shelves
+- `GET /api/shelves/` - Danh sách kệ sách
+- `POST /api/shelves/` - Tạo kệ sách
+- `GET /api/shelves/{id}/` - Chi tiết kệ sách
+- `POST /api/shelves/{id}/books/{book_id}/` - Thêm sách vào kệ
 
-All core backend features are implemented and tested.
+### Search
+- `GET /api/search/?q=query` - Tìm kiếm
+- `GET /api/search/autocomplete/?q=query` - Autocomplete
 
-Navigate to the `bookrate-fresh/` directory to get started!
+## Tính năng
 
-🚀 **Happy coding!** 📚
+- ✅ Đăng ký/đăng nhập
+- ✅ Quản lý sách (tác giả, thể loại, nhà xuất bản)
+- ✅ Review & Rating
+- ✅ Comment & Like
+- ✅ Shelves (Want to Read, Reading, Read)
+- ✅ Reading Progress
+- ✅ Follow Users/Authors/Books
+- ✅ Notifications
+- ✅ Collections
+- ✅ Search
+- ✅ Reports & Moderation
+- ✅ SEO (sitemap, robots.txt)
+
+## Development
+
+### Chạy tests
+
+```bash
+python manage.py test
+```
+
+### Tạo migrations
+
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
+
+### Chạy Celery worker
+
+```bash
+celery -A bookreview worker -l info
+```
+
+### Chạy Celery beat
+
+```bash
+celery -A bookreview beat -l info
+```
+
+## Production Deployment
+
+1. Cập nhật `DEBUG=False` trong `.env`
+2. Cấu hình `ALLOWED_HOSTS`
+3. Cấu hình database production
+4. Cấu hình S3 storage
+5. Cấu hình email
+6. Setup SSL/TLS
+7. Setup CDN cho static files
+
+## License
+
+MIT License
+
+## Contributors
+
+- Development Team

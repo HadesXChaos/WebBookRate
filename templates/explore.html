@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Khám phá sách - BookReview.vn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="display: grid; grid-template-columns: 250px 1fr; gap: 2rem;">
+        <!-- Filters Sidebar -->
+        <aside class="filters-sidebar" style="position: sticky; top: 80px; height: fit-content;">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Bộ lọc</h3>
+                </div>
+                <div class="card-body">
+                    <form id="filters-form">
+                        <!-- Genre Filter -->
+                        <div class="form-group">
+                            <label class="form-label">Thể loại</label>
+                            <select name="genre" class="form-select" id="genre-filter">
+                                <option value="">Tất cả</option>
+                                <!-- Genres will be loaded via JavaScript -->
+                            </select>
+                        </div>
+                        
+                        <!-- Year Filter -->
+                        <div class="form-group">
+                            <label class="form-label">Năm xuất bản</label>
+                            <select name="year" class="form-select" id="year-filter">
+                                <option value="">Tất cả</option>
+                                <!-- Years will be populated via JavaScript -->
+                            </select>
+                        </div>
+                        
+                        <!-- Rating Filter -->
+                        <div class="form-group">
+                            <label class="form-label">Điểm trung bình</label>
+                            <select name="min_rating" class="form-select">
+                                <option value="">Tất cả</option>
+                                <option value="4.5">4.5+</option>
+                                <option value="4.0">4.0+</option>
+                                <option value="3.5">3.5+</option>
+                                <option value="3.0">3.0+</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Sort -->
+                        <div class="form-group">
+                            <label class="form-label">Sắp xếp</label>
+                            <select name="ordering" class="form-select" id="sort-filter">
+                                <option value="-rating_count">Nhiều đánh giá nhất</option>
+                                <option value="-avg_rating">Điểm cao nhất</option>
+                                <option value="-created_at">Mới nhất</option>
+                                <option value="title">A-Z</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Áp dụng</button>
+                        <button type="reset" class="btn btn-outline" style="width: 100%; margin-top: 0.5rem;">Xóa bộ lọc</button>
+                    </form>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="explore-content">
+            <div style="margin-bottom: 1.5rem;">
+                <h1>Khám phá sách</h1>
+                <p style="color: #64748b;">Tìm kiếm và khám phá những cuốn sách hay nhất</p>
+            </div>
+            
+            <div id="books-list" class="grid grid-4">
+                <!-- Books will be loaded via JavaScript -->
+                <div class="loading">Đang tải...</div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 2rem;">
+                <button class="btn btn-outline" id="load-more-books">Tải thêm</button>
+            </div>
+        </main>
+    </div>
+</div>
+
+<style>
+@media (max-width: 768px) {
+    .container > div {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .filters-sidebar {
+        position: static !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentPage = 1;
+    let currentFilters = {};
+    
+    // Load genres for filter
+    fetch('/api/books/genres/')
+        .then(res => res.json())
+        .then(data => {
+            const select = document.getElementById('genre-filter');
+            if (data.results) {
+                data.results.forEach(genre => {
+                    const option = document.createElement('option');
+                    option.value = genre.slug;
+                    option.textContent = genre.name;
+                    select.appendChild(option);
+                });
+            }
+        });
+    
+    // Load years for filter (last 50 years)
+    const yearSelect = document.getElementById('year-filter');
+    const currentYear = new Date().getFullYear();
+    for (let i = currentYear; i >= currentYear - 50; i--) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = i;
+        yearSelect.appendChild(option);
+    }
+    
+    // Load books
+    function loadBooks(page = 1, reset = false) {
+        if (reset) {
+            currentPage = 1;
+            document.getElementById('books-list').innerHTML = '<div class="loading">Đang tải...</div>';
+        }
+        
+        const params = new URLSearchParams({
+            page: page,
+            ...currentFilters
+        });
+        
+        fetch(`/api/books/?${params}`)
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById('books-list');
+                
+                if (reset) {
+                    container.innerHTML = '';
+                }
+                
+                if (data.results && data.results.length > 0) {
+                    data.results.forEach(book => {
+                        const bookCard = document.createElement('div');
+                        bookCard.className = 'book-card';
+                        bookCard.innerHTML = `
+                            <a href="/books/${book.slug}/">
+                                <div class="book-cover">
+                                    <img src="${book.cover || '/static/images/default-book.svg'}" 
+                                         alt="${book.title}" loading="lazy">
+                                </div>
+                                <div class="book-info">
+                                    <h3 class="book-title">${book.title}</h3>
+                                    <p class="book-author">${book.authors?.[0]?.name || 'N/A'}</p>
+                                    <div class="book-rating">
+                                        <div class="rating-stars" data-rating="${book.avg_rating || 0}"></div>
+                                        <span class="rating-value">${(book.avg_rating || 0).toFixed(1)}</span>
+                                        <span class="rating-count">(${book.rating_count || 0})</span>
+                                    </div>
+                                </div>
+                            </a>
+                        `;
+                        container.appendChild(bookCard);
+                    });
+                    
+                    // Render stars
+                    container.querySelectorAll('[data-rating]').forEach(el => {
+                        BookReview.renderStars(parseFloat(el.dataset.rating), el);
+                    });
+                    
+                    // Check if there are more pages
+                    if (data.next) {
+                        document.getElementById('load-more-books').style.display = 'block';
+                    } else {
+                        document.getElementById('load-more-books').style.display = 'none';
+                    }
+                } else {
+                    if (reset) {
+                        container.innerHTML = '<p>Không tìm thấy sách nào.</p>';
+                    }
+                    document.getElementById('load-more-books').style.display = 'none';
+                }
+            })
+            .catch(err => {
+                console.error('Error loading books:', err);
+                document.getElementById('books-list').innerHTML = '<p>Có lỗi xảy ra khi tải dữ liệu.</p>';
+            });
+    }
+    
+    // Filters form
+    document.getElementById('filters-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        currentFilters = {};
+        
+        for (const [key, value] of formData.entries()) {
+            if (value) {
+                currentFilters[key] = value;
+            }
+        }
+        
+        loadBooks(1, true);
+    });
+    
+    // Load more button
+    document.getElementById('load-more-books').addEventListener('click', function() {
+        currentPage++;
+        loadBooks(currentPage, false);
+    });
+    
+    // Initial load
+    loadBooks(1, true);
+});
+</script>
+{% endblock %}
+

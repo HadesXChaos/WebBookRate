@@ -1,260 +1,213 @@
-# 1. Tổng quan dự án
-**Tên dự án:** BookRate (có thể đổi)
+# Tài liệu Yêu cầu Phần mềm (SRS)
 
-**Mô tả ngắn:** Xây dựng website cộng đồng cho phép người dùng khám phá, đánh giá, nhận xét, xếp hạng và thảo luận về sách. Hệ thống cung cấp trang quản trị để quản lý sách, tác giả, nhà xuất bản, người dùng, nội dung do người dùng tạo (UGC) và báo cáo.
+## 1. Tổng quan
+- **Tên sản phẩm:** BookReview.vn (tạm đặt)
+- **Mục tiêu:** Xây dựng web đánh giá sách giúp người dùng khám phá, đọc nhận xét, chấm điểm, theo dõi tiến độ đọc và tương tác cộng đồng.
+- **Phạm vi:** Ứng dụng web (desktop + mobile web) dùng **Django** (Python) làm backend, Django templating hoặc SPA nhẹ cho frontend; triển khai Postgres; Redis cho cache/queue; Celery cho tác vụ nền; S3-compatible cho lưu trữ.
+- **Stakeholders:** Chủ sản phẩm, Dev, QA, Content Moderator, Người dùng cuối, Đối tác NXB.
 
-**Phạm vi:** Web app responsive (Desktop/Mobile), có API nội bộ cho SPA/mobile sau này.
+## 2. Vai trò & Quyền hạn
+- **Anonymous**: duyệt sách, xem đánh giá công khai, tìm kiếm, đăng ký.
+- **User**: tất cả của Anonymous + tạo/sửa/xoá review của chính mình, chấm điểm, bình luận, theo dõi người dùng/sách, tạo kệ sách (shelf), danh sách (collection), cập nhật tiến độ đọc, báo cáo vi phạm.
+- **Moderator**: duyệt/ẩn review, xoá bình luận vi phạm, xử lý báo cáo, cảnh cáo khoá tài khoản.
+- **Admin**: CRUD toàn hệ thống (qua Django Admin), cấu hình banner, SEO, đề xuất nổi bật, quản trị thẻ/genre.
 
-**Công nghệ đề xuất:**
-- **PHP framework:** Laravel 11 (có thể thay bằng Symfony 7 nếu cần).
-- **CSDL:** MySQL 8.0 / MariaDB 10.6+.
-- **Cache/Search:** Redis, Meilisearch/Elasticsearch cho tìm kiếm full‑text.
-- **Frontend:** Blade + TailwindCSS + Alpine.js (hoặc Vue 3 Inertia.js nếu muốn SPA nhẹ).
-- **Triển khai:** Docker Compose (Nginx + PHP-FPM + MySQL + Redis). CI/CD (GitHub Actions).
+## 3. Phân rã chức năng (high-level)
+1) **Quản lý Sách & Metadata**: Tác giả, thể loại, NXB, ấn bản, thẻ, ISBN.
+2) **Đánh giá & Xếp hạng**: Review (markdown), rating 1–5, like, bình luận, đính kèm hình ảnh trích dẫn.
+3) **Tìm kiếm & Khám phá**: full-text, lọc theo thể loại, năm, điểm trung bình, xu hướng.
+4) **Kệ sách cá nhân (Shelves)**: Want-to-Read, Reading, Read; kệ tuỳ chỉnh.
+5) **Tiến độ đọc**: cập nhật %/trang, mốc thời gian, biểu đồ cá nhân.
+6) **Theo dõi & Thông báo**: follow user/author/book, thông báo khi có review/bài mới.
+7) **Danh sách/Collection**: Top 10 thể loại X, Sách 2025 nên đọc, v.v.
+8) **Quản trị & Kiểm duyệt**: báo cáo nội dung, log moderator, dashboard.
+9) **Tích hợp**: đăng nhập Google/Facebook/Apple; import sách qua CSV/ISBN; OpenLibrary API (tuỳ chọn).
+10) **SEO & Social**: OpenGraph, sitemap, canonical, slug.
 
-**Đối tượng sử dụng:** Khách vãng lai, Người dùng đã đăng ký, Biên tập viên/Moderator, Quản trị viên.
+## 4. User Stories (tiêu chí chấp nhận kèm ID)
+- **US-REG-01**: Là người dùng, tôi có thể đăng ký/đăng nhập (email + OAuth) để tạo review. *AC:* OTP/Email verify; password reset hoạt động; rate-limit 5 req/phút.
+- **US-BOOK-01**: Tôi có thể tìm sách theo tên, tác giả, ISBN. *AC:* tìm trong < 500ms cache hit; hỗ trợ gợi ý autocomplete.
+- **US-REV-01**: Tôi có thể viết review (markdown) với rating 1–5. *AC:* bắt buộc tối thiểu 100 ký tự; 1 rating/user/sách; anti-spam.
+- **US-REV-02**: Tôi có thể chỉnh sửa/xoá review của mình. *AC:* lưu lịch sử sửa.
+- **US-CMT-01**: Tôi có thể bình luận dưới review. *AC:* hỗ trợ mention @username; rate-limit.
+- **US-LIKE-01**: Tôi có thể like review/bình luận. *AC:* toggle like idempotent.
+- **US-SHL-01**: Tôi có thể thêm sách vào kệ Want-to-Read/Reading/Read. *AC:* không trùng bản ghi; cập nhật trạng thái.
+- **US-PROG-01**: Tôi cập nhật tiến độ đọc theo trang hoặc %. *AC:* vẽ biểu đồ tuần; không vượt tổng trang.
+- **US-FLW-01**: Tôi follow tác giả/người dùng/sách để nhận thông báo. *AC:* có thể tắt từng loại noti.
+- **US-COLL-01**: Tôi tạo collection công khai/riêng tư. *AC:* kéo-thả sắp xếp; mô tả; ảnh đại diện.
+- **US-RPT-01**: Tôi báo cáo nội dung vi phạm. *AC:* Moderator nhận queue; SLA xử lý 48h.
+- **US-SEO-01**: Google index trang chi tiết sách. *AC:* sitemap.xml, robots.txt, schema.org Book/Review.
 
----
+## 5. Yêu cầu chức năng chi tiết
+### 5.1 Auth & Profile
+- Đăng ký email (verify link), đăng nhập, quên mật khẩu.
+- OAuth: Google/Facebook/Apple (django-allauth hoặc social-auth).
+- Hồ sơ: avatar, bio, liên kết mạng xã hội, khu vực, ngôn ngữ, cài đặt thông báo.
 
-# 2. Mục tiêu & KPI
-- Tăng tỷ lệ đăng ký tài khoản ≥ 15%/tháng trong 3 tháng đầu.
-- Tỷ lệ nội dung do người dùng tạo (đánh giá/nhận xét) ≥ 0.8 bài/người dùng hoạt động/tháng.
-- Thời gian phản hồi (TTFB) < 300ms cho trang cache; < 1.5s cho truy vấn chưa cache.
-- 99.9% uptime (SLA nội bộ).
+### 5.2 Sách & Ấn bản
+- Sách: tiêu đề, mô tả, năm xuất bản, trang, bìa, ISBN13, thể loại, tag.
+- Ấn bản: ràng buộc với Sách + NXB + định dạng (paperback/hardcover/ebook/audiobook), ngôn ngữ.
+- Tác giả/NXB/Thể loại: CRUD, slug duy nhất.
+- Tự động tính **điểm trung bình** và **đếm review** theo sách.
 
----
+### 5.3 Review/Rating/Comment
+- Review: markdown + sanitized HTML, đính kèm tối đa 5 ảnh, trạng thái (public/draft/hidden), lịch sử chỉnh sửa.
+- Rating: 1–5 (0.5 step tuỳ chọn), mỗi user 1 rating/sách; cho phép update.
+- Comment: thread 2 cấp (comment + reply), mention, hashtag.
+- Like: cho review & comment; soft-delete.
 
-# 3. Phân hệ & Tính năng chính
-## 3.1. Quản lý người dùng & xác thực
-- Đăng ký/Đăng nhập (email + mật khẩu, OAuth: Google, Facebook – tùy chọn giai đoạn 2).
-- Xác thực email, đặt lại mật khẩu, đổi email, đổi mật khẩu.
-- Hồ sơ người dùng: avatar, bio ngắn, liên kết mạng xã hội, danh sách kệ sách (bookshelf), trạng thái đọc (đang đọc/đã đọc/muốn đọc/bỏ dở), thống kê cá nhân.
-- Quyền & vai trò: Guest, User, Moderator, Admin.
-- Quản lý chặn người dùng, khóa/bật tài khoản, rate limit hành vi (đăng nhận xét, gửi báo cáo).
+### 5.4 Tìm kiếm & Khám phá
+- Tìm kiếm text theo Sách/Tác giả/Review (Postgres trigram/Full Text hoặc Elasticsearch tuỳ chọn).
+- Bộ lọc: thể loại, năm, ngôn ngữ, điểm trung bình, số review, sắp xếp theo trending/mới/điểm cao.
+- Trang "Khám phá": thịnh hành tuần, mới đăng, đề xuất theo hành vi.
 
-## 3.2. Danh mục sách
-- Thực thể: Sách, Tác giả, Dịch giả (optional), Nhà xuất bản, Thể loại/Tag, Series, Ấn bản (Edition), Ngôn ngữ, ISBN-10/13, năm xuất bản, số trang, bìa, mô tả, trích dẫn.
-- CRUD cho Admin/Moderator; gợi ý chỉnh sửa từ cộng đồng (moderation queue).
-- Nhập liệu: nhập thủ công, import CSV; tích hợp tra cứu ngoài (giai đoạn 2 — module adapter Google Books API/Open Library).
+### 5.5 Kệ sách & Tiến độ
+- Mặc định 3 kệ hệ thống; cho phép kệ tuỳ chỉnh (public/private).
+- Tiến độ: lưu snapshot (date, page/percent); hiển thị biểu đồ.
 
-## 3.3. Đánh giá & Nhận xét (UGC)
-- Người dùng cho **điểm số** (1–5 sao, cho phép nửa sao) **một lần/ấn bản**; có thể chỉnh sửa.
-- **Review dài** (markdown cơ bản), **comment** tại review và tại trang sách.
-- **Reactions** (hữu ích/cảm ơn) cho review; tính điểm uy tín (reputation) tác giả review.
-- Gắn **spoiler tag**; ẩn nội dung spoiler mặc định.
-- Báo cáo vi phạm (report) với lý do; moderation tools.
+### 5.6 Thông báo
+- Loại: có người theo dõi bạn, review mới từ người theo dõi, bình luận/mention, like, nội dung bị phản hồi.
+- Kênh: onsite + email; tắt theo loại.
 
-## 3.4. Khám phá & Tìm kiếm
-- Tìm kiếm nhanh theo tiêu đề/tác giả/ISBN; nâng cao theo thể loại, năm xuất bản, ngôn ngữ, NXB, số trang, xếp hạng trung bình, số lượng đánh giá.
-- Trang **Khám phá**: sách thịnh hành, sách mới, xếp hạng theo thể loại, đề xuất theo lịch sử đọc.
-- Bộ lọc, sắp xếp (mới nhất, nổi bật, điểm trung bình cao, nhiều đánh giá nhất).
+### 5.7 Báo cáo & Kiểm duyệt
+- Người dùng gửi report với lý do + ghi chú.
+- Moderator dashboard: hàng đợi, bộ lọc, hành động (ẩn, xoá, cảnh cáo), nhật ký.
 
-## 3.5. Kệ sách & Trạng thái đọc
-- Tạo kệ tùy biến (ví dụ: “Sách mua 2025”, “Fantasy yêu thích”).
-- Mark trạng thái: muốn đọc/đang đọc/đã đọc/bỏ dở; trường ngày bắt đầu/kết thúc, ghi chú, số lần đọc lại.
-- Thống kê tiến độ: số trang/ngày, biểu đồ (giai đoạn 2 bằng chart lib phía client).
+### 5.8 Quản trị
+- Django Admin: model quản trị đầy đủ + list_filter/search.
+- Trang cấu hình: banner, từ cấm, trọng số đề xuất, meta SEO mặc định.
 
-## 3.6. Thông báo & Theo dõi
-- Theo dõi tác giả/sách/người dùng.
-- Thông báo trong site (in‑app) khi có bình luận mới, phản hồi, sách mới cùng series, review từ người theo dõi.
-- Email digest (tùy chọn bật/tắt) hằng tuần.
+## 6. Yêu cầu phi chức năng
+- **Hiệu năng:** P95 < 800ms cho trang động; P95 < 200ms cache hit. Tải 200 RPS (đọc) và 20 RPS (ghi) ở giai đoạn đầu.
+- **Bảo mật:** CSRF, XSS, SSRF, SQLi; mật khẩu Argon2/BCrypt; 2FA tuỳ chọn; reCAPTCHA/Turnstile; rate-limit bằng Redis.
+- **Khả dụng:** 99.5% giai đoạn MVP; backup DB hằng ngày, giữ 7/30/365.
+- **Khả mở rộng:** tách dịch vụ tìm kiếm; dùng CDN cho media; cache layer (Redis) cho danh mục, top list.
+- **Khả dụng trên mobile:** responsive; Lighthouse Performance ≥ 80, Accessibility ≥ 95.
+- **Tuân thủ:** GDPR-like (export/delete data), cookie consent, ToS/Privacy.
 
-## 3.7. Quản trị (Admin)
-- Dashboard: tổng số user, review, bình luận, báo cáo, sách chờ duyệt.
-- Moderation queue: duyệt/chỉnh sửa/gộp trùng sách, xử lý report, tạm ẩn nội dung.
-- Quản lý banner, trang tĩnh (Giới thiệu/FAQ/Điều khoản/Chính sách riêng tư).
-- Công cụ SEO: chỉnh slug, meta tags, sitemap.xml, robots.txt.
-- Nhật ký hệ thống (audit log) theo hành động Admin/Moderator.
+## 7. Mô hình dữ liệu (đề xuất)
+- **User** (Django auth), **Profile**(1-1 User)
+- **Author(id, name, slug, bio)**
+- **Genre(id, name, slug, parent_id)**
+- **Publisher(id, name, slug)**
+- **Book(id, title, slug, description, year, pages, language, cover, avg_rating, rating_count, publisher_id)**
+- **BookEdition(id, book_id, isbn13, format, published_at, language)**
+- **BookAuthor(book_id, author_id)** (N-N)
+- **Tag(id, name, slug)**, **BookTag(book_id, tag_id)**
+- **Review(id, book_id, user_id, title, body_md, body_html, rating, status, created_at, updated_at, edited_at)**
+- **ReviewImage(id, review_id, url)**
+- **Comment(id, review_id, user_id, parent_id, body, status)**
+- **Like(id, user_id, content_type, object_id, created_at)**
+- **Shelf(id, user_id, name, system_type: {WTR, READING, READ}|null, visibility)**
+- **ShelfItem(id, shelf_id, book_id, added_at)**
+- **ReadingProgress(id, user_id, book_id, page, percent, created_at)**
+- **Follow(id, follower_id, target_type{user,author,book}, target_id)**
+- **Notification(id, user_id, type, payload(json), is_read, created_at)**
+- **Report(id, reporter_id, target_type, target_id, reason, note, status)**
+- **ModeratorAction(id, moderator_id, action, target_type, target_id, note, created_at)**
 
----
+> Gợi ý: dùng GenericForeignKey cho Like/Report/ModeratorAction; dùng soft delete (is_active) cho nội dung.
 
-# 4. Phân quyền & Ma trận quyền
-| Hành động | Guest | User | Moderator | Admin |
-|---|---|---|---|---|
-| Xem sách, review | ✓ | ✓ | ✓ | ✓ |
-| Tạo review/đánh giá |  | ✓ | ✓ | ✓ |
-| Bình luận/reaction |  | ✓ | ✓ | ✓ |
-| Báo cáo vi phạm |  | ✓ | ✓ | ✓ |
-| Sửa/Xóa review của người khác |  |  | ✓ (theo phạm vi) | ✓ |
-| CRUD Sách/Tác giả |  |  | ✓ | ✓ |
-| Quản lý user |  |  |  | ✓ |
+## 8. API/URL (REST trước, GraphQL tuỳ chọn)
+- `GET /books/?q=&genre=&year=&ordering=` – danh sách sách + filter.
+- `GET /books/{slug}/` – chi tiết sách + điểm trung bình + top reviews.
+- `POST /books/` – (admin) tạo sách.
+- `GET /authors/{slug}/` – chi tiết tác giả + sách liên quan.
+- `GET /reviews/?book=&user=&ordering=` – danh sách review.
+- `POST /reviews/` – tạo review (body_md, rating, images[]).
+- `PATCH /reviews/{id}/`, `DELETE /reviews/{id}/` – sửa/xoá của chủ sở hữu.
+- `POST /reviews/{id}/like`, `DELETE /reviews/{id}/like` – like/unlike.
+- `GET /reviews/{id}/comments`, `POST /reviews/{id}/comments`.
+- `POST /reports/` – báo cáo vi phạm.
+- `GET /me/shelves`, `POST /me/shelves` – kệ cá nhân; `POST /me/shelves/{id}/items`.
+- `POST /progress/` – cập nhật tiến độ đọc.
+- `GET /feed/` – bản tin theo follow.
+- `GET /notifications/`, `PATCH /notifications/{id}` – đánh dấu đã đọc.
+- Auth: `POST /auth/register`, `/auth/login`, `/auth/logout`, `/auth/oauth/`.
 
----
+## 9. Giao diện (wireframe mô tả)
+- **Trang chủ:** hero + ô tìm kiếm; khối "Thịnh hành", "Review mới", "Đề xuất theo bạn".
+- **Trang sách:** bìa, metadata, nút Thêm vào kệ; biểu đồ phân bố điểm; review nổi bật, tab Ấn bản.
+- **Trang review:** tiêu đề, nội dung markdown render, ảnh đính kèm, like, chia sẻ, bình luận thread.
+- **Trang người dùng:** avatar, bio, kệ sách công khai, collection, hoạt động gần đây.
+- **Trang khám phá:** filter trái, danh sách thẻ/genre, sort.
+- **Trang moderator:** hàng đợi report, bộ lọc, bảng chi tiết, quick actions.
 
-# 5. Yêu cầu phi chức năng
-- **Bảo mật:** OWASP Top 10; CSRF, XSS, SQLi bảo vệ mặc định Laravel; mật khẩu bcrypt/argon2id; 2FA (giai đoạn 2). Rate limiting & throttling.
-- **Hiệu năng:** Cache view/route/query; phân trang mọi listing; index DB bắt buộc; queue cho email/thông báo; CDN cho ảnh bìa.
-- **Khả năng mở rộng:** Triển khai scale‑out (Nginx + nhiều PHP‑FPM), tách search engine, object storage (S3/minio) cho ảnh.
-- **Khả dụng:** Backup hàng ngày; snapshot DB; phục hồi RTO ≤ 2h, RPO ≤ 15m (giai đoạn 2 với binlog).
-- **Khả dụng đa ngôn ngữ (i18n):** VN/EN; định dạng số/ngày theo locale.
-- **Khả năng truy cập (a11y):** Tuân theo WCAG 2.1 AA cơ bản.
-- **SEO:** SSR, meta OpenGraph/Twitter, sitemap, canonical, breadcrumbs, URL thân thiện.
-- **Logging & Quan sát:** Monolog + JSON log; request ID; metrics Prometheus (giai đoạn 2); Sentry/Elastic APM.
+## 10. Luồng nghiệp vụ chính
+1) **Tạo review:** Auth → truy cập sách → viết review + rating → preview → publish → cập nhật avg_rating (signal) → thông báo cho follower.
+2) **Bình luận/Like:** Post comment → gửi noti cho chủ review; Like toggle idempotent.
+3) **Theo dõi:** Follow → feed cập nhật → có thể unfollow.
+4) **Báo cáo & duyệt:** User gửi report → Moderator xử lý → ghi log hành động.
 
----
+## 11. Quy tắc & Ràng buộc
+- Mỗi user chỉ một rating/sách; sửa rating cập nhật lại avg.
+- Review tối thiểu 100 ký tự; cấm từ nhạy cảm (configurable); ảnh ≤ 2MB/tấm.
+- Slug duy nhất; ISBN13 chuẩn hoá; pages > 0.
 
-# 6. Kiến trúc & luồng
-- **Kiến trúc:** MVC (Laravel). Module hoá theo domain: Catalog, Review, User, Moderation, Notification.
-- **Luồng điển hình:**
-  1) User tìm sách → mở trang sách.
-  2) Đăng nhập → chấm sao + viết review (markdown, spoiler optional).
-  3) Review vào moderation soft‑rules (chặn từ nhạy cảm) → nếu sạch, public; nếu vi phạm, vào hàng đợi.
-  4) Người khác comment/reaction → chủ review nhận thông báo.
+## 12. Hiệu năng & Cache
+- Cache trang sách (key: book:{id}) 60s; cache danh mục 5 phút.
+- Precompute top books tuần (Celery job mỗi 6h).
+- Dùng select_related/prefetch_related tránh N+1.
 
----
+## 13. Bảo mật & Quyền riêng tư
+- CSRF, XSS sanitize (bleach) cho markdown.
+- Tách quyền Moderator qua group/permission Django.
+- Nhật ký audit cho hành động moderator và admin.
+- Ẩn email user; cho phép export dữ liệu cá nhân (GDPR-like).
 
-# 7. Thiết kế dữ liệu (DB schema đề xuất)
-> Kiểu dữ liệu dùng MySQL 8.0, `utf8mb4`.
+## 14. Kiểm thử (test cases mẫu)
+- **TC-REV-01:** Tạo review hợp lệ → 201; body_html được sanitize; avg_rating tăng chính xác.
+- **TC-REV-02:** Review <100 ký tự → 400.
+- **TC-RATE-01:** 2 lần rating cùng user/sách → update thay vì tạo mới.
+- **TC-SEARCH-01:** tìm theo tiêu đề có dấu/không dấu khớp.
+- **TC-AUTH-01:** reset password gửi email thành công.
+- **TC-NOTI-01:** like review gửi noti 1 lần.
+- **TC-REPORT-01:** report tạo ticket; moderator thấy trong queue.
 
-**Bảng chính:**
-- `users(id, name, email, password_hash, avatar_url, bio, role, is_active, email_verified_at, created_at, updated_at)`
-- `authors(id, name, slug, bio, birthday, country, created_at, updated_at)`
-- `publishers(id, name, slug, website, created_at, updated_at)`
-- `series(id, name, slug, description)`
-- `books(id, title, slug, author_id, publisher_id, series_id, language, published_year, pages, isbn10, isbn13, cover_url, description, avg_rating, ratings_count, reviews_count, created_at, updated_at)`
-- `book_tags(id, name, slug)`
-- `book_tag_pivot(book_id, tag_id)` (PK: book_id+tag_id)
-- `editions(id, book_id, format, isbn10, isbn13, published_year, pages, cover_url)`
-- `reviews(id, user_id, book_id, edition_id, title, body_md, body_html, rating, is_spoiler, status[ pending|published|hidden ], helpful_count, created_at, updated_at)`
-- `comments(id, user_id, review_id/null, book_id/null, body_md, body_html, is_spoiler, status, created_at, updated_at)`
-- `reactions(id, user_id, review_id, type[helpful|like|insightful], created_at)` (unique: user_id+review_id)
-- `bookshelves(id, user_id, name, is_public)`
-- `bookshelf_items(id, bookshelf_id, book_id, note, added_at)` (unique: bookshelf_id+book_id)
-- `reading_statuses(id, user_id, book_id, status[want|reading|read|abandoned], started_at, finished_at, progress_pages)` (unique: user_id+book_id)
-- `follows(id, follower_id, target_user_id/null, author_id/null, book_id/null, created_at)`
-- `notifications(id, user_id, type, data(JSON), read_at, created_at)`
-- `reports(id, reporter_id, target_type, target_id, reason, note, status[open|reviewing|resolved], created_at, updated_at)`
-- `audit_logs(id, actor_id, action, target_type, target_id, meta JSON, created_at)`
+## 15. Triển khai & Môi trường
+- **Dev:** Django, Poetry/venv, Postgres, Redis, MinIO (S3), Docker Compose.
+- **Prod:** Docker + Gunicorn + Nginx, Auto TLS, CDN cho media; Postgres managed; Redis managed; Celery worker + beat.
+- **Env vars:** SECRET_KEY, DB_URL, REDIS_URL, EMAIL_BACKEND, S3 creds, SOCIAL_KEYS.
 
-**Chỉ mục khuyến nghị:**
-- `books(slug)`, `authors(slug)`, `publishers(slug)`, `book_tags(slug)` unique.
-- `reviews(book_id, rating)`, `reviews(user_id)`, `comments(book_id)`, `comments(review_id)`.
-- Full‑text: `books(title, description)`, `authors(name)`, `reviews(title, body_html)` nếu dùng MySQL InnoDB FTS (hoặc đẩy qua search engine).
+## 16. Logging & Giám sát
+- Django logging JSON; request ID (correlation-id);
+- Sentry error tracking; Prometheus metrics (RQPS, latency, Celery job duration); Health check `/healthz`.
 
----
+## 17. SEO/Analytics
+- Tạo sitemap động (books, authors, reviews); robots.txt; Schema.org (Book, Review, Person).
+- OpenGraph/Twitter Card; URL canonical; phân trang có rel=next/prev.
+- Google Analytics/GTM (opt-in).
 
-# 8. API nội bộ (REST)
-Tiền tố `/api/v1` (JWT cho user, token riêng cho admin tool).
+## 18. i18n & Accessibility
+- Đa ngôn ngữ (vi, en); gettext.
+- ARIA roles; contrast ≥ WCAG AA; keyboard navigation.
 
-**Auth**
-- `POST /auth/register` → 201 {user}
-- `POST /auth/login` → 200 {token}
-- `POST /auth/logout` → 204
-- `POST /auth/password/forgot` → 204
-- `POST /auth/password/reset` → 204
+## 19. Nhập liệu & Tích hợp
+- Import CSV: sách cơ bản (title, author, isbn, year, pages).
+- OpenLibrary/Google Books API: tra cứu metadata theo ISBN (tối ưu hoá qua Celery job).
 
-**Catalog**
-- `GET /books` (q, filters, sort, page) → {items, meta}
-- `GET /books/{id|slug}` → {book, editions, stats, top_reviews}
-- `GET /authors` / `GET /authors/{id|slug}`
-- `GET /tags` / `GET /tags/{slug}/books`
+## 20. Lộ trình (MVP → V1)
+- **MVP (6–8 tuần):** Auth, Sách/Author/Genre, Review/Rating, Comment/Like, Shelves hệ thống, Tìm kiếm cơ bản, SEO cơ bản, Admin, Báo cáo vi phạm tối thiểu.
+- **V1:** Shelves tuỳ chỉnh, Tiến độ đọc, Collections, Noti email, Moderator dashboard đầy đủ, Đề xuất cá nhân hoá, i18n.
 
-**UGC**
-- `POST /books/{id}/ratings` → 200 {avg_rating}
-- `POST /books/{id}/reviews` → 201 {review}
-- `PATCH /reviews/{id}` / `DELETE /reviews/{id}`
-- `POST /reviews/{id}/comments` → 201 {comment}
-- `POST /reviews/{id}/reactions` → 200 {helpful_count}
-- `POST /reports` → 201 {report}
+## 21. Rủi ro & Giảm thiểu
+- Spam/abuse → rate limit + moderation queue + từ cấm.
+- Hiệu năng tìm kiếm → chuyển ES khi data > 200k bản ghi.
+- Bản quyền ảnh bìa → sử dụng API/nguồn có license; hoặc yêu cầu người dùng xác nhận quyền sử dụng.
 
-**Social**
-- `POST /follow` / `DELETE /follow`
-- `GET /notifications` → {items}
-- `GET /me/bookshelves` / `POST /me/bookshelves` / `POST /me/bookshelves/{id}/items`
-- `POST /me/reading-status`
+## 22. Phụ lục: Migrations sơ bộ (Django)
+1. users/profile
+2. authors/genres/publishers/tags
+3. books/book_editions/book_authors/book_tags
+4. reviews/ratings/review_images
+5. comments/likes
+6. shelves/shelf_items
+7. reading_progress
+8. follow/notifications
+9. reports/moderator_actions
 
-**Admin**
-- `GET /admin/dashboard`
-- `POST /admin/books` / `PATCH /admin/books/{id}` / `DELETE /admin/books/{id}`
-- `POST /admin/moderation/{type}/{id}/status`
-
----
-
-# 9. Giao diện (UI/UX)
-## 9.1. Trang chính
-- Thanh tìm kiếm nổi bật, carousel sách nổi bật, danh sách “Xu hướng”, “Mới cập nhật”, “Xếp hạng cao”.
-
-## 9.2. Trang sách
-- Ảnh bìa, metadata, điểm trung bình, phân phối đánh giá (biểu đồ cột), nút “Đánh giá”, “Thêm vào kệ”, trạng thái đọc.
-- Tab: Tổng quan | Review | Bình luận | Ấn bản | Trích dẫn.
-
-## 9.3. Trang viết review
-- Trình soạn thảo markdown (preview), checkbox **Spoiler**, chọn ấn bản, gợi ý quy tắc cộng đồng.
-
-## 9.4. Trang hồ sơ cá nhân
-- Avatar, bio, thống kê (số sách đã đọc/năm, điểm TB), danh sách kệ công khai, hoạt động gần đây.
-
-## 9.5. Quản trị
-- Bảng điều khiển, hàng đợi kiểm duyệt, CRUD danh mục, trang cài đặt SEO.
-
-**Thiết kế responsive**, dark mode (giai đoạn 2).
-
----
-
-# 10. Quy tắc kinh doanh & ràng buộc
-- Mỗi người dùng chỉ được 1 rating/1 ấn bản; cho phép sửa nhưng ghi nhật ký.
-- Review phải ≥ 50 ký tự; comment ≥ 5 ký tự; chống spam (akismet-like optional, throttle).
-- Nội dung có thể bị ẩn khi bị báo cáo ≥ N lần (ngưỡng cấu hình) cho đến khi Moderator xử lý.
-- Tên sách/slug duy nhất; sách trùng có thể gộp (merge) và chuyển hướng slug cũ → mới.
-
----
-
-# 11. Bảo mật & riêng tư
-- Bắt buộc HTTPS, HSTS, secure cookie, SameSite=Lax/Strict.
-- Chính sách dữ liệu: cho phép tải xuống dữ liệu cá nhân, xoá tài khoản (GDPR‑like).
-- Phân tách quyền theo policy/gate Laravel; audit log mọi hành động quan trọng.
-
----
-
-# 12. Kiểm thử & chấp nhận
-- **Unit test:** Model, Service, Policy.
-- **Feature test:** Auth, CRUD review, rating, comment, search.
-- **API contract test:** OpenAPI/Swagger.
-- **Performance test:** k6/JMeter: trang sách P95 < 800ms (không cache), P99 < 1.2s.
-- **Bảo mật:** kiểm tra OWASP ZAP, dependency audit (Composer audit).
-
-**Tiêu chí nghiệm thu (UAT):**
-- Tạo tài khoản, xác thực email thành công.
-- Thêm 200k bản ghi sách qua import CSV, tìm kiếm vẫn đáp ứng P95 < 1.2s (with index/search engine).
-- Viết/sửa/xoá review, đánh dấu spoiler, người khác thấy bị ẩn spoiler.
-- Moderator xử lý report → thay đổi trạng thái hiển thị tức thời.
-
----
-
-# 13. Lộ trình triển khai (Roadmap gợi ý)
-- **Sprint 1 (2 tuần):** Auth cơ bản, Catalog tối thiểu (Book/Author), trang sách, rating đơn giản.
-- **Sprint 2 (2 tuần):** Review/Comment/Reaction, Search cơ bản, Bookshelf/Reading status.
-- **Sprint 3 (2 tuần):** Admin dashboard, Moderation queue, SEO cơ bản.
-- **Sprint 4 (2 tuần):** Thông báo in‑app, Email digest, Import CSV, tối ưu hiệu năng.
-- **Giai đoạn 2:** OAuth, Recommendation, External API import, Dark mode, Mobile PWA.
-
----
-
-# 14. DevOps & vận hành
-- Docker Compose mẫu: `nginx`, `app`, `db`, `redis`, `meilisearch`.
-- CI/CD: chạy test, static analysis (PHPStan Psalm), deploy tới staging → production.
-- Migrations & seeders; bật Telescope/Debugbar ở local.
-- Backup chiến lược: full dump hằng ngày + binlog; lưu object storage 7–30 ngày.
-
----
-
-# 15. Tài liệu & bàn giao
-- Tài liệu kiến trúc (ADR), ERD, OpenAPI, Hướng dẫn cài đặt & .env mẫu.
-- Bộ mock data (CSV) ~1k sách để UAT.
-
----
-
-# 16. Phụ lục
-## 16.1. Trường hợp sử dụng (User Stories – mẫu)
-- *Là người dùng*, tôi muốn tìm sách theo tên hoặc tác giả để nhanh chóng mở trang chi tiết.
-- *Là người dùng*, tôi muốn chấm điểm và viết review có spoiler để chia sẻ trải nghiệm đọc.
-- *Là moderator*, tôi muốn xem báo cáo vi phạm và ẩn nội dung trong 1 click.
-- *Là admin*, tôi muốn gộp 2 sách trùng để tránh dữ liệu rác.
-
-## 16.2. Quy ước mã & chất lượng
-- PSR-12 coding style, PHP 8.3.
-- Repository/Service pattern cho logic nghiệp vụ; Form Request cho validate.
-- DTO (spatie/laravel-data) cho payload; Policy/Gate cho uỷ quyền; Observer cho thống kê.
-
-> **Ghi chú:** Tài liệu này có thể dùng làm SRS/PRD khởi đầu và được tinh chỉnh theo phản hồi stakeholder. Có thể chuyển đổi sang checklist thực thi cho từng sprint.
+## 23. Định nghĩa chất lượng hoàn thành (DoD)
+- 90% test coverage domain chính; lint/format CI pass; security checks pass.
+- Docs: README, ENV example, hướng dẫn deploy.
+- Zero P0 bug mở khi release.
 

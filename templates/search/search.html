@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tìm kiếm - BookReview.vn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="margin-bottom: 2rem;">
+        <h1>Tìm kiếm</h1>
+        <form class="search-form" action="{% url 'search' %}" method="get" style="max-width: 600px; margin-top: 1rem;">
+            <input 
+                type="search" 
+                name="q" 
+                value="{{ query }}"
+                placeholder="Tìm kiếm sách, tác giả, review..." 
+                aria-label="Tìm kiếm"
+                class="search-input"
+                style="width: 100%;"
+            >
+            <button type="submit" class="search-button" aria-label="Tìm kiếm">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16z" stroke="currentColor" stroke-width="2"/>
+                    <path d="m19 19-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </form>
+    </div>
+    
+    {% if query %}
+    <div id="search-results">
+        <div class="loading">Đang tìm kiếm...</div>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 3rem; color: #64748b;">
+        <p>Nhập từ khóa để tìm kiếm sách, tác giả hoặc review.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if query %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const query = '{{ query }}';
+    
+    // Search across books, authors, reviews
+    Promise.all([
+        fetch(`/api/search/?q=${encodeURIComponent(query)}`),
+        fetch(`/api/books/?search=${encodeURIComponent(query)}&page_size=10`),
+        fetch(`/api/reviews/?search=${encodeURIComponent(query)}&page_size=10`)
+    ])
+    .then(responses => Promise.all(responses.map(r => r.json())))
+    .then(([searchResults, books, reviews]) => {
+        const container = document.getElementById('search-results');
+        let html = '';
+        
+        // Books
+        if (books.results && books.results.length > 0) {
+            html += '<section style="margin-bottom: 2rem;"><h2 style="margin-bottom: 1rem;">Sách</h2><div class="grid grid-4">';
+            books.results.forEach(book => {
+                html += `
+                    <div class="book-card">
+                        <a href="/books/${book.slug}/">
+                            <div class="book-cover">
+                                <img src="${book.cover || '/static/images/default-book.svg'}" 
+                                     alt="${book.title}" loading="lazy">
+                            </div>
+                            <div class="book-info">
+                                <h3 class="book-title">${book.title}</h3>
+                                <p class="book-author">${book.authors?.[0]?.name || 'N/A'}</p>
+                                <div class="book-rating">
+                                    <div class="rating-stars" data-rating="${book.avg_rating || 0}"></div>
+                                    <span class="rating-value">${(book.avg_rating || 0).toFixed(1)}</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                `;
+            });
+            html += '</div></section>';
+        }
+        
+        // Reviews
+        if (reviews.results && reviews.results.length > 0) {
+            html += '<section><h2 style="margin-bottom: 1rem;">Reviews</h2>';
+            reviews.results.forEach(review => {
+                html += `
+                    <div class="card" style="margin-bottom: 1rem;">
+                        <div class="card-body">
+                            <h3><a href="/reviews/${review.id}/">${review.title}</a></h3>
+                            <p style="color: #64748b;">Bởi <a href="/users/${review.user?.username}/">${review.user?.username}</a> - 
+                            <a href="/books/${review.book?.slug}/">${review.book?.title}</a></p>
+                            <p style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                                ${review.body_html || review.body || ''}
+                            </p>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</section>';
+        }
+        
+        if (html) {
+            container.innerHTML = html;
+            container.querySelectorAll('[data-rating]').forEach(el => {
+                BookReview.renderStars(parseFloat(el.dataset.rating), el);
+            });
+        } else {
+            container.innerHTML = '<p style="text-align: center; padding: 3rem; color: #64748b;">Không tìm thấy kết quả nào.</p>';
+        }
+    })
+    .catch(err => {
+        console.error('Search error:', err);
+        document.getElementById('search-results').innerHTML = '<p>Có lỗi xảy ra khi tìm kiếm.</p>';
+    });
+});
+</script>
+{% endif %}
+{% endblock %}
+

@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ profile_user.username }} - BookReview.vn{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1200px;">
+    <!-- Profile Header -->
+    <section class="profile-header" style="background: white; border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
+        <div style="display: flex; gap: 2rem; align-items: start;">
+            <div style="flex-shrink: 0;">
+                <img src="{% if profile_user.profile.avatar %}{{ profile_user.profile.avatar.url }}{% else %}{% static 'images/default-avatar.svg' %}{% endif %}" 
+                     alt="{{ profile_user.username }}" 
+                     style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #e2e8f0;">
+            </div>
+            
+            <div style="flex: 1;">
+                <h1 style="margin-bottom: 0.5rem;">{{ profile_user.username }}</h1>
+                
+                {% if profile_user.profile.bio %}
+                <p style="color: #475569; margin-bottom: 1rem; line-height: 1.7;">{{ profile_user.profile.bio }}</p>
+                {% endif %}
+                
+                <div style="display: flex; gap: 2rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                    <div>
+                        <strong>{{ profile_user.profile.reviews_count|default:0 }}</strong>
+                        <span style="color: #64748b; font-size: 0.875rem;"> reviews</span>
+                    </div>
+                    <div>
+                        <strong>{{ profile_user.profile.followers_count|default:0 }}</strong>
+                        <span style="color: #64748b; font-size: 0.875rem;"> người theo dõi</span>
+                    </div>
+                    <div>
+                        <strong>{{ profile_user.profile.following_count|default:0 }}</strong>
+                        <span style="color: #64748b; font-size: 0.875rem;"> đang theo dõi</span>
+                    </div>
+                </div>
+                
+                {% if user.is_authenticated %}
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    {% if user == profile_user %}
+                        <a href="/settings/" class="btn btn-outline">Chỉnh sửa hồ sơ</a>
+                    {% else %}
+                        <button class="btn btn-primary" id="follow-btn" data-user-id="{{ profile_user.id }}">
+                            <span id="follow-text">{% if profile_user.profile.is_followed %}Đang theo dõi{% else %}Theo dõi{% endif %}</span>
+                        </button>
+                        <a href="/messages/new/?user={{ profile_user.id }}" class="btn btn-outline">Nhắn tin</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+    
+    <!-- Tabs -->
+    <div class="tabs" style="display: flex; gap: 1rem; border-bottom: 2px solid #e2e8f0; margin-bottom: 2rem;">
+        <button class="tab-btn active" data-tab="shelves">Kệ sách</button>
+        <button class="tab-btn" data-tab="reviews">Reviews</button>
+        <button class="tab-btn" data-tab="collections">Bộ sưu tập</button>
+        <button class="tab-btn" data-tab="activity">Hoạt động</button>
+    </div>
+    
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <!-- Shelves Tab -->
+        <div id="tab-shelves" class="tab-pane active">
+            <div class="grid grid-3" id="user-shelves">
+                <!-- Shelves will be loaded via JavaScript -->
+                <div class="loading">Đang tải...</div>
+            </div>
+        </div>
+        
+        <!-- Reviews Tab -->
+        <div id="tab-reviews" class="tab-pane" style="display: none;">
+            <div id="user-reviews">
+                <!-- Reviews will be loaded via JavaScript -->
+                <div class="loading">Đang tải...</div>
+            </div>
+        </div>
+        
+        <!-- Collections Tab -->
+        <div id="tab-collections" class="tab-pane" style="display: none;">
+            <div id="user-collections">
+                <!-- Collections will be loaded via JavaScript -->
+                <div class="loading">Đang tải...</div>
+            </div>
+        </div>
+        
+        <!-- Activity Tab -->
+        <div id="tab-activity" class="tab-pane" style="display: none;">
+            <div id="user-activity">
+                <!-- Activity will be loaded via JavaScript -->
+                <div class="loading">Đang tải...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.tab-btn {
+    padding: 0.75rem 1.5rem;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-weight: 500;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: -2px;
+}
+
+.tab-btn:hover {
+    color: #2563eb;
+}
+
+.tab-btn.active {
+    color: #2563eb;
+    border-bottom-color: #2563eb;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userId = {{ profile_user.id }};
+    
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tabName = this.dataset.tab;
+            
+            // Update buttons
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update panes
+            document.querySelectorAll('.tab-pane').forEach(p => {
+                p.classList.remove('active');
+                p.style.display = 'none';
+            });
+            
+            const pane = document.getElementById(`tab-${tabName}`);
+            pane.classList.add('active');
+            pane.style.display = 'block';
+            
+            // Load content if not loaded
+            if (tabName === 'shelves') {
+                loadShelves();
+            } else if (tabName === 'reviews') {
+                loadReviews();
+            } else if (tabName === 'collections') {
+                loadCollections();
+            } else if (tabName === 'activity') {
+                loadActivity();
+            }
+        });
+    });
+    
+    // Load shelves
+    function loadShelves() {
+        fetch(`/api/shelves/users/${userId}/`)
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById('user-shelves');
+                if (data.results && data.results.length > 0) {
+                    container.innerHTML = data.results.map(shelf => `
+                        <div class="card">
+                            <div class="card-body">
+                                <h3><a href="/shelves/${shelf.id}/">${shelf.name}</a></h3>
+                                <p style="color: #64748b;">${shelf.book_count || 0} cuốn sách</p>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p>Chưa có kệ sách nào.</p>';
+                }
+            })
+            .catch(err => {
+                console.error('Error loading shelves:', err);
+                document.getElementById('user-shelves').innerHTML = '<p>Có lỗi xảy ra khi tải dữ liệu.</p>';
+            });
+    }
+    
+    // Load reviews
+    function loadReviews() {
+        fetch(`/api/reviews/?user_id=${userId}`)
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById('user-reviews');
+                if (data.results && data.results.length > 0) {
+                    container.innerHTML = data.results.map(review => `
+                        <div class="card" style="margin-bottom: 1rem;">
+                            <div class="card-body">
+                                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                                    <div class="rating-stars" data-rating="${review.rating || 0}"></div>
+                                    <a href="/books/${review.book?.slug}/">${review.book?.title}</a>
+                                </div>
+                                <h3><a href="/reviews/${review.id}/">${review.title}</a></h3>
+                                <p style="color: #64748b; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                                    ${review.body_html || review.body || ''}
+                                </p>
+                                <div style="color: #64748b; font-size: 0.875rem; margin-top: 0.5rem;">
+                                    ${new Date(review.created_at).toLocaleDateString('vi-VN')}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    // Render stars
+                    container.querySelectorAll('[data-rating]').forEach(el => {
+                        BookReview.renderStars(parseFloat(el.dataset.rating), el);
+                    });
+                } else {
+                    container.innerHTML = '<p>Chưa có review nào.</p>';
+                }
+            })
+            .catch(err => {
+                console.error('Error loading reviews:', err);
+                document.getElementById('user-reviews').innerHTML = '<p>Có lỗi xảy ra khi tải dữ liệu.</p>';
+            });
+    }
+    
+    // Load collections
+    function loadCollections() {
+        // Implement collections loading
+        document.getElementById('user-collections').innerHTML = '<p>Tính năng đang phát triển.</p>';
+    }
+    
+    // Load activity
+    function loadActivity() {
+        // Implement activity loading
+        document.getElementById('user-activity').innerHTML = '<p>Tính năng đang phát triển.</p>';
+    }
+    
+    // Follow button
+    const followBtn = document.getElementById('follow-btn');
+    if (followBtn) {
+        followBtn.addEventListener('click', async function() {
+            const isFollowing = this.querySelector('#follow-text').textContent === 'Đang theo dõi';
+            
+            try {
+                const url = `/api/social/follow/`;
+                const method = isFollowing ? 'DELETE' : 'POST';
+                await BookReview.utils.apiRequest(url, method, {
+                    target_type: 'user',
+                    target_id: userId
+                });
+                
+                this.querySelector('#follow-text').textContent = isFollowing ? 'Theo dõi' : 'Đang theo dõi';
+                if (isFollowing) {
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-outline');
+                } else {
+                    this.classList.remove('btn-outline');
+                    this.classList.add('btn-primary');
+                }
+            } catch (err) {
+                BookReview.utils.showAlert('Có lỗi xảy ra. Vui lòng thử lại.', 'error');
+            }
+        });
+    }
+    
+    // Initial load
+    loadShelves();
+});
+</script>
+{% endblock %}
+
