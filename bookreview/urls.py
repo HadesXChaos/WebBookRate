@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 
 from .sitemaps import BookSitemap, AuthorSitemap, ReviewSitemap
 from .views import (
-    home_view, explore_view, login_view, register_view,
+    home_view, explore_view, login_view, register_view, password_reset_view,
     user_profile_view, user_shelves_view, settings_view,
     search_view, notifications_view, logout_view_frontend
 )
@@ -47,6 +47,7 @@ urlpatterns = [
     path('explore/', explore_view, name='explore'),
     path('login/', login_view, name='login'),
     path('register/', register_view, name='register'),
+    path('password-reset/', password_reset_view, name='password_reset'),
     path('logout/', logout_view_frontend, name='logout'),
     path('search/', search_view, name='search'),
     path('users/<str:username>/', user_profile_view, name='user_profile'),

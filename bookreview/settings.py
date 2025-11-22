@@ -207,6 +207,9 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@bookreview.vn')
 
+# Base URL for email links
+BASE_URL = os.environ.get('BASE_URL', 'http://localhost:8000')
+
 # REST Framework Configuration
 # Configure throttling only if cache is working (Redis or local memory)
 REST_FRAMEWORK = {
@@ -238,6 +241,11 @@ try:
     REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'] = {
         'anon': '100/hour',
         'user': '1000/hour',
+        'register': '5/hour',  # Registration limit
+        'login': '10/hour',  # Login attempts limit
+        'password_reset': '3/hour',  # Password reset limit
+        'email_verification': '10/hour',  # Email verification limit
+        'comment': '20/hour',  # Comment creation limit
     }
 except Exception:
     # Disable throttling if cache is not working

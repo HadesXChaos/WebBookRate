@@ -10,7 +10,9 @@
     <meta property="og:description" content="{% block og_description %}Khám phá, đánh giá và chia sẻ sách hay{% endblock %}">
     <meta property="og:type" content="website">
     <meta property="og:image" content="{% block og_image %}{% static 'images/og-default.jpg' %}{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}">
     <meta name="twitter:card" content="summary_large_image">
+    {% block canonical_url %}<link rel="canonical" href="{{ request.build_absolute_uri }}">{% endblock %}
     
     <title>{% block title %}BookReview.vn - Đánh giá sách{% endblock %}</title>
     

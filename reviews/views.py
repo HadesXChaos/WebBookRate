@@ -3,6 +3,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.contrib.contenttypes.models import ContentType
 from django_filters.rest_framework import DjangoFilterBackend
+from django.core.cache import cache
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 
 from .models import Review, ReviewImage, Comment, Like
 from .serializers import (
@@ -10,6 +13,7 @@ from .serializers import (
     CommentSerializer, LikeSerializer
 )
 from .permissions import IsOwnerOrReadOnly
+from users.throttles import CommentThrottle
 
 
 class ReviewListView(generics.ListCreateAPIView):
@@ -32,15 +36,22 @@ class ReviewListView(generics.ListCreateAPIView):
 
 
 class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """Review Detail, Update, Delete"""
+    """Review Detail, Update, Delete - Cached for 60 seconds (GET only)"""
     queryset = Review.objects.filter(is_active=True).select_related(
         'book', 'user'
     ).prefetch_related('images')
     serializer_class = ReviewDetailSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
+    @method_decorator(cache_page(60))  # Cache for 60 seconds
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
     def perform_update(self, serializer):
         serializer.save(user=self.request.user)
+        # Invalidate cache when review is updated
+        pk = self.kwargs.get('pk')
+        cache.delete(f'review_detail:{pk}')
 
 
 @api_view(['POST', 'DELETE'])
@@ -76,6 +87,7 @@ class CommentListView(generics.ListCreateAPIView):
     ).order_by('created_at')
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    throttle_classes = [CommentThrottle]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['review']
 

@@ -6,6 +6,42 @@
 {% block og_title %}{{ book.title }}{% endblock %}
 {% block og_description %}{{ book.description|truncatewords:30 }}{% endblock %}
 {% block og_image %}{% if book.cover %}{{ book.cover.url }}{% endif %}{% endblock %}
+{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}
+{% block canonical_url %}<link rel="canonical" href="{{ request.build_absolute_uri }}">{% endblock %}
+
+{% block extra_css %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Book",
+  "name": "{{ book.title|escapejs }}",
+  "description": "{{ book.description|truncatewords:50|escapejs }}",
+  {% if book.cover %}"image": "{{ request.scheme }}://{{ request.get_host }}{{ book.cover.url }}",{% endif %}
+  "author": [
+    {% for author in book.authors.all %}{
+      "@type": "Person",
+      "name": "{{ author.name|escapejs }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% if book.publisher %}"publisher": {
+    "@type": "Organization",
+    "name": "{{ book.publisher.name|escapejs }}"
+  },{% endif %}
+  {% if book.year %}"datePublished": "{{ book.year }}",{% endif %}
+  {% if book.isbn %}"isbn": "{{ book.isbn }}",{% endif %}
+  {% if book.pages %}"numberOfPages": {{ book.pages }},{% endif %}
+  {% if book.avg_rating %}"aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{ book.avg_rating }}",
+    "ratingCount": {{ book.rating_count|default:0 }},
+    "bestRating": "5",
+    "worstRating": "1"
+  },{% endif %}
+  "url": "{{ request.build_absolute_uri }}"
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <div class="container">

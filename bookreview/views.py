@@ -39,6 +39,14 @@ def register_view(request):
     return render(request, 'auth/register.html')
 
 
+def password_reset_view(request):
+    """Password reset request page"""
+    if request.user.is_authenticated:
+        from django.shortcuts import redirect
+        return redirect('home')
+    return render(request, 'auth/password_reset.html')
+
+
 def user_profile_view(request, username):
     """User profile page"""
     profile_user = get_object_or_404(User, username=username)

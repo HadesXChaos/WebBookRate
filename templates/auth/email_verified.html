@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if success %}Email đã được xác nhận{% else %}Xác nhận email thất bại{% endif %} - BookReview.vn{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; padding-top: 3rem;">
+    <div class="card">
+        <div class="card-header" style="text-align: center;">
+            {% if success %}
+                <div style="font-size: 64px; margin-bottom: 20px;">✅</div>
+                <h1 style="color: #10b981;">Email đã được xác nhận!</h1>
+            {% else %}
+                <div style="font-size: 64px; margin-bottom: 20px;">❌</div>
+                <h1 style="color: #ef4444;">Xác nhận email thất bại</h1>
+            {% endif %}
+        </div>
+        <div class="card-body" style="text-align: center;">
+            {% if success %}
+                <p style="font-size: 18px; color: #64748b; margin-bottom: 30px;">
+                    Chúc mừng <strong>{{ user.username }}</strong>! Email của bạn đã được xác nhận thành công.
+                </p>
+                <p style="color: #64748b; margin-bottom: 30px;">
+                    Bây giờ bạn có thể sử dụng đầy đủ các tính năng của BookReview.vn.
+                </p>
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <a href="{% url 'login' %}" class="button" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">
+                        Đăng nhập ngay
+                    </a>
+                    <a href="{% url 'home' %}" class="button" style="background-color: #64748b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">
+                        Về trang chủ
+                    </a>
+                </div>
+            {% else %}
+                <p style="font-size: 18px; color: #64748b; margin-bottom: 30px;">
+                    {{ error|default:"Liên kết xác nhận không hợp lệ hoặc đã hết hạn." }}
+                </p>
+                <p style="color: #64748b; margin-bottom: 30px;">
+                    Vui lòng kiểm tra lại email hoặc yêu cầu gửi lại email xác nhận.
+                </p>
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <a href="{% url 'register' %}" class="button" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">
+                        Đăng ký lại
+                    </a>
+                    <a href="{% url 'home' %}" class="button" style="background-color: #64748b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">
+                        Về trang chủ
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

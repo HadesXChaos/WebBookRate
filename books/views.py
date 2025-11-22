@@ -3,6 +3,10 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.db.models import Q, Count, Avg
 from django_filters.rest_framework import DjangoFilterBackend
+from django.core.cache import cache
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_headers
 
 from .models import Author, Genre, Publisher, Tag, Book
 from .serializers import (
@@ -41,17 +45,32 @@ class BookListView(generics.ListAPIView):
 
 
 class BookDetailView(generics.RetrieveAPIView):
-    """Book Detail"""
+    """Book Detail - Cached for 60 seconds"""
     queryset = Book.objects.filter(is_active=True).select_related('publisher').prefetch_related(
         'authors', 'genres', 'tags', 'editions'
     )
     serializer_class = BookDetailSerializer
     lookup_field = 'slug'
     permission_classes = [permissions.AllowAny]
+    
+    @method_decorator(cache_page(60))  # Cache for 60 seconds
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+    
+    def get_object(self):
+        slug = self.kwargs.get('slug')
+        cache_key = f'book_detail:{slug}'
+        book = cache.get(cache_key)
+        
+        if book is None:
+            book = super().get_object()
+            cache.set(cache_key, book, 60)  # Cache for 60 seconds
+        
+        return book
 
 
 class AuthorListView(generics.ListAPIView):
-    """Author List"""
+    """Author List - Cached for 5 minutes"""
     queryset = Author.objects.filter(is_active=True)
     serializer_class = AuthorSerializer
     permission_classes = [permissions.AllowAny]
@@ -59,6 +78,10 @@ class AuthorListView(generics.ListAPIView):
     search_fields = ['name', 'bio']
     ordering_fields = ['name', 'created_at']
     ordering = ['name']
+    
+    @method_decorator(cache_page(300))  # Cache for 5 minutes
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class AuthorDetailView(generics.RetrieveAPIView):
@@ -70,13 +93,17 @@ class AuthorDetailView(generics.RetrieveAPIView):
 
 
 class GenreListView(generics.ListAPIView):
-    """Genre List"""
+    """Genre List - Cached for 5 minutes"""
     queryset = Genre.objects.filter(is_active=True)
     serializer_class = GenreSerializer
     permission_classes = [permissions.AllowAny]
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['name']
     ordering = ['name']
+    
+    @method_decorator(cache_page(300))  # Cache for 5 minutes
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class GenreDetailView(generics.RetrieveAPIView):
@@ -88,7 +115,7 @@ class GenreDetailView(generics.RetrieveAPIView):
 
 
 class PublisherListView(generics.ListAPIView):
-    """Publisher List"""
+    """Publisher List - Cached for 5 minutes"""
     queryset = Publisher.objects.filter(is_active=True)
     serializer_class = PublisherSerializer
     permission_classes = [permissions.AllowAny]
@@ -96,6 +123,10 @@ class PublisherListView(generics.ListAPIView):
     search_fields = ['name', 'description']
     ordering_fields = ['name', 'created_at']
     ordering = ['name']
+    
+    @method_decorator(cache_page(300))  # Cache for 5 minutes
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class PublisherDetailView(generics.RetrieveAPIView):
@@ -107,7 +138,7 @@ class PublisherDetailView(generics.RetrieveAPIView):
 
 
 class TagListView(generics.ListAPIView):
-    """Tag List"""
+    """Tag List - Cached for 5 minutes"""
     queryset = Tag.objects.filter(is_active=True)
     serializer_class = TagSerializer
     permission_classes = [permissions.AllowAny]
@@ -115,6 +146,10 @@ class TagListView(generics.ListAPIView):
     search_fields = ['name', 'description']
     ordering_fields = ['name']
     ordering = ['name']
+    
+    @method_decorator(cache_page(300))  # Cache for 5 minutes
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class TagDetailView(generics.RetrieveAPIView):

@@ -1,0 +1,16 @@
+Xác nhận địa chỉ email của bạn
+
+Xin chào {{ user.username }},
+
+Cảm ơn bạn đã đăng ký tài khoản tại {{ site_name }}! Để hoàn tất quá trình đăng ký, vui lòng xác nhận địa chỉ email của bạn bằng cách truy cập liên kết sau:
+
+{{ verification_url }}
+
+Lưu ý: Liên kết này sẽ hết hạn sau 7 ngày. Nếu bạn không yêu cầu tạo tài khoản này, vui lòng bỏ qua email này.
+
+Trân trọng,
+Đội ngũ {{ site_name }}
+
+---
+Email này được gửi tự động, vui lòng không trả lời email này.
+

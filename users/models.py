@@ -71,3 +71,20 @@ class EmailVerification(models.Model):
 
     def __str__(self):
         return f"Verification for {self.user.email}"
+
+
+class PasswordResetToken(models.Model):
+    """Password Reset Token"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_reset_tokens')
+    token = models.CharField(max_length=64, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = _('password reset token')
+        verbose_name_plural = _('password reset tokens')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Password reset for {self.user.email}"

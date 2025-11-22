@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from .models import User, Profile
+from .validators import validate_password_strength
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -36,7 +37,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
     """Registration Serializer"""
-    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password, validate_password_strength])
     password_confirm = serializers.CharField(write_only=True, required=True)
 
     class Meta:
@@ -80,4 +81,29 @@ class LoginSerializer(serializers.Serializer):
             attrs['user'] = user
         else:
             raise serializers.ValidationError('Must include "username" and "password".')
+        return attrs
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    """Password Reset Request Serializer"""
+    email = serializers.EmailField(required=True)
+
+    def validate_email(self, value):
+        try:
+            User.objects.get(email=value, is_active=True)
+        except User.DoesNotExist:
+            # Don't reveal if email exists or not for security
+            pass
+        return value
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    """Password Reset Confirm Serializer"""
+    token = serializers.CharField(required=True)
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password, validate_password_strength])
+    password_confirm = serializers.CharField(write_only=True, required=True)
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password_confirm']:
+            raise serializers.ValidationError({"password": "Password fields didn't match."})
         return attrs
