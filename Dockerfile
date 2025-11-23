@@ -17,6 +17,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy project
 COPY . .
+COPY book_data.csv /app/book_data.csv
+COPY seed_data.py /app/seed_data.py
+
+COPY entrypoint.sh /entrypoint.sh
+RUN sed -i 's/\r$//' /entrypoint.sh && \
+    chmod +x /entrypoint.sh
+
 
 # Collect static files
 RUN python manage.py collectstatic --noinput || true
@@ -25,4 +32,5 @@ RUN python manage.py collectstatic --noinput || true
 EXPOSE 8000
 
 # Run gunicorn
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["gunicorn", "bookreview.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "4"]
