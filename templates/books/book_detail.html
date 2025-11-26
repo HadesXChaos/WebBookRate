@@ -80,9 +80,20 @@
                     {% endfor %}
                 {% endif %}
             </div>
+            <div class="book-actions" style="display: flex; gap: 1rem; flex-wrap: wrap;"> 
+            {% if book.link_buy %}
+                <a href="{{ book.link_buy }}" target="_blank" rel="nofollow noopener" class="btn" 
+                   style="background-color: #10b981; color: white; border: 1px solid #10b981; display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <path d="M16 10a4 4 0 0 1-8 0"></path>
+                    </svg>
+                    Link Mua
+                </a>
+            {% endif %}
             
             {% if user.is_authenticated %}
-            <div class="book-actions" style="display: flex; gap: 1rem; flex-wrap: wrap;">
                 <button class="btn btn-primary" id="add-to-shelf-btn">
                     Thêm vào kệ sách
                 </button>
@@ -92,12 +103,12 @@
                 <button class="btn btn-outline" id="follow-book-btn" data-book-id="{{ book.id }}">
                     <span id="follow-text">Theo dõi</span>
                 </button>
-            </div>
             {% else %}
-            <div class="book-actions">
-                <a href="/login/" class="btn btn-primary">Đăng nhập để đánh giá</a>
-            </div>
+                <div class="book-actions">
+                    <a href="/login/" class="btn btn-primary">Đăng nhập để đánh giá</a>
+                </div>
             {% endif %}
+            </div>
         </div>
     </section>
     
@@ -253,7 +264,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial load
     loadReviews();
     
-    // --- Thay thế toàn bộ phần xử lý Kệ sách trong script cũ ---
 
 {% if user.is_authenticated %}
     const shelfModal = document.getElementById('shelf-modal');
@@ -279,7 +289,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </svg>
                         Đã lưu vào kệ
                     `;
-                    addToShelfBtn.classList.add('btn-success'); // Thêm class xanh (nếu có CSS)
+                    addToShelfBtn.classList.add('btn-success');
                 } else {
                     addToShelfBtn.textContent = "Thêm vào kệ sách";
                     addToShelfBtn.classList.remove('btn-success');
@@ -338,7 +348,6 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(res => {
             if (!res.ok) throw new Error('Lỗi server');            
-            // Cập nhật lại trạng thái nút chính ở ngoài (để đồng bộ)
             checkBookStatus();
         })
         .catch(err => {

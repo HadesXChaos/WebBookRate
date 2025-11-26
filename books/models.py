@@ -124,6 +124,7 @@ class Book(models.Model):
     slug = models.SlugField(_('slug'), max_length=500, unique=True, blank=True)
     description = models.TextField(_('description'), blank=True)
     cover = models.ImageField(_('cover'), upload_to='books/covers/', null=True, blank=True)
+    link_buy = models.URLField(max_length=500, blank=True, null=True)
     
     # Metadata
     year = models.IntegerField(_('year'), null=True, blank=True)
@@ -208,7 +209,7 @@ class BookView(models.Model):
     """
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='book_views')
     ip_address = models.GenericIPAddressField(null=True, blank=True)
-    user = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True) # Nếu bạn có custom user model
+    user = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -216,8 +217,16 @@ class BookView(models.Model):
         verbose_name_plural = _('book views')
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['created_at']), # Index để lọc theo ngày nhanh hơn
+            models.Index(fields=['created_at']),
         ]
 
     def __str__(self):
         return f"{self.book.title} viewed at {self.created_at}"
+    
+
+class DataSeedTracker(models.Model):
+    seed_key = models.CharField(max_length=100, unique=True)
+    seeded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.seed_key

@@ -1,238 +1,199 @@
-# seed_data.py - PHIÊN BẢN HOÀN HẢO NHẤT 2025 (CẬP NHẬT TÁCH NHIỀU GENRES/TAGS)
 import os
 import django
+import sys
 import pandas as pd
-import requests
-from io import BytesIO
-from django.core.files.images import ImageFile
 from django.utils.text import slugify
+from django.db import transaction
+import urllib.request
+from django.core.files.base import ContentFile
 
-# Setup Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bookreview.settings')
 django.setup()
 
-from books.models import Author, Genre, Tag, Publisher, Book, BookEdition
+from books.models import DataSeedTracker, Genre, Author, Publisher, Book, Tag, BookEdition
 
+SEED_KEY = "seed_data_Nov_2025"
 
-CSV_PATH = 'book_data.csv' # Đảm bảo file CSV mới có tên này
+if DataSeedTracker.objects.filter(seed_key=SEED_KEY).exists():
+    print("ĐÃ IMPORT RỒI → BỎ QUA")
+    sys.exit(0)
 
+print("BẮT ĐẦU IMPORT DỮ LIỆU...")
 
-def download_image(url):
-    if not url or not str(url).startswith('http'):
-        return None
+def safe_int(value, default=None):
+    if pd.isna(value) or value in ['', None]:
+        return default
     try:
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        response = requests.get(url, headers=headers, timeout=15)
-        if response.status_code == 200:
-            filename = url.split('/')[-1].split('?')[0].split('#')[0][:100]
-            if not filename.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
-                filename += '.jpg'
-            return ImageFile(BytesIO(response.content), name=filename)
-    except Exception as e:
-        print(f"   Lỗi tải ảnh: {e}")
-    return None
-
-
-def safe_get_or_create(model, name, field_name='name'):
-    # Hàm này cố gắng tìm theo tên, sau đó theo slug, cuối cùng là tạo mới
-    if not name or str(name).strip() in ['', 'nan', 'None']:
-        name = "Không rõ"
-    name = str(name).strip()
-    slug = slugify(name)[:50]
-
-    # Thử tìm theo tên hoặc slug
-    try:
-        obj = model.objects.get(**{field_name: name})
-        if obj.slug != slug:
-            obj.slug = slug
-            obj.save(update_fields=['slug'])
-        return obj
-    except model.DoesNotExist:
-        pass
-    
-    try:
-        # Thử tìm theo slug nếu tìm theo tên không được
-        return model.objects.get(slug=slug)
-    except model.DoesNotExist:
-        pass
-    
-    # Tạo mới
-    try:
-        return model.objects.create(**{field_name: name}, slug=slug)
+        return int(float(str(value).strip()))
     except:
-        # Trường hợp tạo mới bị lỗi (ví dụ: slug quá dài hoặc trùng)
-        try:
-            # Thử lại lần nữa theo slug (đề phòng race condition)
-            return model.objects.get(slug=slug)
-        except:
-            # Tạo mới với slug ngẫu nhiên hơn
-            return model.objects.create(**{field_name: name}, slug=f"{slug}-{model.objects.count()}")
+        return default
 
-
-def seed():
-    # Sử dụng try/except để đọc số lượng sách hiện có
+def safe_decimal(value, default=0.00):
+    if pd.isna(value) or value in ['', None]:
+        return default
     try:
-        book_count = Book.objects.count()
+        return float(str(value).strip())
+    except:
+        return default
+
+def download_cover(book_instance, url):
+    if not url or not url.startswith('http'):
+        return
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=15) as response:
+            filename = os.path.basename(url.split('?')[0])
+            if not filename.lower().endswith(('.png', '.jpg', '.jpeg', '.webp', '.gif')):
+                filename = f"{book_instance.slug}.jpg"
+            book_instance.cover.save(filename, ContentFile(response.read()), save=True)
     except Exception as e:
-        print(f"Lỗi khi kiểm tra sách hiện có: {e}. Coi như chưa có sách.")
-        book_count = 0
+        print(f"   → Lỗi tải ảnh: {url} | {e}")
 
-    if book_count > 0:
-        print(f"ĐÃ CÓ {book_count} cuốn sách → Bỏ qua import.")
-        return
+@transaction.atomic
+def seed():
+    created_books = 0
 
-    print("BẮT ĐẦU IMPORT SÁCH TỪ book_data.csv (Định dạng mới)...")
-    # Đọc CSV với dtype=str để đảm bảo mọi giá trị được đọc dưới dạng chuỗi
-    try:
-        df = pd.read_csv(CSV_PATH, dtype=str).fillna('')
-    except FileNotFoundError:
-        print(f"LỖI: Không tìm thấy file CSV tại đường dẫn: {CSV_PATH}")
-        return
+    # 1. Authors
+    if os.path.exists('author_data.csv'):
+        df = pd.read_csv('author_data.csv', dtype=str).fillna('')
+        for _, row in df.iterrows():
+            name = row['name'].strip()
+            if not name:
+                continue
+            slug = slugify(name)[:200]
+            Author.objects.update_or_create(
+                slug=slug,
+                defaults={
+                    'name': name,
+                    'bio': row.get('biography', '')[:2000],
+                    'birth_date': row.get('birth_date') if row.get('birth_date') else None,
+                    'death_date': row.get('death_date') if row.get('death_date') else None,
+                    'nationality': row.get('nationality', ''),
+                    'website': row.get('website', '') if str(row.get('website','')).startswith('http') else '',
+                    'is_active': True,
+                }
+            )
 
-    total = len(df)
-    success_count = 0
+    # 2. Genres
+    if os.path.exists('genres_data.csv'):
+        df = pd.read_csv('genres_data.csv', dtype=str).fillna('')
+        for _, row in df.iterrows():
+            name = row['name'].strip()
+            if not name:
+                continue
+            Genre.objects.update_or_create(
+                slug=slugify(name)[:100],
+                defaults={
+                    'name': name,
+                    'description': row.get('description', '')[:500],
+                    'is_active': True
+                }
+            )
 
-    for idx, row in df.iterrows():
-        title = str(row['title']).strip()
-        print(f"[{idx+1}/{total}] Đang thêm: {title[:60]}{'...' if len(title)>60 else ''}")
+    # 3. Publishers
+    if os.path.exists('publisher_data.csv'):
+        df = pd.read_csv('publisher_data.csv', dtype=str).fillna('')
+        for _, row in df.iterrows():
+            name = row['name'].strip() or "Không rõ"
+            Publisher.objects.update_or_create(
+                slug=slugify(name)[:200],
+                defaults={
+                    'name': name,
+                    'description': row.get('description', '')[:1000],
+                    'website': row.get('website', '') if str(row.get('website','')).startswith('http') else '',
+                    'is_active': True
+                }
+            )
 
-        try:
-            # === 1. Tác giả (author) ===
-            authors = []
-            # Cột mới là 'author', có thể chứa nhiều tác giả cách nhau bằng dấu ','
-            author_names = [a.strip() for a in str(row['author']).split(',') if a.strip() and a.strip() not in ['nan', '.', 'DK', 'None']]
-            if not author_names:
-                author_names = ["Không rõ tác giả"]
-                
-            for name in author_names:
-                author = safe_get_or_create(Author, name)
-                authors.append(author)
-
-            # === 2. Thể loại (genres) - Tách bằng dấu ',' và tạo nhiều đối tượng ===
-            genres = []
-            # Tách chuỗi genres bằng dấu phẩy
-            genre_names = [g.strip() for g in str(row['genres']).split(',') if g.strip() and g.strip() not in ['nan', '']]
-            if not genre_names:
-                genre_names = ["Sách khác"]
-            
-            for name in genre_names:
-                genre = safe_get_or_create(Genre, name)
-                genres.append(genre)
-
-            # === 3. Tag - Tách bằng dấu ',' và tạo nhiều đối tượng ===
-            tags = []
-            # Tách chuỗi tag bằng dấu phẩy
-            tag_names = [t.strip() for t in str(row['tag']).split(',') if t.strip() and t.strip() not in ['nan', '']]
-            if not tag_names:
-                tag_names = ["Uncategorized"] # Vẫn giữ một tag mặc định nếu không có
-
-            for name in tag_names:
-                tag = safe_get_or_create(Tag, name)
-                tags.append(tag)
+    # 4. Tags
+    all_tags = set()
+    if os.path.exists('book_data.csv'):
+        df_temp = pd.read_csv('book_data.csv', dtype=str).fillna('')
+        for tag_str in df_temp['tag'].dropna():
+            for t in str(tag_str).split(','):
+                t = t.strip()
+                if t:
+                    all_tags.add(t)
+        for tag_name in all_tags:
+            Tag.objects.get_or_create(
+                slug=slugify(tag_name)[:50],
+                defaults={'name': tag_name, 'is_active': True}
+            )
 
 
-            # === 4. Nhà xuất bản (publisher) ===
-            publisher_name = str(row['publisher']).strip()
-            if not publisher_name or publisher_name in ['nan', '', 'None']:
-                publisher_name = "NXB Tổng hợp TP.HCM"
-            publisher = safe_get_or_create(Publisher, publisher_name)
+    # 5. Books
+    if os.path.exists('book_data.csv'):
+        df = pd.read_csv('book_data.csv', dtype=str).fillna('')
+        for idx, row in df.iterrows():
+            title = row['title'].strip()
+            if not title:
+                continue
 
-            # === 5. Slug sách (tránh trùng) ===
-            base_slug = slugify(title)
+            pub_name = row['publisher'].strip() or "Không rõ"
+            publisher, _ = Publisher.objects.get_or_create(
+                slug=slugify(pub_name), defaults={'name': pub_name}
+            )
+
+            base_slug = slugify(title)[:480]
             slug = base_slug
-            counter = 1
+            i = 1
             while Book.objects.filter(slug=slug).exists():
-                slug = f"{base_slug}-{counter}"
-                counter += 1
+                slug = f"{base_slug}-{i}"
+                i += 1
             
-            # Xử lý các trường số và chuỗi
-            year_val = None
-            try:
-                year_str = str(row['year']).strip()
-                if year_str and year_str != 'nan':
-                    year_val = int(year_str)
-            except ValueError:
-                pass 
-            
-            pages_val = None
-            try:
-                pages_str = str(row['pages']).strip().replace(',', '') # Loại bỏ dấu phẩy nếu có
-                if pages_str and pages_str != 'nan':
-                    pages_val = int(pages_str)
-            except ValueError:
-                pass
+            link_buy_url = row.get('link_buy', '').strip() if 'link_buy' in row else ''
 
-            rating_avg_val = 4.0
-            try:
-                rating_avg_str = str(row['rating_avg']).strip().replace(',', '.') # Chuyển dấu phẩy thành dấu chấm
-                if rating_avg_str and rating_avg_str != 'nan':
-                    rating_avg_val = round(float(rating_avg_str), 2)
-            except ValueError:
-                pass
-            
-            review_count_val = 50 + idx # Giá trị mặc định/random nếu không có
-            try:
-                review_count_str = str(row['review_count']).strip().replace(',', '')
-                if review_count_str and review_count_str != 'nan':
-                    review_count_val = int(review_count_str)
-            except ValueError:
-                pass
-            
-            description_val = str(row['description']).strip()
-            if not description_val:
-                # Tạo mô tả mặc định dựa trên các genre đã tách
-                description_val = f"Sách hay thuộc thể loại {', '.join(genre_names)}."
-
-            # === 6. Tạo sách ===
             book = Book.objects.create(
                 title=title,
                 slug=slug,
-                description=description_val, 
-                year=year_val,
-                pages=pages_val, 
-                language='vi', 
+                description=row['description'][:3000],
+                year=safe_int(row['year']),
+                pages=safe_int(row['pages']),
                 publisher=publisher,
-                avg_rating=rating_avg_val, 
-                review_count=review_count_val, 
-                is_active=True
+                avg_rating=safe_decimal(row['rating_avg'], 0.00),
+                review_count=safe_int(row['review_count'], 0),
+                rating_count=safe_int(row['review_count'], 0),
+                link_buy=link_buy_url,
+                language='vi',
+                is_active=True,
             )
+            created_books += 1
+            print(f"[{created_books}] Đã tạo: {title}")
 
-            book.authors.set(authors)
-            # Gán nhiều genres
-            book.genres.set(genres) 
-            # Gán nhiều tags
-            book.tags.set(tags)     
+            cover_url = row['cover'].strip()
+            if cover_url:
+                download_cover(book, cover_url)
 
-            # === 7. Ảnh bìa ===
-            cover_url = str(row['cover']).strip()
-            if cover_url and cover_url.startswith('http'):
-                img = download_image(cover_url)
-                if img:
-                    # Lưu ảnh bìa
-                    book.cover.save(img.name, img, save=True)
+            for a_name in str(row['author']).split(','):
+                a_name = a_name.strip()
+                if a_name:
+                    auth, _ = Author.objects.get_or_create(slug=slugify(a_name), defaults={'name': a_name})
+                    book.authors.add(auth)
 
-            # === 8. Edition (Xuất bản phẩm) ===
-            isbn13_val = str(row['isbn']).strip().replace('-', '') # Loại bỏ dấu gạch ngang
-            if not (isbn13_val and isbn13_val != 'nan' and len(isbn13_val) == 13 and isbn13_val.isdigit()):
-                isbn13_val = None 
-            
+            for g_name in str(row['genres']).split(','):
+                g_name = g_name.strip()
+                if g_name:
+                    genre, _ = Genre.objects.get_or_create(slug=slugify(g_name), defaults={'name': g_name})
+                    book.genres.add(genre)
+
+            for t_name in str(row['tag']).split(','):
+                t_name = t_name.strip()
+                if t_name:
+                    tag, _ = Tag.objects.get_or_create(slug=slugify(t_name), defaults={'name': t_name})
+                    book.tags.add(tag)
+
             BookEdition.objects.create(
                 book=book,
-                isbn13=isbn13_val,
-                format='paperback', 
-                pages=pages_val, 
-                language='vi'
+                isbn13=row['isbn'][-13:] if row['isbn'] and len(row['isbn']) >= 13 else None,
+                pages=safe_int(row['pages']),
+                language='vi',
             )
-            
-            # Bỏ qua price và link_buy
 
-            success_count += 1
-            print(f"[{idx+1}/{total}] ĐÃ THÊM: {title} ({row['year']}) - {publisher_name}")
+    print(f"\nĐÃ IMPORT {created_books} SÁCH!")
+    DataSeedTracker.objects.create(seed_key=SEED_KEY)
 
-        except Exception as e:
-            print(f"LỖI [{idx+1}]: {title} → {e}")
-
-    print(f"\nĐÃ THÊM THÀNH CÔNG {success_count}/{total} CUỐN SÁCH!")
-
-if __name__ == '__main__':
+try:
     seed()
+except Exception as e:
+    print(f"LỖI: {e}")
+    raise

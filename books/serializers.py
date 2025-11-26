@@ -63,7 +63,7 @@ class BookListSerializer(serializers.ModelSerializer):
         model = Book
         fields = ['id', 'title', 'slug', 'cover', 'year', 'authors', 
                  'genres', 'primary_genre', 'avg_rating', 'rating_count', 
-                 'review_count']
+                 'review_count','link_buy']
         read_only_fields = ['id', 'slug']
 
     def get_primary_genre(self, obj):
@@ -86,6 +86,6 @@ class BookDetailSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'slug', 'description', 'cover', 'year', 
                  'pages', 'language', 'publisher', 'authors', 'genres', 
                  'tags', 'editions', 'avg_rating', 'rating_count', 
-                 'review_count', 'created_at', 'updated_at']
+                 'review_count', 'created_at', 'updated_at', 'link_buy']
         read_only_fields = ['id', 'slug', 'avg_rating', 'rating_count', 
                           'review_count', 'created_at', 'updated_at']

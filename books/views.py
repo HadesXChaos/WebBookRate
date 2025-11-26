@@ -1,20 +1,21 @@
 from rest_framework import generics, filters, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from django.db.models import Q, Count, Avg
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.cache import cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_headers
+from rest_framework.pagination import PageNumberPagination
 from django.utils import timezone
 from datetime import timedelta
+from django.db.models.functions import Coalesce
 from django.db.models import Count, Q, F, FloatField, ExpressionWrapper
 
 from .models import Author, Genre, Publisher, Tag, Book, BookView
 from .serializers import (
     AuthorSerializer, GenreSerializer, PublisherSerializer, TagSerializer,
-    BookListSerializer, BookDetailSerializer
+    BookListSerializer, BookDetailSerializer, 
 )
 
 
@@ -69,7 +70,6 @@ class BookDetailView(generics.RetrieveAPIView):
             ip = request.META.get('REMOTE_ADDR')
         return ip
     
-    # Ghi lại lượt xem sách
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         ip = self.get_client_ip(request)
@@ -95,37 +95,34 @@ class BookDetailView(generics.RetrieveAPIView):
     
 
 class TrendingBookListView(generics.ListAPIView):
-    """
-    API lấy Top 10 sách thịnh hành trong 7 ngày qua.
-    Công thức: Score = (Views * 1) + (Shelf Adds * 3) + (Reviews * 5)
-    """
+    """Trending Books - Based on views, shelves, and reviews in the last 7 days"""
     serializer_class = BookListSerializer
     permission_classes = [permissions.AllowAny]
-    pagination_class = None  # Không phân trang, chỉ lấy Top 10
+    pagination_class = None
 
     def get_queryset(self):
-        # 1. Xác định mốc thời gian (7 ngày trước)
         last_week = timezone.now() - timedelta(days=7)
 
-        # 2. Truy vấn và Tính điểm
         queryset = Book.objects.filter(is_active=True).annotate(
-            # Đếm lượt xem trong tuần (Weight: 1)
             recent_views=Count(
-                'book_views', 
+                'book_views',
                 filter=Q(book_views__created_at__gte=last_week)
             ),
-            
-            # Đếm lượt thêm vào kệ sách trong tuần (Weight: 3)
-            # Lưu ý: 'shelf_items' là related_name trong model ShelfItem
-            recent_shelves=Count(
-                'shelf_items', 
-                filter=Q(shelf_items__added_at__gte=last_week)
+
+            recent_shelves=Coalesce(
+                Count(
+                    'shelf_items__shelf__user',
+                    filter=Q(
+                        shelf_items__added_at__gte=last_week,
+                        shelf_items__shelf__user__isnull=False
+                    ),
+                    distinct=True
+                ),
+                0
             ),
-            
-            # Đếm lượt review trong tuần (Weight: 5)
-            # Chỉ tính review public và active
+
             recent_reviews=Count(
-                'reviews', 
+                'reviews',
                 filter=Q(
                     reviews__created_at__gte=last_week,
                     reviews__status='public',
@@ -133,18 +130,14 @@ class TrendingBookListView(generics.ListAPIView):
                 )
             )
         ).annotate(
-            # 3. Tính tổng điểm (Trending Score)
-            # Dùng ExpressionWrapper để đảm bảo kiểu dữ liệu Float
             trending_score=ExpressionWrapper(
-                (F('recent_views') * 1.0) + 
-                (F('recent_shelves') * 3.0) + 
-                (F('recent_reviews') * 5.0),
+                F('recent_views')     * 1.0   +
+                F('recent_shelves')   * 6.0   +
+                F('recent_reviews')   * 10.0,
                 output_field=FloatField()
             )
-        ).filter(
-            # Chỉ lấy sách có điểm > 0 (tránh danh sách rỗng tuếch)
-            trending_score__gt=0
-        ).order_by('-trending_score', '-created_at')[:10]  # Sắp xếp giảm dần
+        ).filter(trending_score__gt=0)\
+         .order_by('-trending_score', '-avg_rating', '-created_at')[:10]
 
         return queryset
 
@@ -187,12 +180,36 @@ class GenreListView(generics.ListAPIView):
 
 
 class GenreDetailView(generics.RetrieveAPIView):
-    """Genre Detail"""
+    """ Genre Detail with Books """
     queryset = Genre.objects.filter(is_active=True)
     serializer_class = GenreSerializer
     lookup_field = 'slug'
     permission_classes = [permissions.AllowAny]
 
+    def retrieve(self, request, *args, **kwargs):
+        genre = self.get_object()
+        
+        books = genre.books.filter(is_active=True)\
+            .select_related('publisher')\
+            .prefetch_related('authors', 'genres', 'tags')\
+            .order_by('-avg_rating', '-created_at')
+
+        page = self.paginate_queryset(books)
+        
+        genre_data = GenreSerializer(genre, context={'request': request}).data
+
+        if page is not None:
+            books_data = BookListSerializer(page, many=True, context={'request': request}).data
+            return self.get_paginated_response({
+                'genre': genre_data,
+                'books': books_data
+            })
+
+        books_data = BookListSerializer(books, many=True, context={'request': request}).data
+        return Response({
+            'genre': genre_data,
+            'books': books_data
+        })
 
 class PublisherListView(generics.ListAPIView):
     """Publisher List - Cached for 5 minutes"""
@@ -238,3 +255,67 @@ class TagDetailView(generics.RetrieveAPIView):
     serializer_class = TagSerializer
     lookup_field = 'slug'
     permission_classes = [permissions.AllowAny]
+
+
+class ExploreBooks(generics.ListAPIView):
+    """Explore Books with advanced filtering and ordering"""
+    class Pagination(PageNumberPagination):
+        page_size = 12
+        page_size_query_param = 'page_size'
+        max_page_size = 100
+
+    pagination_class = Pagination
+    serializer_class = BookListSerializer
+
+    def get_queryset(self):
+        queryset = Book.objects.filter(is_active=True).prefetch_related('authors', 'genres')
+
+        genre_slug = self.request.query_params.get('genre')
+        year = self.request.query_params.get('year')
+        min_rating = self.request.query_params.get('min_rating')
+        ordering = self.request.query_params.get('ordering')
+
+        if genre_slug:
+            queryset = queryset.filter(genres__slug=genre_slug)
+        
+        if year:
+            queryset = queryset.filter(year=year) 
+        
+        if min_rating:
+            try:
+                queryset = queryset.filter(avg_rating__gte=float(min_rating))
+            except ValueError:
+                pass
+
+        valid_ordering = {
+            '-rating_count': '-rating_count',
+            '-avg_rating': '-avg_rating',
+            '-created_at': '-created_at',
+            'title': 'title'
+        }
+        
+        if ordering in valid_ordering:
+            queryset = queryset.order_by(ordering)
+        else:
+            queryset = queryset.order_by('-created_at')
+
+        return queryset.distinct()
+    
+
+class BookYearsAPIView(generics.ListAPIView):
+    """API endpoint to get distinct publication years of books"""
+    queryset = Book.objects.none()
+    pagination_class = None
+    serializer_class = None
+
+    filter_backends = []
+
+    def list(self, request, *args, **kwargs):
+        years = Book.objects.filter(is_active=True)\
+                            .values_list('year', flat=True)\
+                            .distinct()\
+                            .order_by('-year')
+        
+        data = [y for y in years if y is not None]
+        
+        return Response(data)

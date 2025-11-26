@@ -115,15 +115,22 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     
-    // Load years for filter (last 50 years)
-    const yearSelect = document.getElementById('year-filter');
-    const currentYear = new Date().getFullYear();
-    for (let i = currentYear; i >= currentYear - 50; i--) {
-        const option = document.createElement('option');
-        option.value = i;
-        option.textContent = i;
-        yearSelect.appendChild(option);
-    }
+    
+    // Load years for filter (From API)
+    fetch('/api/books/filters/years/')
+        .then(res => res.json())
+        .then(years => {
+            const yearSelect = document.getElementById('year-filter');
+            if (years && years.length > 0) {
+                years.forEach(year => {
+                    const option = document.createElement('option');
+                    option.value = year;
+                    option.textContent = year;
+                    yearSelect.appendChild(option);
+                });
+            }
+        })
+        .catch(err => console.error('Lỗi khi tải danh sách năm:', err));
     
     // Load books
     function loadBooks(page = 1, reset = false) {
@@ -137,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ...currentFilters
         });
         
-        fetch(`/api/books/?${params}`)
+        fetch(`/api/explore/?${params}`)
             .then(res => res.json())
             .then(data => {
                 const container = document.getElementById('books-list');

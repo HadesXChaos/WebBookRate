@@ -5,6 +5,7 @@ from .views import (
     GenreListView, GenreDetailView,
     PublisherListView, PublisherDetailView,
     TagListView, TagDetailView, TrendingBookListView,
+    ExploreBooks, BookYearsAPIView,
 )
 
 app_name = 'books'
@@ -31,6 +32,12 @@ urlpatterns = [
     # Tags (must come before catch-all slug pattern)
     path('tags/', TagListView.as_view(), name='tag_list'),
     path('tags/<str:slug>/', TagDetailView.as_view(), name='tag_detail'),
+
+    # Filter endpoints
+    path('filters/years/', BookYearsAPIView.as_view(), name='filter_years'),
+
+    # Explore Books
+    path('explore/', ExploreBooks.as_view(), name='explore_books'),
     
     # Books detail (catch-all pattern must come last)
     path('<str:slug>/', BookDetailView.as_view(), name='book_detail'),

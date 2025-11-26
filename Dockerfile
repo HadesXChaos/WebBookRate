@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     build-essential \
     libpq-dev \
+    netcat-traditional \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements
@@ -17,12 +18,18 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy project
 COPY . .
-COPY book_data.csv /app/book_data.csv
-COPY seed_data.py /app/seed_data.py
 
+# Apply migrations
+COPY book_data.csv \
+     author_data.csv \
+     publisher_data.csv \
+     genres_data.csv \
+     seed_data.py \
+     ./
+
+# Copy entrypoint
 COPY entrypoint.sh /entrypoint.sh
-RUN sed -i 's/\r$//' /entrypoint.sh && \
-    chmod +x /entrypoint.sh
+RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 
 # Collect static files
