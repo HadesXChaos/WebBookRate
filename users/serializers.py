@@ -107,3 +107,30 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         if attrs['password'] != attrs['password_confirm']:
             raise serializers.ValidationError({"password": "Password fields didn't match."})
         return attrs
+    
+    
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+    new_password_confirm = serializers.CharField(required=True)
+
+    def validate_old_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Mật khẩu hiện tại không đúng.")
+        return value
+
+    def validate(self, attrs):
+        new_password = attrs.get('new_password')
+        new_password_confirm = attrs.get('new_password_confirm')
+
+        if new_password != new_password_confirm:
+            raise serializers.ValidationError({
+                "new_password_confirm": "Mật khẩu nhập lại không khớp."
+            })
+
+        # Dùng validator của Django để check độ mạnh mật khẩu
+        user = self.context['request'].user
+        validate_password(new_password, user)
+
+        return attrs

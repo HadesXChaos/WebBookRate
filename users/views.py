@@ -1,8 +1,9 @@
 from rest_framework import generics, status, permissions
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.throttling import ScopedRateThrottle
+from django.views.decorators.csrf import csrf_exempt 
 from django.contrib.auth import login
 from django.utils import timezone
 from datetime import timedelta
@@ -11,7 +12,7 @@ import secrets
 from .models import User, Profile, EmailVerification, PasswordResetToken
 from .serializers import (
     UserSerializer, ProfileSerializer, RegisterSerializer, LoginSerializer,
-    PasswordResetRequestSerializer, PasswordResetConfirmSerializer
+    PasswordResetRequestSerializer, PasswordResetConfirmSerializer,ChangePasswordSerializer,
 )
 from .utils import send_verification_email, send_password_reset_email
 from .throttles import RegisterThrottle, LoginThrottle, PasswordResetThrottle, EmailVerificationThrottle
@@ -45,8 +46,9 @@ class RegisterView(generics.CreateAPIView):
             'message': 'Registration successful. Please verify your email.'
         }, status=status.HTTP_201_CREATED)
 
-
+@csrf_exempt 
 @api_view(['POST'])
+@authentication_classes([])  
 @permission_classes([permissions.AllowAny])
 def login_view(request):
     """User Login"""
@@ -238,3 +240,32 @@ def password_reset_confirm(request, token):
     except PasswordResetToken.DoesNotExist:
         return Response({'error': 'Invalid or expired token'}, 
                        status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET','POST'])
+@permission_classes([permissions.IsAuthenticated])
+def password_change(request):
+    """Change password for logged-in user"""
+    serializer = ChangePasswordSerializer(
+        data=request.data,
+        context={'request': request}
+    )
+    serializer.is_valid(raise_exception=True)
+
+    user = request.user
+    new_password = serializer.validated_data['new_password']
+
+    # Set mật khẩu mới
+    user.set_password(new_password)
+    user.save()
+
+    # (tuỳ bạn) Xoá token cũ để buộc login lại nếu dùng TokenAuth
+    try:
+        Token.objects.filter(user=user).delete()
+    except:
+        pass
+
+    return Response(
+        {'message': 'Đổi mật khẩu thành công.'},
+        status=status.HTTP_200_OK
+    )

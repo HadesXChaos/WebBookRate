@@ -13,7 +13,7 @@ from .sitemaps import BookSitemap, AuthorSitemap, ReviewSitemap
 from .views import (
     home_view, explore_view, login_view, register_view, password_reset_view,
     user_profile_view, user_shelves_view, settings_view,
-    search_view, notifications_view, logout_view_frontend
+    search_view, notifications_view, logout_view_frontend, change_password_view,
 )
 from books.models import Book
 from reviews.models import Review
@@ -54,6 +54,7 @@ urlpatterns = [
     path('shelves/', user_shelves_view, name='user_shelves'),
     path('settings/', settings_view, name='settings'),
     path('notifications/', notifications_view, name='notifications'),
+    path('password-change/',change_password_view, name='password_change_page'),
     
     # Frontend detail pages
     path('books/<str:slug>/', book_detail_frontend, name='book_detail_frontend'),
