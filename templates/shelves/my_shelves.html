@@ -163,42 +163,81 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Create shelf form
-    document.getElementById('create-shelf-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        const data = {
-            name: formData.get('name'),
-            description: formData.get('description'),
-            visibility: formData.get('visibility')
-        };
-        
-        fetch('/api/shelves/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCsrfToken()
-            },
-            body: JSON.stringify(data)
-        })
-        .then(res => res.json())
-        .then(data => {
-            createModal.style.display = 'none';
-            this.reset();
-            loadShelves();
-            // Show success message
-            const message = document.createElement('div');
-            message.className = 'alert alert-success';
-            message.textContent = 'Đã tạo kệ sách thành công!';
-            message.style.cssText = 'position: fixed; top: 80px; right: 1rem; z-index: 1000; padding: 1rem; background: #10b981; color: white; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);';
-            document.body.appendChild(message);
-            setTimeout(() => message.remove(), 3000);
-        })
-        .catch(err => {
-            console.error('Error creating shelf:', err);
-            alert('Có lỗi xảy ra khi tạo kệ sách. Vui lòng thử lại.');
-        });
-    });
+document.getElementById('create-shelf-form').addEventListener('submit', function(e) {
+    e.preventDefault();
     
+    // Disable nút để tránh bấm nhiều lần
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Đang xử lý...";
+
+    const formData = new FormData(this);
+    const data = {
+        name: formData.get('name'),
+        description: formData.get('description'),
+        visibility: formData.get('visibility')
+    };
+    
+    fetch('/api/shelves/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+        },
+        body: JSON.stringify(data)
+    })
+    .then(async res => {
+        // --- KHÚC QUAN TRỌNG MỚI THÊM ---
+        const jsonData = await res.json();
+        
+        // Nếu server trả về mã lỗi (400, 403, 500...) -> Ném lỗi
+        if (!res.ok) {
+            // Trả về lỗi kèm thông tin từ server
+            throw { status: res.status, data: jsonData };
+        }
+        
+        return jsonData; // Nếu OK thì trả về data để xử lý tiếp
+    })
+    .then(data => {
+        // --- XỬ LÝ KHI THÀNH CÔNG ---
+        createModal.style.display = 'none';
+        this.reset();
+        loadShelves(); // Tải lại danh sách
+        
+        // Hiện thông báo xanh
+        const message = document.createElement('div');
+        message.className = 'alert alert-success';
+        message.textContent = 'Đã tạo kệ sách thành công!';
+        message.style.cssText = 'position: fixed; top: 80px; right: 1rem; z-index: 2000; padding: 1rem; background: #10b981; color: white; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);';
+        document.body.appendChild(message);
+        setTimeout(() => message.remove(), 3000);
+    })
+    .catch(err => {
+        // --- XỬ LÝ KHI CÓ LỖI ---
+        console.error('Chi tiết lỗi:', err);
+        
+        let errorMsg = 'Có lỗi xảy ra. Vui lòng thử lại.';
+        
+        // Nếu server trả về lỗi chi tiết (ví dụ: Tên đã tồn tại)
+        if (err.data) {
+            // Lấy lỗi đầu tiên tìm thấy
+            const firstKey = Object.keys(err.data)[0];
+            const firstError = err.data[firstKey];
+            // Xử lý nếu lỗi là mảng hoặc chuỗi
+            const errorText = Array.isArray(firstError) ? firstError[0] : firstError;
+            errorMsg = `Lỗi: ${errorText}`;
+        }
+
+        alert(errorMsg);
+    })
+    .finally(() => {
+        // Mở khóa nút bấm dù thành công hay thất bại
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+    });
+});
+
     // Load shelves on page load
     loadShelves();
 });

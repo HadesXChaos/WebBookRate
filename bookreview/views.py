@@ -66,7 +66,6 @@ def user_shelves_view(request):
     """User shelves page"""
     return render(request, 'shelves/my_shelves.html')
 
-
 @login_required
 def settings_view(request):
     """User settings page"""
@@ -109,3 +108,6 @@ def logout_view_frontend(request):
         # For GET requests, render a page that auto-submits POST
         return render(request, 'auth/logout.html')
 
+
+def book_list_view(request):
+    return render(request, 'books/book_list.html')

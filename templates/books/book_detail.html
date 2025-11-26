@@ -253,65 +253,109 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial load
     loadReviews();
     
-    {% if user.is_authenticated %}
-    // Add to shelf modal
+    // --- Thay thế toàn bộ phần xử lý Kệ sách trong script cũ ---
+
+{% if user.is_authenticated %}
     const shelfModal = document.getElementById('shelf-modal');
     const addToShelfBtn = document.getElementById('add-to-shelf-btn');
-    
-    addToShelfBtn.addEventListener('click', function() {
-        // Load user shelves
-        fetch('/api/shelves/')
+    const shelfListContainer = document.getElementById('shelf-list');
+
+    // Hàm kiểm tra trạng thái ban đầu của nút bấm
+    function checkBookStatus() {
+        // Gọi API lấy danh sách kệ kèm trạng thái sách này
+        fetch(`/api/shelves/?check_book_id=${bookId}`)
             .then(res => res.json())
             .then(data => {
-                const container = document.getElementById('shelf-list');
-                if (data.results && data.results.length > 0) {
-                    container.innerHTML = data.results.map(shelf => `
-                        <div style="padding: 1rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; margin-bottom: 0.5rem; cursor: pointer;" 
-                             onclick="addToShelf(${shelf.id}, ${bookId})">
-                            <h4>${shelf.name}</h4>
-                            <p style="color: #64748b; font-size: 0.875rem;">${shelf.book_count || 0} cuốn sách</p>
-                        </div>
+                const shelves = Array.isArray(data) ? data : (data.results || []);
+                
+                // Kiểm tra xem sách có nằm trong ít nhất 1 kệ nào không
+                const isSaved = shelves.some(shelf => shelf.has_book);
+                
+                // Cập nhật giao diện nút bấm
+                if (isSaved) {
+                    addToShelfBtn.innerHTML = `
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Đã lưu vào kệ
+                    `;
+                    addToShelfBtn.classList.add('btn-success'); // Thêm class xanh (nếu có CSS)
+                } else {
+                    addToShelfBtn.textContent = "Thêm vào kệ sách";
+                    addToShelfBtn.classList.remove('btn-success');
+                }
+            });
+    }
+    
+    // Gọi ngay khi load trang để update nút bấm
+    checkBookStatus();
+
+    // Sự kiện mở Modal
+    addToShelfBtn.addEventListener('click', function() {
+        shelfListContainer.innerHTML = '<div class="loading">Đang tải...</div>';
+        shelfModal.style.display = 'flex';
+
+        fetch(`/api/shelves/?check_book_id=${bookId}`)
+            .then(res => res.json())
+            .then(data => {
+                const shelves = Array.isArray(data) ? data : (data.results || []);
+                
+                if (shelves.length > 0) {
+                    shelfListContainer.innerHTML = shelves.map(shelf => `
+                        <label class="shelf-item-row" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; cursor: pointer;">
+                            <input type="checkbox" 
+                                   style="width: 18px; height: 18px; margin-right: 12px; cursor: pointer;"
+                                   ${shelf.has_book ? 'checked' : ''} 
+                                   onchange="toggleShelf(${shelf.id}, ${bookId}, this)">
+                            
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; font-size: 15px;">${shelf.name}</div>
+                                <div style="font-size: 13px; color: #666;">
+                                    ${shelf.visibility === 'private' ? '🔒 Riêng tư' : '🌐 Công khai'} • ${shelf.book_count} cuốn
+                                </div>
+                            </div>
+                        </label>
                     `).join('');
                 } else {
-                    container.innerHTML = '<p>Bạn chưa có kệ sách nào. <a href="/shelves/create/">Tạo kệ sách mới</a></p>';
+                    shelfListContainer.innerHTML = '<p>Bạn chưa có kệ nào. <a href="/shelves/">Đến kệ sách tạo ngay!</a></p>';
                 }
-                shelfModal.style.display = 'flex';
             });
     });
-    
-    document.getElementById('close-shelf-modal').addEventListener('click', function() {
-        shelfModal.style.display = 'none';
-    });
-    
-    function addToShelf(shelfId, bookId) {
+
+    // Hàm Toggle (Thêm/Xóa)
+    window.toggleShelf = function(shelfId, bookId, checkbox) {
+        checkbox.disabled = true;
+        const originalState = !checkbox.checked;
+
+        const method = checkbox.checked ? 'POST' : 'DELETE';
+        
         fetch(`/api/shelves/${shelfId}/books/${bookId}/`, {
-            method: 'POST',
+            method: method,
             headers: {
+                'Content-Type': 'application/json',
                 'X-CSRFToken': BookReview.utils.getCsrfToken()
             }
         })
         .then(res => {
-            if (res.ok) {
-                BookReview.utils.showAlert('Đã thêm vào kệ sách thành công!', 'success');
-                shelfModal.style.display = 'none';
-            } else {
-                throw new Error('Failed to add to shelf');
-            }
+            if (!res.ok) throw new Error('Lỗi server');            
+            // Cập nhật lại trạng thái nút chính ở ngoài (để đồng bộ)
+            checkBookStatus();
         })
         .catch(err => {
-            BookReview.utils.showAlert('Có lỗi xảy ra. Vui lòng thử lại.', 'error');
+            console.error(err);
+            alert('Có lỗi xảy ra. Vui lòng thử lại.');
+            checkbox.checked = originalState; // Hoàn tác checkbox về như cũ
+        })
+        .finally(() => {
+            checkbox.disabled = false; // Mở khóa
         });
     }
-    
-    // Follow book
-    const followBtn = document.getElementById('follow-book-btn');
-    if (followBtn) {
-        followBtn.addEventListener('click', function() {
-            // Implement follow logic
-            BookReview.utils.showAlert('Tính năng đang phát triển', 'info');
-        });
-    }
-    {% endif %}
+
+    // Đóng Modal
+    document.getElementById('close-shelf-modal').addEventListener('click', () => {
+        shelfModal.style.display = 'none';
+    });
+{% endif %}
 });
 </script>
 {% endblock %}

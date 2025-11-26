@@ -7,8 +7,11 @@ from django.core.cache import cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_headers
+from django.utils import timezone
+from datetime import timedelta
+from django.db.models import Count, Q, F, FloatField, ExpressionWrapper
 
-from .models import Author, Genre, Publisher, Tag, Book
+from .models import Author, Genre, Publisher, Tag, Book, BookView
 from .serializers import (
     AuthorSerializer, GenreSerializer, PublisherSerializer, TagSerializer,
     BookListSerializer, BookDetailSerializer
@@ -57,6 +60,28 @@ class BookDetailView(generics.RetrieveAPIView):
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
     
+    #Lay địa chỉ IP của client
+    def get_client_ip(self, request):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
+    
+    # Ghi lại lượt xem sách
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        ip = self.get_client_ip(request)
+        user = request.user if request.user.is_authenticated else None
+        
+        BookView.objects.create(
+            book=instance,
+            ip_address=ip,
+            user=user
+        )
+        return super().retrieve(request, *args, **kwargs)
+    
     def get_object(self):
         slug = self.kwargs.get('slug')
         cache_key = f'book_detail:{slug}'
@@ -67,6 +92,61 @@ class BookDetailView(generics.RetrieveAPIView):
             cache.set(cache_key, book, 60)  # Cache for 60 seconds
         
         return book
+    
+
+class TrendingBookListView(generics.ListAPIView):
+    """
+    API lấy Top 10 sách thịnh hành trong 7 ngày qua.
+    Công thức: Score = (Views * 1) + (Shelf Adds * 3) + (Reviews * 5)
+    """
+    serializer_class = BookListSerializer
+    permission_classes = [permissions.AllowAny]
+    pagination_class = None  # Không phân trang, chỉ lấy Top 10
+
+    def get_queryset(self):
+        # 1. Xác định mốc thời gian (7 ngày trước)
+        last_week = timezone.now() - timedelta(days=7)
+
+        # 2. Truy vấn và Tính điểm
+        queryset = Book.objects.filter(is_active=True).annotate(
+            # Đếm lượt xem trong tuần (Weight: 1)
+            recent_views=Count(
+                'book_views', 
+                filter=Q(book_views__created_at__gte=last_week)
+            ),
+            
+            # Đếm lượt thêm vào kệ sách trong tuần (Weight: 3)
+            # Lưu ý: 'shelf_items' là related_name trong model ShelfItem
+            recent_shelves=Count(
+                'shelf_items', 
+                filter=Q(shelf_items__added_at__gte=last_week)
+            ),
+            
+            # Đếm lượt review trong tuần (Weight: 5)
+            # Chỉ tính review public và active
+            recent_reviews=Count(
+                'reviews', 
+                filter=Q(
+                    reviews__created_at__gte=last_week,
+                    reviews__status='public',
+                    reviews__is_active=True
+                )
+            )
+        ).annotate(
+            # 3. Tính tổng điểm (Trending Score)
+            # Dùng ExpressionWrapper để đảm bảo kiểu dữ liệu Float
+            trending_score=ExpressionWrapper(
+                (F('recent_views') * 1.0) + 
+                (F('recent_shelves') * 3.0) + 
+                (F('recent_reviews') * 5.0),
+                output_field=FloatField()
+            )
+        ).filter(
+            # Chỉ lấy sách có điểm > 0 (tránh danh sách rỗng tuếch)
+            trending_score__gt=0
+        ).order_by('-trending_score', '-created_at')[:10]  # Sắp xếp giảm dần
+
+        return queryset
 
 
 class AuthorListView(generics.ListAPIView):

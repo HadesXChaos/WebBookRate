@@ -200,3 +200,24 @@ class BookEdition(models.Model):
 
     def __str__(self):
         return f"{self.book.title} - {self.get_format_display()}"
+
+
+class BookView(models.Model):
+    """
+    Book View Model to track views of each book.
+    """
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='book_views')
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True) # Nếu bạn có custom user model
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('book view')
+        verbose_name_plural = _('book views')
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['created_at']), # Index để lọc theo ngày nhanh hơn
+        ]
+
+    def __str__(self):
+        return f"{self.book.title} viewed at {self.created_at}"

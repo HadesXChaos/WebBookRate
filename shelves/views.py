@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from django.contrib.auth import get_user_model
+from django.db.models import Exists, OuterRef
 
 from .models import Shelf, ShelfItem, ReadingProgress
 from .serializers import ShelfSerializer, ShelfItemSerializer, ReadingProgressSerializer
@@ -18,11 +19,23 @@ class ShelfListView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Show user's own shelves or public shelves
         if self.request.user.is_authenticated:
-            return Shelf.objects.filter(
+            queryset = Shelf.objects.filter(
                 user=self.request.user
             ).prefetch_related('items__book').order_by('-created_at')
+
+            check_book_id = self.request.query_params.get('check_book_id')
+            
+            if check_book_id:
+                is_in_shelf = ShelfItem.objects.filter(
+                    shelf=OuterRef('pk'),
+                    book_id=check_book_id
+                )
+                queryset = queryset.annotate(has_book=Exists(is_in_shelf))
+            # ---------------------------------------
+
+            return queryset
+
         return Shelf.objects.filter(
             visibility='public', is_active=True
         ).prefetch_related('items__book').order_by('-created_at')

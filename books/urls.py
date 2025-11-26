@@ -4,7 +4,7 @@ from .views import (
     AuthorListView, AuthorDetailView,
     GenreListView, GenreDetailView,
     PublisherListView, PublisherDetailView,
-    TagListView, TagDetailView,
+    TagListView, TagDetailView, TrendingBookListView,
 )
 
 app_name = 'books'
@@ -12,6 +12,9 @@ app_name = 'books'
 urlpatterns = [
     # Books
     path('', BookListView.as_view(), name='book_list'),
+
+    # Trending Books
+    path('trending/', TrendingBookListView.as_view(), name='book_trending'),
     
     # Authors (must come before catch-all slug pattern)
     path('authors/', AuthorListView.as_view(), name='author_list'),
@@ -31,4 +34,6 @@ urlpatterns = [
     
     # Books detail (catch-all pattern must come last)
     path('<str:slug>/', BookDetailView.as_view(), name='book_detail'),
+
+    
 ]

@@ -13,7 +13,8 @@ from .sitemaps import BookSitemap, AuthorSitemap, ReviewSitemap
 from .views import (
     home_view, explore_view, login_view, register_view, password_reset_view,
     user_profile_view, user_shelves_view, settings_view,
-    search_view, notifications_view, logout_view_frontend
+    search_view, notifications_view, logout_view_frontend,
+    book_list_view,
 )
 from books.models import Book
 from reviews.models import Review
@@ -54,6 +55,8 @@ urlpatterns = [
     path('shelves/', user_shelves_view, name='user_shelves'),
     path('settings/', settings_view, name='settings'),
     path('notifications/', notifications_view, name='notifications'),
+    path('books/', book_list_view, name='book_list_view'),
+    
     
     # Frontend detail pages
     path('books/<str:slug>/', book_detail_frontend, name='book_detail_frontend'),
@@ -73,6 +76,8 @@ urlpatterns = [
     path('robots.txt', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}),
     path('healthz', TemplateView.as_view(template_name='healthz.html')),
+
+    
 ]
 
 if settings.DEBUG:

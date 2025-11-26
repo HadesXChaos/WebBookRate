@@ -16,12 +16,19 @@ class ShelfItemSerializer(serializers.ModelSerializer):
 class ShelfSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     items = ShelfItemSerializer(many=True, read_only=True)
+    has_book = serializers.BooleanField(read_only=True, required=False)
 
     class Meta:
         model = Shelf
         fields = ['id', 'user', 'name', 'system_type', 'description', 'visibility',
-                 'cover_image', 'book_count', 'items', 'created_at', 'updated_at']
+                 'cover_image', 'book_count', 'items', 'created_at', 'updated_at', 'has_book']
         read_only_fields = ['id', 'user', 'book_count', 'created_at', 'updated_at']
+
+        extra_kwargs = {
+            'system_type': {'required': False, 'allow_null': True}
+        }
+
+    
 
 
 class ReadingProgressSerializer(serializers.ModelSerializer):

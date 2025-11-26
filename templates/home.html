@@ -90,38 +90,55 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Load trending books
-    fetch('/api/books/?ordering=-rating_count')
+    //Load trending books
+    fetch('/api/books/trending/')
         .then(res => res.json())
         .then(data => {
             const container = document.getElementById('trending-books');
-            if (data.results && data.results.length > 0) {
-                container.innerHTML = data.results.slice(0, 8).map(book => `
-                    <div class="book-card">
-                        <a href="/books/${book.slug}/">
-                            <div class="book-cover">
-                                <img src="${book.cover || '/static/images/default-book.svg'}" 
-                                     alt="${book.title}" loading="lazy">
-                            </div>
-                            <div class="book-info">
-                                <h3 class="book-title">${book.title}</h3>
-                                <p class="book-author">${book.authors?.[0]?.name || 'N/A'}</p>
-                                <div class="book-rating">
-                                    <div class="rating-stars" data-rating="${book.avg_rating || 0}"></div>
-                                    <span class="rating-value">${(book.avg_rating || 0).toFixed(1)}</span>
-                                    <span class="rating-count">(${book.rating_count || 0})</span>
+            
+            // SỬA 2: Xử lý dữ liệu trả về
+            const books = Array.isArray(data) ? data : (data.results || []);
+
+            if (books.length > 0) {
+                container.innerHTML = books.slice(0, 8).map((book, index) => {
+                    // SỬA 3: Logic tạo Huy hiệu xếp hạng
+                    let badgeHtml = '';
+                    if (index === 0) badgeHtml = '<div class="rank-badge rank-1">🏆 1</div>';
+                    else if (index === 1) badgeHtml = '<div class="rank-badge rank-2">🥈 2</div>';
+                    else if (index === 2) badgeHtml = '<div class="rank-badge rank-3">🥉 3</div>';
+                    else badgeHtml = `<div class="rank-badge rank-normal">#${index + 1}</div>`;
+
+                    return `
+                        <div class="book-card" style="position: relative;">
+                            ${badgeHtml}
+                            
+                            <a href="/books/${book.slug}/">
+                                <div class="book-cover">
+                                    <img src="${book.cover || '/static/images/default-book.svg'}" 
+                                        alt="${book.title}" loading="lazy">
                                 </div>
-                            </div>
-                        </a>
-                    </div>
-                `).join('');
+                                <div class="book-info">
+                                    <h3 class="book-title">${book.title}</h3>
+                                    <p class="book-author">${book.authors?.[0]?.name || 'Đang cập nhật'}</p>
+                                    <div class="book-rating">
+                                        <div class="rating-stars" data-rating="${book.avg_rating || 0}"></div>
+                                        <span class="rating-value">${parseFloat(book.avg_rating || 0).toFixed(1)}</span>
+                                        <span class="rating-count">(${book.review_count || 0})</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    `;
+                }).join('');
                 
-                // Render stars
-                container.querySelectorAll('[data-rating]').forEach(el => {
-                    BookReview.renderStars(parseFloat(el.dataset.rating), el);
-                });
+                // Render stars (Giữ nguyên logic của bạn)
+                if (typeof BookReview !== 'undefined' && BookReview.renderStars) {
+                    container.querySelectorAll('[data-rating]').forEach(el => {
+                        BookReview.renderStars(parseFloat(el.dataset.rating), el);
+                    });
+                }
             } else {
-                container.innerHTML = '<p>Chưa có sách nào.</p>';
+                container.innerHTML = '<p>Chưa có dữ liệu thịnh hành tuần này.</p>';
             }
         })
         .catch(err => {
@@ -193,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <p class="book-author">${book.authors?.[0]?.name || 'N/A'}</p>
                                 <div class="book-rating">
                                     <div class="rating-stars" data-rating="${book.avg_rating || 0}"></div>
-                                    <span class="rating-value">${(book.avg_rating || 0).toFixed(1)}</span>
+                                    <span class="rating-value">${parseFloat(book.avg_rating || 0).toFixed(1)}</span>
                                 </div>
                             </div>
                         </a>
@@ -235,6 +252,8 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error loading genres:', err);
         });
 });
+
+
 </script>
 {% endblock %}
 

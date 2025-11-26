@@ -43,15 +43,6 @@ class Shelf(models.Model):
         return f"{self.user.username}'s {self.name}"
 
     def save(self, *args, **kwargs):
-        # Auto-create system shelves
-        if not self.pk and self.system_type:
-            shelf, created = Shelf.objects.get_or_create(
-                user=self.user,
-                system_type=self.system_type,
-                defaults={'name': self.get_system_type_display(), 'visibility': 'public'}
-            )
-            if not created:
-                return
         super().save(*args, **kwargs)
 
 

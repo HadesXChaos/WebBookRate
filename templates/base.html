@@ -41,7 +41,7 @@
                     <ul class="navbar-links">
                         <li><a href="{% url 'home' %}">Trang chủ</a></li>
                         <li><a href="{% url 'explore' %}">Khám phá</a></li>
-                        <li><a href="{% url 'books:book_list' %}">Sách</a></li>
+                        <li><a href="{% url 'book_list_view' %}">Sách</a></li>
                         <li><a href="{% url 'reviews:review_list' %}">Reviews</a></li>
                     </ul>
                 </div>
@@ -110,7 +110,7 @@
                 <ul class="mobile-menu-links">
                     <li><a href="{% url 'home' %}">Trang chủ</a></li>
                     <li><a href="{% url 'explore' %}">Khám phá</a></li>
-                    <li><a href="{% url 'books:book_list' %}">Sách</a></li>
+                    <li><a href="{% url 'book_list_view' %}">Sách</a></li>
                     <li><a href="{% url 'reviews:review_list' %}">Reviews</a></li>
                     {% if user.is_authenticated %}
                         <li><a href="{% url 'user_profile' user.username %}">Hồ sơ</a></li>
@@ -155,7 +155,7 @@
                     <h4>Khám phá</h4>
                     <ul>
                         <li><a href="{% url 'explore' %}">Khám phá sách</a></li>
-                        <li><a href="{% url 'books:book_list' %}">Danh sách sách</a></li>
+                        <li><a href="{% url 'book_list_view' %}">Danh sách sách</a></li>
                         <li><a href="{% url 'reviews:review_list' %}">Reviews mới</a></li>
                         <li><a href="{% url 'books:author_list' %}">Tác giả</a></li>
                     </ul>

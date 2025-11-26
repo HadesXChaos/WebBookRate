@@ -59,7 +59,7 @@ class Review(models.Model):
         # Convert markdown to HTML and sanitize
         if self.body_md:
             html = markdown.markdown(self.body_md, extensions=['extra', 'nl2br'])
-            allowed_tags = bleach.sanitizer.ALLOWED_TAGS + ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'blockquote']
+            allowed_tags = list(bleach.sanitizer.ALLOWED_TAGS) + ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'blockquote']
             self.body_html = bleach.clean(html, tags=allowed_tags, strip=True)
         
         # Track edit
