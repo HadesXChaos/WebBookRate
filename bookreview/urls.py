@@ -15,6 +15,7 @@ from .views import (
     user_profile_view, user_shelves_view, settings_view,
     search_view, notifications_view, logout_view_frontend,
     book_list_view, review_editor_view,
+    search_view, notifications_view, logout_view_frontend, change_password_view,shelf_detail_view,
 )
 from books.models import Book
 from reviews.models import Review
@@ -53,11 +54,13 @@ urlpatterns = [
     path('search/', search_view, name='search'),
     path('users/<str:username>/', user_profile_view, name='user_profile'),
     path('shelves/', user_shelves_view, name='user_shelves'),
+    path('shelves/<int:shelf_id>/', shelf_detail_view, name='shelf_detail'),
     path('settings/', settings_view, name='settings'),
     path('notifications/', notifications_view, name='notifications'),
     path('books/', book_list_view, name='book_list_view'),
     path('reviews/write/', review_editor_view, name='review_editor'),
     
+    path('password-change/',change_password_view, name='password_change_page'),
     
     # Frontend detail pages
     path('books/<str:slug>/', book_detail_frontend, name='book_detail_frontend'),

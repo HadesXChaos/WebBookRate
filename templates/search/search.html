@@ -64,14 +64,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         <a href="/books/${book.slug}/">
                             <div class="book-cover">
                                 <img src="${book.cover || '/static/images/default-book.svg'}" 
-                                     alt="${book.title}" loading="lazy">
+                                    alt="${book.title}" loading="lazy">
                             </div>
                             <div class="book-info">
                                 <h3 class="book-title">${book.title}</h3>
                                 <p class="book-author">${book.authors?.[0]?.name || 'N/A'}</p>
                                 <div class="book-rating">
                                     <div class="rating-stars" data-rating="${book.avg_rating || 0}"></div>
-                                    <span class="rating-value">${(book.avg_rating || 0).toFixed(1)}</span>
+                                    <span class="rating-value">${parseFloat(book.avg_rating || 0).toFixed(1)}</span>
                                 </div>
                             </div>
                         </a>

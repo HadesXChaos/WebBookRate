@@ -80,10 +80,25 @@ def user_shelves_view(request):
     """User shelves page"""
     return render(request, 'shelves/my_shelves.html')
 
+
+
+@login_required
+def shelf_detail_view(request, shelf_id):
+    """
+    Trang chi tiết 1 kệ sách.
+    Dữ liệu chi tiết sẽ được load qua API /api/shelves/<id>/ bằng JavaScript.
+    """
+    return render(request, 'shelves/shelf_detail.html', {'shelf_id': shelf_id})
+
 @login_required
 def settings_view(request):
     """User settings page"""
     return render(request, 'users/settings.html')
+
+@login_required
+def change_password_view(request):
+    """User settings page"""
+    return render(request, 'users/password-change.html')
 
 
 @login_required
