@@ -5,17 +5,27 @@
 
 {% block content %}
 <div class="container" style="max-width: 1200px;">
-    <!-- Profile Header -->
     <section class="profile-header" style="background: white; border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
         <div style="display: flex; gap: 2rem; align-items: start;">
-            <div style="flex-shrink: 0;">
+            <div style="flex-shrink: 0; position: relative;">
                 <img src="{% if profile_user.profile.avatar %}{{ profile_user.profile.avatar.url }}{% else %}{% static 'images/default-avatar.svg' %}{% endif %}" 
                      alt="{{ profile_user.username }}" 
                      style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #e2e8f0;">
+                
+                {% if profile_user.role == 'reviewer' %}
+                    <span style="position: absolute; bottom: 0; right: 0; background: #8b5cf6; color: white; font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; border: 2px solid white;">Reviewer</span>
+                {% elif profile_user.role == 'moderator' %}
+                    <span style="position: absolute; bottom: 0; right: 0; background: #f59e0b; color: white; font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; border: 2px solid white;">Mod</span>
+                {% endif %}
             </div>
             
             <div style="flex: 1;">
-                <h1 style="margin-bottom: 0.5rem;">{{ profile_user.username }}</h1>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <h1 style="margin: 0;">{{ profile_user.username }}</h1>
+                    {% if profile_user.is_verified %}
+                        <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20" style="width: 20px; color: #3b82f6;"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                    {% endif %}
+                </div>
                 
                 {% if profile_user.profile.bio %}
                 <p style="color: #475569; margin-bottom: 1rem; line-height: 1.7;">{{ profile_user.profile.bio }}</p>
@@ -23,13 +33,17 @@
                 
                 <div style="display: flex; gap: 2rem; margin-bottom: 1rem; flex-wrap: wrap;">
                     <div>
-                        <strong>{{ profile_user.profile.reviews_count|default:0 }}</strong>
+                        <strong>{{ reviews_count|default:0 }}</strong>
                         <span style="color: #64748b; font-size: 0.875rem;"> reviews</span>
                     </div>
+                    
+                    {% if profile_user.role != 'reader' %}
                     <div>
-                        <strong>{{ profile_user.profile.followers_count|default:0 }}</strong>
+                        <strong>{{ profile_user.profile.follower_count|default:0 }}</strong>
                         <span style="color: #64748b; font-size: 0.875rem;"> người theo dõi</span>
                     </div>
+                    {% endif %}
+                    
                     <div>
                         <strong>{{ profile_user.profile.following_count|default:0 }}</strong>
                         <span style="color: #64748b; font-size: 0.875rem;"> đang theo dõi</span>
@@ -41,9 +55,15 @@
                     {% if user == profile_user %}
                         <a href="/settings/" class="btn btn-outline">Chỉnh sửa hồ sơ</a>
                     {% else %}
-                        <button class="btn btn-primary" id="follow-btn" data-user-id="{{ profile_user.id }}">
-                            <span id="follow-text">{% if profile_user.profile.is_followed %}Đang theo dõi{% else %}Theo dõi{% endif %}</span>
-                        </button>
+                        {% if profile_user.role != 'reader' %}
+                            <button class="btn {% if is_following %}btn-outline{% else %}btn-primary{% endif %}" 
+                                    id="follow-btn" 
+                                    data-user-id="{{ profile_user.id }}"
+                                    data-following="{{ is_following|yesno:'true,false' }}">
+                                <span id="follow-text">{% if is_following %}Đang theo dõi{% else %}Theo dõi{% endif %}</span>
+                            </button>
+                        {% endif %}
+                        
                         <a href="/messages/new/?user={{ profile_user.id }}" class="btn btn-outline">Nhắn tin</a>
                     {% endif %}
                 </div>
@@ -52,7 +72,6 @@
         </div>
     </section>
     
-    <!-- Tabs -->
     <div class="tabs" style="display: flex; gap: 1rem; border-bottom: 2px solid #e2e8f0; margin-bottom: 2rem;">
         <button class="tab-btn active" data-tab="shelves">Kệ sách</button>
         <button class="tab-btn" data-tab="reviews">Reviews</button>
@@ -60,43 +79,79 @@
         <button class="tab-btn" data-tab="activity">Hoạt động</button>
     </div>
     
-    <!-- Tab Content -->
     <div class="tab-content">
-        <!-- Shelves Tab -->
         <div id="tab-shelves" class="tab-pane active">
             <div class="grid grid-3" id="user-shelves">
-                <!-- Shelves will be loaded via JavaScript -->
                 <div class="loading">Đang tải...</div>
             </div>
         </div>
         
-        <!-- Reviews Tab -->
         <div id="tab-reviews" class="tab-pane" style="display: none;">
             <div id="user-reviews">
-                <!-- Reviews will be loaded via JavaScript -->
                 <div class="loading">Đang tải...</div>
             </div>
         </div>
         
-        <!-- Collections Tab -->
         <div id="tab-collections" class="tab-pane" style="display: none;">
             <div id="user-collections">
-                <!-- Collections will be loaded via JavaScript -->
                 <div class="loading">Đang tải...</div>
             </div>
         </div>
         
-        <!-- Activity Tab -->
         <div id="tab-activity" class="tab-pane" style="display: none;">
             <div id="user-activity">
-                <!-- Activity will be loaded via JavaScript -->
                 <div class="loading">Đang tải...</div>
             </div>
         </div>
     </div>
 </div>
 
+<div id="unfollow-modal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.25rem;">Bỏ theo dõi {{ profile_user.username }}?</h3>
+        <p style="color: #64748b; margin-bottom: 1.5rem;">Bạn muốn bỏ theo dõi người này?</p>
+        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+            <button id="cancel-unfollow-btn" class="btn btn-outline" style="border: none; background: #f1f5f9;">Huỷ</button>
+            <button id="confirm-unfollow-btn" class="btn btn-primary" style="background: #ef4444; border-color: #ef4444;">Đồng ý</button>
+        </div>
+    </div>
+</div>
+
 <style>
+/* CSS cho Modal */
+.modal-overlay {
+    display: none; /* Mặc định ẩn */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-overlay.show {
+    display: flex; /* Hiện khi có class show */
+}
+
+.modal-box {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    animation: modalFadeIn 0.2s ease-out;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* CSS cũ */
 .tab-btn {
     padding: 0.75rem 1.5rem;
     background: none;
@@ -132,6 +187,79 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const userId = {{ profile_user.id }};
+    
+    // --- START: MODAL & FOLLOW LOGIC (ĐÃ SỬA) ---
+    const followBtn = document.getElementById('follow-btn');
+    const modal = document.getElementById('unfollow-modal');
+    const cancelBtn = document.getElementById('cancel-unfollow-btn');
+    const confirmBtn = document.getElementById('confirm-unfollow-btn');
+
+    // Hàm gọi API thực hiện Follow/Unfollow
+    async function performFollowAction(isUnfollowing) {
+        if (followBtn.disabled) return;
+        followBtn.disabled = true;
+
+        try {
+            const url = `/api/social/follow/`;
+            const method = isUnfollowing ? 'DELETE' : 'POST';
+            
+            await BookReview.utils.apiRequest(url, method, {
+                target_type: 'user',
+                target_id: userId
+            });
+            
+            const newStatus = !isUnfollowing;
+            followBtn.dataset.following = newStatus;
+            
+            const span = followBtn.querySelector('#follow-text');
+            if (newStatus) {
+                span.textContent = 'Đang theo dõi';
+                followBtn.classList.remove('btn-primary');
+                followBtn.classList.add('btn-outline');
+            } else {
+                span.textContent = 'Theo dõi';
+                followBtn.classList.remove('btn-outline');
+                followBtn.classList.add('btn-primary');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Có lỗi xảy ra. Vui lòng thử lại.');
+        } finally {
+            followBtn.disabled = false;
+            modal.classList.remove('show');
+        }
+    }
+
+    if (followBtn) {
+        followBtn.addEventListener('click', function() {
+            const isFollowing = this.dataset.following === 'true';
+
+            if (isFollowing) {
+                modal.classList.add('show');
+            } else {
+                performFollowAction(false); 
+            }
+        });
+    }
+
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+            modal.classList.remove('show');
+        });
+    }
+
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', function() {
+            performFollowAction(true);
+        });
+    }
+
+    window.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.classList.remove('show');
+        }
+    });
+    // --- END: MODAL & FOLLOW LOGIC ---
     
     // Tab switching
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -192,7 +320,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Load reviews
     function loadReviews() {
-        fetch(`/api/reviews/?user_id=${userId}`)
+        fetch(`/api/reviews/?user=${userId}`)
             .then(res => res.json())
             .then(data => {
                 const container = document.getElementById('user-reviews');
@@ -231,42 +359,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Load collections
     function loadCollections() {
-        // Implement collections loading
         document.getElementById('user-collections').innerHTML = '<p>Tính năng đang phát triển.</p>';
     }
     
     // Load activity
     function loadActivity() {
-        // Implement activity loading
         document.getElementById('user-activity').innerHTML = '<p>Tính năng đang phát triển.</p>';
-    }
-    
-    // Follow button
-    const followBtn = document.getElementById('follow-btn');
-    if (followBtn) {
-        followBtn.addEventListener('click', async function() {
-            const isFollowing = this.querySelector('#follow-text').textContent === 'Đang theo dõi';
-            
-            try {
-                const url = `/api/social/follow/`;
-                const method = isFollowing ? 'DELETE' : 'POST';
-                await BookReview.utils.apiRequest(url, method, {
-                    target_type: 'user',
-                    target_id: userId
-                });
-                
-                this.querySelector('#follow-text').textContent = isFollowing ? 'Theo dõi' : 'Đang theo dõi';
-                if (isFollowing) {
-                    this.classList.remove('btn-primary');
-                    this.classList.add('btn-outline');
-                } else {
-                    this.classList.remove('btn-outline');
-                    this.classList.add('btn-primary');
-                }
-            } catch (err) {
-                BookReview.utils.showAlert('Có lỗi xảy ra. Vui lòng thử lại.', 'error');
-            }
-        });
     }
     
     // Initial load
@@ -274,4 +372,3 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endblock %}
-

@@ -3,12 +3,12 @@ from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.core.exceptions import ValidationError
 import json
 
 
 class Follow(models.Model):
     """Follow Model - Generic Foreign Key for following users/authors/books"""
-    
     follower = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, 
                                   related_name='following')
     
@@ -22,7 +22,7 @@ class Follow(models.Model):
     class Meta:
         verbose_name = _('follow')
         verbose_name_plural = _('follows')
-        unique_together = ['follower', 'content_type', 'object_id']
+        unique_together = ['follower', 'content_type', 'object_id'] 
         indexes = [
             models.Index(fields=['follower', '-created_at']),
             models.Index(fields=['content_type', 'object_id', '-created_at']),
@@ -30,6 +30,14 @@ class Follow(models.Model):
 
     def __str__(self):
         return f"{self.follower.username} follows {self.target}"
+
+    def clean(self):
+        if self.target == self.follower:
+            raise ValidationError(_("You cannot follow yourself."))
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
 
 
 class Notification(models.Model):
@@ -43,6 +51,8 @@ class Notification(models.Model):
         ('comment_like', _('Comment Liked')),
         ('new_review', _('New Review from Following')),
         ('collection_item', _('Added to Collection')),
+        ('rank_upgrade', _('Rank Upgraded')),
+        ('system', _('System Message')),
     ]
     
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, 

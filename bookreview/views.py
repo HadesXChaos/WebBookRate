@@ -2,6 +2,7 @@
 Frontend views for BookReview.vn
 """
 from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.contenttypes.models import ContentType
 from django.views.generic import TemplateView, DetailView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -11,6 +12,8 @@ from django.contrib.auth import logout
 from users.models import User
 from books.models import Book
 from reviews.models import Review
+from reviews.models import Review 
+from social.models import Follow
 
 
 def home_view(request):
@@ -53,10 +56,21 @@ def user_profile_view(request, username):
     
     # Get counts
     reviews_count = Review.objects.filter(user=profile_user, status='published').count()
+
+    is_following = False
+    if request.user.is_authenticated and request.user != profile_user:
+        user_content_type = ContentType.objects.get_for_model(User)
+        
+        is_following = Follow.objects.filter(
+            follower=request.user,
+            content_type=user_content_type,
+            object_id=profile_user.id
+        ).exists()
     
     context = {
         'profile_user': profile_user,
         'reviews_count': reviews_count,
+        'is_following': is_following,
     }
     return render(request, 'users/profile.html', context)
 

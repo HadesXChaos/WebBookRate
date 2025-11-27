@@ -1,8 +1,60 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.contenttypes.models import ContentType
 from .models import User, Profile
+from shelves.models import Shelf
+from social.models import Follow
 from .validators import validate_password_strength
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    """Profile Serializer"""
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
+    role = serializers.CharField(source='user.role', read_only=True)
+    
+    following_count = serializers.SerializerMethodField() # List of users this user is following
+    follower_count = serializers.SerializerMethodField() # Fan count for Reviewers
+    
+    is_fully_completed = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = [
+            'username', 'email', 'role', 'avatar', 'bio', 'location', 'website',
+            'facebook_url', 'twitter_url', 'instagram_url', 'language',
+            'notify_follow', 'notify_review_like', 'notify_comment', 
+            'notify_mention',
+            'following_count', 'follower_count', 'is_fully_completed'
+        ]
+        read_only_fields = ['username', 'email', 'role']
+
+    def get_following_count(self, obj):
+        return obj.user.following.count()
+
+    def get_follower_count(self, obj):
+        # Chỉ Reviewer mới hiện số Fan
+        if obj.user.role == User.Role.REVIEWER:
+            user = obj.user
+            user_content_type = ContentType.objects.get_for_model(User)
+            
+            return Follow.objects.filter(
+                content_type=user_content_type, 
+                object_id=user.id
+            ).count()
+        
+        return 0
+
+    def get_is_fully_completed(self, obj):
+        user = obj.user
+        
+        has_bio = bool(obj.bio and obj.bio.strip())
+        
+        has_email = bool(user.email and user.email.strip())
+        has_name = bool(user.first_name and user.last_name)
+        
+        return has_bio and has_email and has_name
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -12,27 +64,14 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 
-                  'is_verified', 'date_joined', 'profile']
-        read_only_fields = ['id', 'is_verified', 'date_joined']
+                  'role', 'is_verified', 'date_joined', 'profile']
+        read_only_fields = ['id','role', 'is_verified', 'date_joined']
 
     def get_profile(self, obj):
         if hasattr(obj, 'profile'):
             return ProfileSerializer(obj.profile).data
         return None
 
-
-class ProfileSerializer(serializers.ModelSerializer):
-    """Profile Serializer"""
-    username = serializers.CharField(source='user.username', read_only=True)
-    email = serializers.EmailField(source='user.email', read_only=True)
-
-    class Meta:
-        model = Profile
-        fields = ['username', 'email', 'avatar', 'bio', 'location', 'website',
-                  'facebook_url', 'twitter_url', 'instagram_url', 'language',
-                  'notify_follow', 'notify_review_like', 'notify_comment', 
-                  'notify_mention']
-        read_only_fields = ['username', 'email']
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -51,17 +90,38 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop('password_confirm')
+        
+        # 1. Tạo User: Luôn ép role là READER, is_staff=False
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
             password=validated_data['password'],
             first_name=validated_data.get('first_name', ''),
             last_name=validated_data.get('last_name', ''),
+            role=User.Role.READER, # Quan trọng: Ép cứng role
+            is_active=True # Hoặc False nếu bạn muốn bắt xác thực email trước
         )
+
+        # 2. Tạo Profile trống đi kèm
         Profile.objects.create(user=user)
+
+        # 3. Tạo 3 Kệ sách mặc định (System Shelves)
+        # WTR: Want to Read, READING: Reading, READ: Read
+        default_shelves = [
+            {'name': 'Want to Read', 'system_type': 'WTR'},
+            {'name': 'Currently Reading', 'system_type': 'READING'},
+            {'name': 'Read', 'system_type': 'READ'},
+        ]
+        
+        for shelf_data in default_shelves:
+            Shelf.objects.create(
+                user=user,
+                name=shelf_data['name'],
+                system_type=shelf_data['system_type'],
+                visibility='public'
+            )
+
         return user
-
-
 class LoginSerializer(serializers.Serializer):
     """Login Serializer"""
     username = serializers.CharField()

@@ -1,8 +1,9 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.db.models import Avg, Count
+from django.contrib.contenttypes.models import ContentType
 from .models import Review, Comment, Like
-
+from social.models import Notification
 
 @receiver(post_save, sender=Review)
 def update_book_rating(sender, instance, created, **kwargs):
@@ -29,6 +30,46 @@ def update_book_rating(sender, instance, created, **kwargs):
 def update_book_rating_on_delete(sender, instance, **kwargs):
     """Update book rating when review is deleted"""
     update_book_rating(sender, instance, created=False)
+
+
+
+@receiver(post_save, sender=Review)
+def check_user_upgrade(sender, instance, created, **kwargs):
+    """Check and upgrade user role based on public review count"""
+    if instance.status != 'public':
+        return
+
+    user = instance.user
+
+    if user.role != 'reader':
+        return
+
+    public_review_count = Review.objects.filter(
+        user=user, 
+        status='public',
+        is_active=True
+    ).count()
+
+    UPGRADE_THRESHOLD = 20
+
+    if public_review_count >= UPGRADE_THRESHOLD:
+        user.role = 'reviewer'
+        user.save(update_fields=['role'])
+        
+        try:
+            Notification.objects.create(
+                user=user,
+                notification_type='rank_upgrade',
+                content_type=ContentType.objects.get_for_model(user),
+                object_id=user.id,
+                payload={
+                    'message': f'Chúc mừng! Bạn đã viết đủ {UPGRADE_THRESHOLD} bài review và được thăng hạng lên Reviewer.',
+                    'new_role': 'Reviewer'
+                }
+            )
+        except Exception as e:
+            print(f"Lỗi tạo thông báo thăng hạng: {e}")
+
 
 
 @receiver(post_save, sender=Like)

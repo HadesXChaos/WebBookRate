@@ -82,12 +82,14 @@ def logout_view(request):
 
 class ProfileView(generics.RetrieveUpdateAPIView):
     """User Profile"""
-    serializer_class = ProfileSerializer
+    serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
-        profile, created = Profile.objects.get_or_create(user=self.request.user)
-        return profile
+        return self.request.user
+
+    def get_serializer_context(self):
+        return {'request': self.request}
 
 
 class UserDetailView(generics.RetrieveAPIView):
