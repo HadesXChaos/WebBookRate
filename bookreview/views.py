@@ -105,7 +105,7 @@ def change_password_view(request):
 def review_editor_view(request):
     """Review editor page with markdown preview and autosave support"""
     review_id = request.GET.get('review')
-    book_id = request.GET.get('book')
+    book_slug = request.GET.get('slug')
 
     existing_review = None
     selected_book = None
@@ -113,8 +113,8 @@ def review_editor_view(request):
     if review_id:
         existing_review = get_object_or_404(Review, pk=review_id, user=request.user)
         selected_book = existing_review.book
-    elif book_id:
-        selected_book = get_object_or_404(Book, pk=book_id, is_active=True)
+    elif book_slug:
+        selected_book = get_object_or_404(Book, slug=book_slug, is_active=True)
 
     initial_review = None
     if existing_review:
@@ -150,7 +150,7 @@ def review_editor_view(request):
     if existing_review:
         storage_key += f"_review_{existing_review.id}"
     elif selected_book:
-        storage_key += f"_book_{selected_book.id}"
+        storage_key += f"_book_{selected_book.slug}"
 
     context = {
         'selected_book': selected_book,
