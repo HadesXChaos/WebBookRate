@@ -99,8 +99,13 @@
 document.addEventListener('DOMContentLoaded', function() {
     let currentPage = 1;
     let currentFilters = {};
-    
-    // Load genres for filter
+    let usingFilters = false;  // đang xem kết quả lọc hay trending
+
+    // -----------------------------
+    // 1. Load dữ liệu cho bộ lọc
+    // -----------------------------
+
+    // Load genres cho filter "Thể loại"
     fetch('/api/books/genres/')
         .then(res => res.json())
         .then(data => {
@@ -108,15 +113,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.results) {
                 data.results.forEach(genre => {
                     const option = document.createElement('option');
-                    option.value = genre.slug;
+                    option.value = genre.slug;      // gửi slug lên API
                     option.textContent = genre.name;
                     select.appendChild(option);
                 });
             }
         });
-    
-    
-    // Load years for filter (From API)
+
+    // Load years cho filter "Năm xuất bản"
     fetch('/api/books/filters/years/')
         .then(res => res.json())
         .then(years => {
@@ -131,36 +135,43 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(err => console.error('Lỗi khi tải danh sách năm:', err));
-    
-    // Load books
+
+    // -----------------------------
+    // 2. Hàm load sách theo bộ lọc
+    // -----------------------------
     function loadBooks(page = 1, reset = false) {
+        usingFilters = true;   // đang xem kết quả đã lọc
+
         if (reset) {
             currentPage = 1;
-            document.getElementById('books-list').innerHTML = '<div class="loading">Đang tải...</div>';
+            document.getElementById('books-list').innerHTML =
+                '<div class="loading">Đang tải...</div>';
         }
-        
+
         const params = new URLSearchParams({
             page: page,
             ...currentFilters
         });
-        
-        fetch(`/api/explore/?${params}`)
+
+        fetch(`/api/books/explore/?${params.toString()}`)
             .then(res => res.json())
             .then(data => {
                 const container = document.getElementById('books-list');
-                
+
                 if (reset) {
                     container.innerHTML = '';
                 }
-                
-                if (data.results && data.results.length > 0) {
-                    data.results.forEach(book => {
+
+                const books = data.results || [];
+
+                if (books.length > 0) {
+                    books.forEach(book => {
                         const bookCard = document.createElement('div');
                         bookCard.className = 'book-card';
                         bookCard.innerHTML = `
                             <a href="/books/${book.slug}/">
                                 <div class="book-cover">
-                                    <img src="${book.cover || '/static/images/default-book.svg'}" 
+                                    <img src="${book.cover || '/static/images/default-book.svg'}"
                                          alt="${book.title}" loading="lazy">
                                 </div>
                                 <div class="book-info">
@@ -168,7 +179,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <p class="book-author">${book.authors?.[0]?.name || 'N/A'}</p>
                                     <div class="book-rating">
                                         <div class="rating-stars" data-rating="${book.avg_rating || 0}"></div>
-                                        <span class="rating-value">${parseFloat(book.avg_rating || 0).toFixed(1)}</span>
+                                        <span class="rating-value">
+                                            ${parseFloat(book.avg_rating || 0).toFixed(1)}
+                                        </span>
                                         <span class="rating-count">(${book.rating_count || 0})</span>
                                     </div>
                                 </div>
@@ -176,13 +189,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         `;
                         container.appendChild(bookCard);
                     });
-                    
-                    // Render stars
+
+                    // Render sao
                     container.querySelectorAll('[data-rating]').forEach(el => {
                         BookReview.renderStars(parseFloat(el.dataset.rating), el);
                     });
-                    
-                    // Check if there are more pages
+
+                    // Phân trang
                     if (data.next) {
                         document.getElementById('load-more-books').style.display = 'block';
                     } else {
@@ -197,12 +210,17 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(err => {
                 console.error('Error loading books:', err);
-                document.getElementById('books-list').innerHTML = '<p>Có lỗi xảy ra khi tải dữ liệu.</p>';
+                document.getElementById('books-list').innerHTML =
+                    '<p>Có lỗi xảy ra khi tải dữ liệu.</p>';
             });
     }
-    
-    //load trendingbook
+
+    // -----------------------------
+    // 3. Hàm load sách thịnh hành
+    // -----------------------------
     function loadTrendingBooks() {
+        usingFilters = false;
+
         const container = document.getElementById('books-list');
         const loadMoreBtn = document.getElementById('load-more-books');
 
@@ -213,7 +231,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 container.innerHTML = '';
 
-                // Trending trả về dạng LIST ([]) chứ không có data.results
                 const books = Array.isArray(data) ? data : (data.results || []);
 
                 if (books.length === 0) {
@@ -228,7 +245,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     bookCard.innerHTML = `
                         <a href="/books/${book.slug}/">
                             <div class="book-cover">
-                                <img src="${book.cover || '/static/images/default-book.svg'}" 
+                                <img src="${book.cover || '/static/images/default-book.svg'}"
                                      alt="${book.title}" loading="lazy">
                             </div>
                             <div class="book-info">
@@ -236,7 +253,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <p class="book-author">${book.authors?.[0]?.name || 'N/A'}</p>
                                 <div class="book-rating">
                                     <div class="rating-stars" data-rating="${book.avg_rating || 0}"></div>
-                                    <span class="rating-value">${parseFloat(book.avg_rating || 0).toFixed(1)}</span>
+                                    <span class="rating-value">
+                                        ${parseFloat(book.avg_rating || 0).toFixed(1)}
+                                    </span>
                                     <span class="rating-count">(${book.rating_count || 0})</span>
                                 </div>
                             </div>
@@ -245,7 +264,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     container.appendChild(bookCard);
                 });
 
-                // Render sao
                 container.querySelectorAll('[data-rating]').forEach(el => {
                     BookReview.renderStars(parseFloat(el.dataset.rating), el);
                 });
@@ -258,37 +276,50 @@ document.addEventListener('DOMContentLoaded', function() {
                 container.innerHTML = '<p>Có lỗi xảy ra khi tải dữ liệu.</p>';
             });
     }
-    // Filters form
-    document.getElementById('filters-form').addEventListener('submit', function(e) {
+
+    // -----------------------------
+    // 4. Bắt sự kiện form bộ lọc
+    // -----------------------------
+
+    const filtersForm = document.getElementById('filters-form');
+
+    // Nút "Áp dụng"
+    filtersForm.addEventListener('submit', function(e) {
         e.preventDefault();
         const formData = new FormData(this);
         currentFilters = {};
-        
+
         for (const [key, value] of formData.entries()) {
             if (value) {
                 currentFilters[key] = value;
             }
         }
-        
+
         loadBooks(1, true);
     });
-    
-    // Load more button
+
+    // Nút "Xóa bộ lọc"
+    filtersForm.addEventListener('reset', function() {
+        currentFilters = {};
+        // đợi form reset xong
+        setTimeout(function() {
+            loadTrendingBooks();
+        }, 0);
+    });
+
+    // Nút "Tải thêm"
     document.getElementById('load-more-books').addEventListener('click', function() {
+        if (!usingFilters) {
+            // đang ở trending thì không có load thêm
+            return;
+        }
         currentPage++;
         loadBooks(currentPage, false);
     });
 
-    // Khi bấm "Xóa bộ lọc" -> reset filters + load trending
-    const resetBtn = document.querySelector('#filters-form button[type="reset"]');
-    if (resetBtn) {
-        resetBtn.addEventListener('click', function () {
-            currentFilters = {};
-            loadTrendingBooks();
-        });
-    }
-    
-    // Initial load: show trending books
+    // -----------------------------
+    // 5. Lần đầu vào trang -> load trending
+    // -----------------------------
     loadTrendingBooks();
 });
 </script>

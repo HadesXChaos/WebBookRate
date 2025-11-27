@@ -1,0 +1,222 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Kệ sách -
+BookReview.vn{% endblock %} {% block content %}
+<div class="container" style="max-width: 1200px">
+  <!-- Header kệ -->
+  <div id="shelf-header" style="margin: 2rem 0 1.5rem 0">
+    <p>Đang tải kệ sách...</p>
+  </div>
+
+  <!-- Danh sách sách trong kệ -->
+  <div id="shelf-books"></div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+      const shelfId = {{ shelf_id }};
+      const headerEl = document.getElementById('shelf-header');
+      const booksEl = document.getElementById('shelf-books');
+
+      // Render thông tin kệ
+      function renderShelfHeader(shelf) {
+          const owner = shelf.user || {};
+          const username = owner.username || '';
+          const bookCount = shelf.book_count || 0;
+          const visibilityLabel = shelf.visibility === 'private'
+              ? '🔒 Riêng tư'
+              : '🌐 Công khai';
+
+          // Đổi title tab trình duyệt cho đẹp
+          if (shelf.name) {
+              document.title = shelf.name + ' - BookReview.vn';
+          }
+
+          headerEl.innerHTML = `
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1.5rem;">
+                  <div>
+                      <h1 style="margin-bottom: 0.5rem;">${shelf.name}</h1>
+                      <div style="color: #64748b; font-size: 0.95rem; margin-bottom: 0.75rem;">
+                          <span>👤 Chủ sở hữu: </span>
+                          ${username ? `<a href="/users/${username}/" style="color: #0f766e; font-weight: 500;">${username}</a>` : 'Không rõ'}
+                          <span style="margin: 0 0.5rem;">•</span>
+                          <span>${visibilityLabel}</span>
+                          <span style="margin: 0 0.5rem;">•</span>
+                          <span>${bookCount} cuốn sách</span>
+                      </div>
+                      ${shelf.description ? `
+                          <p style="max-width: 700px; color: #475569;">${shelf.description}</p>
+                      ` : ''}
+                  </div>
+              </div>
+          `;
+      }
+
+      // Render danh sách sách trong kệ
+      function renderBooks(items) {
+          if (!items || items.length === 0) {
+              booksEl.innerHTML = `
+                  <div style="padding: 2rem 0; text-align: center; color: #64748b;">
+                      <p>Kệ này chưa có cuốn sách nào.</p>
+                      <p>Hãy vào trang chi tiết sách và bấm "Thêm vào kệ sách" để thêm sách vào kệ này.</p>
+                  </div>
+              `;
+              return;
+          }
+
+          booksEl.innerHTML = `
+              <div class="grid-3">
+                  ${items.map(item => {
+                      const book = item.book || {};
+                      const cover = book.cover || '{% static "images/default-book.svg" %}';
+                      const slug = book.slug || '';
+                      const title = book.title || 'Không rõ tên sách';
+                      const year = book.year || '';
+                      const rating = book.avg_rating || 0;
+                      const ratingCount = book.rating_count || 0;
+                      const authors = (book.authors || []).map(a => a.name).join(', ');
+
+                      return `
+                          <div class="card book-card">
+                              <div class="card-body" style="display: flex; gap: 1rem;">
+                                  <a href="/books/${slug}/" style="flex-shrink: 0;">
+                                      <img src="${cover}" alt="${title}"
+                                           style="width: 80px; height: 120px; object-fit: cover; border-radius: 0.5rem;">
+                                  </a>
+                                  <div style="flex: 1;">
+                                      <h3 style="margin-bottom: 0.25rem; font-size: 1rem;">
+                                          <a href="/books/${slug}/" style="text-decoration: none; color: inherit;">
+                                              ${title}
+                                          </a>
+                                      </h3>
+                                      ${authors ? `<div style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.25rem;">
+                                          ${authors}
+                                      </div>` : ''}
+                                      ${year ? `<div style="font-size: 0.875rem; color: #94a3b8; margin-bottom: 0.5rem;">
+                                          Năm xuất bản: ${year}
+                                      </div>` : ''}
+
+                                      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                                          <div class="rating" data-rating="${rating}"></div>
+                                          <span style="font-size: 0.875rem; color: #64748b;">
+                                              ${rating.toFixed ? rating.toFixed(1) : rating}/5 (${ratingCount} đánh giá)
+                                          </span>
+                                      </div>
+
+                                      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                          <a href="/books/${slug}/" class="btn btn-sm btn-primary">
+                                              Xem chi tiết
+                                          </a>
+                                          <button type="button"
+                                                  class="btn btn-sm btn-outline"
+                                                  onclick="removeFromShelf(${book.id}, this)">
+                                              Xóa khỏi kệ
+                                          </button>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                      `;
+                  }).join('')}
+              </div>
+          `;
+
+          // Render sao rating
+          booksEl.querySelectorAll('[data-rating]').forEach(el => {
+              const value = parseFloat(el.dataset.rating || '0');
+              if (!isNaN(value) && window.BookReview && BookReview.renderStars) {
+                  BookReview.renderStars(value, el);
+              }
+          });
+      }
+
+      // Hàm xoá sách khỏi kệ (global để dùng trong onclick)
+      window.removeFromShelf = function (bookId, buttonEl) {
+          if (!confirm('Bạn có chắc muốn xóa sách này khỏi kệ?')) {
+              return;
+          }
+
+          const cardEl = buttonEl.closest('.book-card');
+          buttonEl.disabled = true;
+
+          fetch(`/api/shelves/${shelfId}/books/${bookId}/`, {
+              method: 'DELETE',
+              headers: {
+                  'X-CSRFToken': BookReview.utils.getCsrfToken()
+              }
+          })
+          .then(res => {
+              if (!res.ok) {
+                  throw new Error('Lỗi server');
+              }
+              if (cardEl) {
+                  cardEl.remove();
+              }
+          })
+          .catch(err => {
+              console.error(err);
+              alert('Có lỗi xảy ra. Vui lòng thử lại.');
+              buttonEl.disabled = false;
+          });
+      };
+
+      // Load dữ liệu kệ từ API
+      function loadShelf() {
+          headerEl.innerHTML = '<p>Đang tải kệ sách...</p>';
+          booksEl.innerHTML = '';
+
+          fetch(`/api/shelves/${shelfId}/`)
+              .then(res => {
+                  if (res.status === 404) {
+                      headerEl.innerHTML = '<h1>Kệ sách không tồn tại hoặc bạn không có quyền xem.</h1>';
+                      return null;
+                  }
+                  if (!res.ok) {
+                      throw new Error('Lỗi khi tải kệ sách');
+                  }
+                  return res.json();
+              })
+              .then(data => {
+                  if (!data) return;
+                  renderShelfHeader(data);
+                  renderBooks(data.items || []);
+              })
+              .catch(err => {
+                  console.error(err);
+                  headerEl.innerHTML = '<p>Có lỗi xảy ra khi tải dữ liệu kệ sách.</p>';
+              });
+      }
+
+      loadShelf();
+  });
+</script>
+
+<style>
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .card {
+    border-radius: 0.75rem;
+    background: white;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  }
+
+  .card-body {
+    padding: 1rem 1.25rem;
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+    transition: all 0.2s ease;
+  }
+
+  /* Nút nhỏ */
+  .btn.btn-sm {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.8rem;
+  }
+</style>
+{% endblock %}

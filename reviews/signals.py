@@ -36,39 +36,46 @@ def update_book_rating_on_delete(sender, instance, **kwargs):
 @receiver(post_save, sender=Review)
 def check_user_upgrade(sender, instance, created, **kwargs):
     """Check and upgrade user role based on public review count"""
-    if instance.status != 'public':
-        return
+    # Bọc try-except để đảm bảo an toàn tuyệt đối cho luồng chính
+    try:
+        if instance.status != 'public':
+            return
 
-    user = instance.user
+        user = instance.user
 
-    if user.role != 'reader':
-        return
+        # Chỉ check nếu là reader (để tối ưu performance)
+        if user.role != 'reader':
+            return
 
-    public_review_count = Review.objects.filter(
-        user=user, 
-        status='public',
-        is_active=True
-    ).count()
+        public_review_count = Review.objects.filter(
+            user=user, 
+            status='public',
+            is_active=True
+        ).count()
 
-    UPGRADE_THRESHOLD = 20
+        UPGRADE_THRESHOLD = 20
 
-    if public_review_count >= UPGRADE_THRESHOLD:
-        user.role = 'reviewer'
-        user.save(update_fields=['role'])
-        
-        try:
-            Notification.objects.create(
-                user=user,
-                notification_type='rank_upgrade',
-                content_type=ContentType.objects.get_for_model(user),
-                object_id=user.id,
-                payload={
-                    'message': f'Chúc mừng! Bạn đã viết đủ {UPGRADE_THRESHOLD} bài review và được thăng hạng lên Reviewer.',
-                    'new_role': 'Reviewer'
-                }
-            )
-        except Exception as e:
-            print(f"Lỗi tạo thông báo thăng hạng: {e}")
+        if public_review_count >= UPGRADE_THRESHOLD:
+            user.role = 'reviewer'
+            user.save(update_fields=['role'])
+            
+            # Tạo thông báo
+            try:
+                Notification.objects.create(
+                    user=user,
+                    notification_type='rank_upgrade',
+                    content_type=ContentType.objects.get_for_model(user),
+                    object_id=user.id,
+                    payload={
+                        'message': f'Chúc mừng! Bạn đã viết đủ {UPGRADE_THRESHOLD} bài review và được thăng hạng lên Reviewer.',
+                        'new_role': 'Reviewer'
+                    }
+                )
+            except Exception as noti_error:
+                print(f"Lỗi tạo notification (không ảnh hưởng review): {noti_error}")
+
+    except Exception as e:
+        print(f"Lỗi Critical trong signal thăng hạng: {e}")
 
 
 

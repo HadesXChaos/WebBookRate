@@ -1,5 +1,6 @@
 from rest_framework import generics, status, permissions
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.contenttypes.models import ContentType
 from django_filters.rest_framework import DjangoFilterBackend
@@ -8,27 +9,59 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 
 from .models import Review, ReviewImage, Comment, Like
+from books.models import Book
 from .serializers import (
     ReviewListSerializer, ReviewDetailSerializer, ReviewImageSerializer,
-    CommentSerializer, LikeSerializer
+    CommentSerializer, LikeSerializer, ReviewSerializer # <--- NHỚ IMPORT CÁI NÀY
 )
 from .permissions import IsOwnerOrReadOnly
 from users.throttles import CommentThrottle
 
+class ReviewByBookView(APIView):
+    """Get Book details for Review by slug"""
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        slug = request.query_params.get('slug')
+        
+        if not slug:
+            return Response({'error': 'Missing param "slug"'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            book = Book.objects.get(slug=slug, is_active=True)
+            
+            data = {
+                'id': book.id,
+                'title': book.title,
+                'slug': book.slug,
+                'cover': book.cover.url if book.cover else None,
+                'authors': list(book.authors.values_list('name', flat=True)),
+                'year': book.year
+            }
+            return Response(data, status=status.HTTP_200_OK)
+            
+        except Book.DoesNotExist:
+            return Response({'error': 'Book not found'}, status=status.HTTP_404_NOT_FOUND)
+
 
 class ReviewListView(generics.ListCreateAPIView):
-    """Review List and Create"""
+    """
+    Review List (GET) and Create (POST).
+    Đã đổi tên class cho chuẩn RESTful (thường là ListCreateAPIView)
+    nhưng nếu urls.py của bạn đang gọi là ReviewListView thì bạn đổi tên class này lại nhé.
+    """
     queryset = Review.objects.filter(status='public', is_active=True).select_related(
         'book', 'user'
     ).prefetch_related('images').order_by('-created_at')
-    serializer_class = ReviewListSerializer
+    
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['book', 'user']
+    
+    filterset_fields = ['book', 'user', 'status'] 
     
     def get_serializer_class(self):
         if self.request.method == 'POST':
-            return ReviewDetailSerializer
+            return ReviewSerializer 
         return ReviewListSerializer
 
     def perform_create(self, serializer):
@@ -36,22 +69,50 @@ class ReviewListView(generics.ListCreateAPIView):
 
 
 class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """Review Detail, Update, Delete - Cached for 60 seconds (GET only)"""
+    """Review Detail, Update, Delete"""
     queryset = Review.objects.filter(is_active=True).select_related(
         'book', 'user'
     ).prefetch_related('images')
-    serializer_class = ReviewDetailSerializer
+    
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
-    @method_decorator(cache_page(60))  # Cache for 60 seconds
+    def get_serializer_class(self):
+        # Logic chọn serializer của bạn rất chuẩn -> Giữ nguyên
+        if self.request.method in ['PUT', 'PATCH']:
+            return ReviewSerializer
+        return ReviewDetailSerializer
+
+    # --- SỬA PHẦN CACHE TẠI ĐÂY ---
+
     def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
+        # 1. Tạo tên key thủ công
+        pk = kwargs.get('pk')
+        cache_key = f'review_detail_{pk}'
+        
+        # 2. Thử lấy từ cache
+        data = cache.get(cache_key)
+        
+        if not data:
+            # 3. Nếu chưa có, gọi logic gốc để lấy từ DB
+            response = super().retrieve(request, *args, **kwargs)
+            # 4. Lưu data vào cache 60s
+            cache.set(cache_key, response.data, 60)
+            return response
+        
+        # Trả về data từ cache (không query DB)
+        return Response(data)
 
     def perform_update(self, serializer):
         serializer.save(user=self.request.user)
-        # Invalidate cache when review is updated
+        # 5. Xóa đúng cái key đã tạo ở trên
         pk = self.kwargs.get('pk')
-        cache.delete(f'review_detail:{pk}')
+        cache.delete(f'review_detail_{pk}')
+
+    def perform_destroy(self, instance):
+        # 6. Xóa cache khi bài viết bị xóa
+        pk = self.kwargs.get('pk')
+        cache.delete(f'review_detail_{pk}')
+        instance.delete()
 
 
 @api_view(['POST', 'DELETE'])

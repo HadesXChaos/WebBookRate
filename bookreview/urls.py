@@ -12,10 +12,10 @@ from django.shortcuts import get_object_or_404, render, redirect
 from .sitemaps import BookSitemap, AuthorSitemap, ReviewSitemap
 from .views import (
     home_view, explore_view, login_view, register_view, password_reset_view,
-    user_profile_view, user_shelves_view, settings_view,
+    user_profile_view, user_shelves_view, settings_view, shelf_detail_view,
     search_view, notifications_view, logout_view_frontend,
-    book_list_view, review_editor_view,
-    search_view, notifications_view, logout_view_frontend, change_password_view,
+    book_list_view, genre_directory_view, genre_detail_view, review_editor_view,
+    change_password_view,
 )
 from books.models import Book
 from reviews.models import Review
@@ -54,9 +54,12 @@ urlpatterns = [
     path('search/', search_view, name='search'),
     path('users/<str:username>/', user_profile_view, name='user_profile'),
     path('shelves/', user_shelves_view, name='user_shelves'),
+    path('shelves/<int:shelf_id>/', shelf_detail_view, name='shelf_detail'),
     path('settings/', settings_view, name='settings'),
     path('notifications/', notifications_view, name='notifications'),
     path('books/', book_list_view, name='book_list_view'),
+    path('books/genres/', genre_directory_view, name='genre_directory'),
+    path('books/genres/<str:slug>/', genre_detail_view, name='genre_detail'),
     path('reviews/write/', review_editor_view, name='review_editor'),
     
     path('password-change/',change_password_view, name='password_change_page'),
