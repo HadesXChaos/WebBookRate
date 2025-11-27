@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{# Sửa lỗi thẻ đóng block title #}
 {% block title %}{% if existing_review %}Chỉnh sửa review{% else %}Viết review mới{% endif %} - BookReview.vn{% endblock %}
 
 {% block content %}
@@ -14,9 +15,9 @@
         <div class="editor-meta">
             <span class="status-chip" id="editor-status-chip">
                 {% if existing_review and existing_review.status == 'draft' %}
-                    Nháp
+                Nháp
                 {% else %}
-                    Chưa lưu
+                Chưa lưu
                 {% endif %}
             </span>
         </div>
@@ -26,13 +27,15 @@
     <section class="selected-book-card">
         <div class="book-info-wrapper">
             <div class="book-thumb">
-                <img src="{{ selected_book_data.cover|default:static('images/default-book.svg') }}" alt="{{ selected_book_data.title }}">
+                {# --- SỬA LỖI ẢNH BÌA TẠI ĐÂY --- #}
+                <img src="{% if selected_book_data.cover %}{{ selected_book_data.cover }}{% else %}{% static 'images/default-book.svg' %}{% endif %}" 
+                     alt="{{ selected_book_data.title }}">
             </div>
             <div>
                 <p class="eyebrow-label">Review cho</p>
                 <h2>{{ selected_book_data.title }}</h2>
                 {% if selected_book_data.authors %}
-                    <p class="sub-text">Bởi {{ selected_book_data.authors|join:", " }}</p>
+                <p class="sub-text">Bởi {{ selected_book_data.authors|join:", " }}</p>
                 {% endif %}
             </div>
         </div>
@@ -42,16 +45,17 @@
     <section class="selected-book-card empty">
         <div>
             <h2>Chưa chọn sách</h2>
-            <p class="sub-text">Chọn sách từ trang chi tiết để gắn review. Bạn có thể nhập ID sách thủ công bên dưới.</p>
+            <p class="sub-text">Chọn sách từ trang chi tiết để gắn review. Bạn có thể nhập ID sách thủ công bên dưới.
+            </p>
         </div>
         <a href="{% url 'book_list_view' %}" class="btn btn-sm btn-outline">Tìm sách</a>
     </section>
     {% endif %}
 
-    <div id="draft-restore-banner" class="draft-restore-banner" hidden>
+    <div id="draft-restore-banner" class="draft-restore-banner" style="display: none;">
         <div>
             <strong>Tìm thấy bản nháp tự động</strong>
-            <p class="sub-text">Bạn có muốn khôi phục nội dung đã lưu trước đó?</p>
+            <p class="sub-text" style="margin: 0;">Bạn có muốn khôi phục nội dung đã lưu trước đó?</p>
         </div>
         <div class="banner-actions">
             <button class="btn btn-sm btn-outline" id="dismiss-draft-btn">Bỏ qua</button>
@@ -61,32 +65,23 @@
 
     <div class="editor-layout">
         <section class="editor-pane">
-            <form id="review-editor-form"
-                  data-storage-key="{{ storage_key }}"
-                  data-review-id="{% if existing_review %}{{ existing_review.id }}{% endif %}"
-                  class="review-form">
+            <form id="review-editor-form" data-storage-key="{{ storage_key }}"
+                data-review-id="{% if existing_review %}{{ existing_review.id }}{% endif %}" class="review-form">
                 {% csrf_token %}
-                <input type="hidden" name="book_id" value="{% if selected_book %}{{ selected_book.id }}{% elif existing_review %}{{ existing_review.book_id }}{% endif %}">
+                <input type="hidden" name="book_id"
+                    value="{% if selected_book %}{{ selected_book.id }}{% elif existing_review %}{{ existing_review.book_id }}{% endif %}">
 
                 <div class="form-group">
                     <label for="review-title" class="form-label">Tiêu đề *</label>
-                    <input id="review-title"
-                           type="text"
-                           name="title"
-                           maxlength="200"
-                           class="form-input"
-                           placeholder="Ví dụ: Một hành trình kỳ diệu với Little Prince"
-                           required>
+                    <input id="review-title" type="text" name="title" maxlength="200" class="form-input"
+                        placeholder="Ví dụ: Một hành trình kỳ diệu với Little Prince" required>
                 </div>
 
                 {% if not selected_book %}
                 <div class="form-group">
                     <label for="book-id-input" class="form-label">ID sách *</label>
-                    <input id="book-id-input"
-                           type="number"
-                           min="1"
-                           class="form-input"
-                           placeholder="Nhập ID sách bạn muốn review">
+                    <input id="book-id-input" type="number" min="1" class="form-input"
+                        placeholder="Nhập ID sách bạn muốn review">
                     <p class="field-help">Tìm ID bằng cách mở trang sách, số nằm ở cuối URL API.</p>
                 </div>
                 {% endif %}
@@ -96,28 +91,19 @@
                         <label for="review-rating" class="form-label">Đánh giá (1 - 5)*</label>
                         <span id="rating-display" class="rating-display">0.0</span>
                     </div>
-                    <input id="review-rating"
-                           type="range"
-                           min="1"
-                           max="5"
-                           step="0.5"
-                           value="4"
-                           name="rating"
-                           class="rating-range">
+                    <input id="review-rating" type="range" min="1" max="5" step="0.5" value="4" name="rating"
+                        class="rating-range">
                 </div>
 
                 <div class="form-group">
                     <div class="form-label-row">
                         <label for="review-body" class="form-label">Nội dung Markdown *</label>
-                        <span class="field-help">Tối thiểu {{ REVIEW_MIN_LENGTH }} ký tự. Hỗ trợ các cú pháp tiêu đề, danh sách, blockquote, code.</span>
+                        <span class="field-help">Tối thiểu {{ REVIEW_MIN_LENGTH }} ký tự. Hỗ trợ các cú pháp tiêu đề,
+                            danh sách, blockquote, code.</span>
                     </div>
-                    <textarea id="review-body"
-                              name="body_md"
-                              class="form-textarea"
-                              rows="16"
-                              placeholder="Viết cảm nhận, trích dẫn, lý do bạn yêu thích/cuốn sách đã thay đổi bạn như thế nào..."
-                              data-preview-target="#review-preview"
-                              required></textarea>
+                    <textarea id="review-body" name="body_md" class="form-textarea" rows="16"
+                        placeholder="Viết cảm nhận, trích dẫn, lý do bạn yêu thích/cuốn sách đã thay đổi bạn như thế nào..."
+                        data-preview-target="#review-preview" required></textarea>
                 </div>
 
                 <div class="form-group">
@@ -160,17 +146,16 @@
 </div>
 
 {% if initial_review %}
-    {{ initial_review|json_script:"initial-review-data" }}
+{{ initial_review|json_script:"initial-review-data" }}
 {% endif %}
 {% if selected_book_data %}
-    {{ selected_book_data|json_script:"selected-book-data" }}
+{{ selected_book_data|json_script:"selected-book-data" }}
 {% endif %}
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" integrity="sha384-3IdS3HdWu3UwG+329xNXm/SuKDjQDFq6GNw71sZUTCzO0HoUyhUN0dZubwLsK9Xn" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js" integrity="sha384-1auwVXy+TF2jcaLqegU1Vgrfq4Zd/r/gBOnOzvV13RyiCnQw8ijxA7r/XtJcP3Qq" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+
 <script src="{% static 'js/review-editor.js' %}"></script>
 {% endblock %}
-
-

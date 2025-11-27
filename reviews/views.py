@@ -1,5 +1,6 @@
 from rest_framework import generics, status, permissions
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.contenttypes.models import ContentType
 from django_filters.rest_framework import DjangoFilterBackend
@@ -8,12 +9,39 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 
 from .models import Review, ReviewImage, Comment, Like
+from books.models import Book
 from .serializers import (
     ReviewListSerializer, ReviewDetailSerializer, ReviewImageSerializer,
     CommentSerializer, LikeSerializer
 )
 from .permissions import IsOwnerOrReadOnly
 from users.throttles import CommentThrottle
+
+class ReviewByBookView(APIView):
+    """Get Book details for Review by slug"""
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        slug = request.query_params.get('slug')
+        
+        if not slug:
+            return Response({'error': 'Missing param "slug"'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            book = Book.objects.get(slug=slug, is_active=True)
+            
+            data = {
+                'id': book.id,
+                'title': book.title,
+                'slug': book.slug,
+                'cover': book.cover.url if book.cover else None,
+                'authors': list(book.authors.values_list('name', flat=True)),
+                'year': book.year
+            }
+            return Response(data, status=status.HTTP_200_OK)
+            
+        except Book.DoesNotExist:
+            return Response({'error': 'Book not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class ReviewListView(generics.ListCreateAPIView):
