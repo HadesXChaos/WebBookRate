@@ -11,7 +11,7 @@ from django.contrib import messages
 from django.contrib.auth import logout
 
 from users.models import User
-from books.models import Book
+from books.models import Book, Genre
 from reviews.models import Review
 from social.models import Follow
 
@@ -202,3 +202,17 @@ def logout_view_frontend(request):
 
 def book_list_view(request):
     return render(request, 'books/book_list.html')
+
+
+def genre_directory_view(request):
+    """Public genre directory page that hydrates data via REST API"""
+    return render(request, 'books/genre_list.html')
+
+
+def genre_detail_view(request, slug):
+    """Genre detail landing page (frontend)"""
+    genre = get_object_or_404(Genre, slug=slug, is_active=True)
+    context = {
+        'genre': genre,
+    }
+    return render(request, 'books/genre_detail.html', context)
