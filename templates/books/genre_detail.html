@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ genre.name }} - Thể loại sách{% endblock %}
+
+{% block meta_description %}Khám phá {{ genre.name }} – {{ genre.description|truncatewords:25 }}{% endblock %}
+
+{% block content %}
+<section class="genre-detail-hero">
+    <div class="container">
+        <a href="{% url 'genre_directory' %}" class="back-link">
+            ← Trở lại danh sách thể loại
+        </a>
+
+        <div class="genre-detail-header">
+            <div>
+                <p class="eyebrow-label">Thể loại</p>
+                <h1>{{ genre.name }}</h1>
+                {% if genre.description %}
+                <p class="sub-text">{{ genre.description }}</p>
+                {% else %}
+                <p class="sub-text">Thể loại này đang được cộng đồng BookReview.vn cập nhật mô tả.</p>
+                {% endif %}
+            </div>
+            <div class="genre-detail-stats" id="genre-detail-stats">
+                <div>
+                    <span class="stat-label">Sách có trong thể loại</span>
+                    <strong id="stat-book-count">--</strong>
+                </div>
+                <div>
+                    <span class="stat-label">Điểm trung bình</span>
+                    <strong id="stat-rating">--</strong>
+                </div>
+                <div>
+                    <span class="stat-label">Đánh giá mới tuần này</span>
+                    <strong id="stat-new-reviews">--</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="genre-detail-controls">
+            <div class="input-icon" style="max-width: 320px;">
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M9 17a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm10 2-4.35-4.35"/></svg>
+                <input type="search" placeholder="Lọc theo tên sách hoặc tác giả..." id="genre-book-search">
+            </div>
+            <div class="genre-filters">
+                <button class="chip chip--active" data-order="-avg_rating">Điểm cao</button>
+                <button class="chip" data-order="-created_at">Mới nhất</button>
+                <button class="chip" data-order="-rating_count">Nhiều đánh giá</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="genre-book-section">
+    <div class="container">
+        <div id="genre-book-grid" class="genre-book-grid">
+            {% for _ in "1234" %}
+            <article class="book-card skeleton">
+                <div class="skeleton-line skeleton-title"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line short"></div>
+            </article>
+            {% endfor %}
+        </div>
+        <div class="load-more-wrapper">
+            <button class="btn btn-outline" id="genre-load-more" style="display: none;">Tải thêm sách</button>
+        </div>
+    </div>
+</section>
+
+<section class="genre-insights">
+    <div class="container">
+        <div class="insight-card">
+            <div>
+                <h2>Gợi ý đọc nhanh</h2>
+                <p class="sub-text">Chúng tôi phân loại bảng xếp hạng để bạn dễ chọn lựa.</p>
+            </div>
+            <div class="insight-tags" id="genre-insight-tags">
+                <!-- populated via JS -->
+            </div>
+        </div>
+    </div>
+</section>
+
+{{ genre.slug|json_script:"genre-slug" }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const slug = JSON.parse(document.getElementById('genre-slug').textContent);
+    const grid = document.getElementById('genre-book-grid');
+    const loadMoreBtn = document.getElementById('genre-load-more');
+    const searchInput = document.getElementById('genre-book-search');
+    const filterButtons = document.querySelectorAll('[data-order]');
+    const statBook = document.getElementById('stat-book-count');
+    const statRating = document.getElementById('stat-rating');
+    const statReviews = document.getElementById('stat-new-reviews');
+    const insightTags = document.getElementById('genre-insight-tags');
+
+    const apiBase = `/api/books/genres/${slug}/`;
+
+    const state = {
+        nextUrl: apiBase,
+        items: [],
+        filtered: [],
+        order: '-avg_rating',
+        search: '',
+    };
+
+    function setLoading(isLoading) {
+        if (isLoading) {
+            grid.classList.add('is-loading');
+        } else {
+            grid.classList.remove('is-loading');
+        }
+    }
+
+    function formatAuthors(authors) {
+        if (!Array.isArray(authors) || !authors.length) return 'Đang cập nhật tác giả';
+        return authors.map(author => author.name).join(', ');
+    }
+
+    function updateStats(books) {
+        const count = books.length;
+        const ratingSum = books.reduce((sum, book) => sum + (parseFloat(book.avg_rating) || 0), 0);
+        const reviewSum = books.reduce((sum, book) => sum + (book.rating_count || 0), 0);
+        statBook.textContent = count;
+        statRating.textContent = count ? (ratingSum / count).toFixed(1) : '—';
+        statReviews.textContent = reviewSum;
+
+        const topBooks = [...books].sort((a, b) => (parseFloat(b.avg_rating) || 0) - (parseFloat(a.avg_rating) || 0)).slice(0, 3);
+        insightTags.innerHTML = '';
+        topBooks.forEach(book => {
+            const tag = document.createElement('a');
+            tag.href = `/books/${book.slug}/`;
+            tag.className = 'insight-pill';
+            tag.innerHTML = `
+                <strong>${book.title}</strong>
+                <span>${book.avg_rating || '0.0'} ★</span>
+            `;
+            insightTags.appendChild(tag);
+        });
+    }
+
+    function renderBooks(books, reset = false) {
+        if (reset) grid.innerHTML = '';
+
+        if (!books.length) {
+            grid.innerHTML = '<div class="empty-state">Chưa có cuốn sách nào phù hợp với bộ lọc hiện tại.</div>';
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        books.forEach(book => {
+            const card = document.createElement('article');
+            card.className = 'book-card book-card--genre';
+            card.innerHTML = `
+                <a href="/books/${book.slug}/" class="book-card__cover">
+                    <img src="${book.cover || '{% static "images/default-book.svg" %}'}" alt="${book.title}">
+                </a>
+                <div class="book-card__body">
+                    <a href="/books/${book.slug}/"><h3>${book.title}</h3></a>
+                    <p class="book-card__meta">${formatAuthors(book.authors)}</p>
+                    <div class="book-card__stats">
+                        <span>${book.avg_rating || '0.0'} ★</span>
+                        <span>${book.rating_count || 0} đánh giá</span>
+                    </div>
+                    <div class="book-card__actions">
+                        <a href="/books/${book.slug}/" class="btn btn-sm btn-primary">Xem chi tiết</a>
+                        <button class="btn btn-sm btn-outline" data-book="${book.id}" data-action="shelf">+ Kệ sách</button>
+                    </div>
+                </div>
+            `;
+            fragment.appendChild(card);
+        });
+
+        grid.appendChild(fragment);
+
+        // Re-render stars if needed
+        grid.querySelectorAll('[data-rating]').forEach(el => {
+            BookReview.renderStars(parseFloat(el.dataset.rating), el);
+        });
+    }
+
+    function applyFilters() {
+        const term = state.search.toLowerCase();
+
+        state.filtered = state.items.filter(book => {
+            const matchTitle = book.title?.toLowerCase().includes(term);
+            const matchAuthor = book.authors?.some(author => author.name?.toLowerCase().includes(term));
+            return term ? (matchTitle || matchAuthor) : true;
+        });
+
+        state.filtered.sort((a, b) => {
+            switch (state.order) {
+                case '-created_at':
+                    return new Date(b.created_at) - new Date(a.created_at);
+                case '-rating_count':
+                    return (b.rating_count || 0) - (a.rating_count || 0);
+                default:
+                    return (parseFloat(b.avg_rating) || 0) - (parseFloat(a.avg_rating) || 0);
+            }
+        });
+
+        updateStats(state.filtered);
+        renderBooks(state.filtered, true);
+    }
+
+    async function fetchBooks(url = apiBase, append = false) {
+        try {
+            setLoading(true);
+            const res = await fetch(url);
+            const data = await res.json();
+            const payload = data.results ? data.results : data;
+            const genreData = payload.genre || {};
+            const booksData = payload.books || payload.results || [];
+
+            if (append) {
+                state.items = state.items.concat(booksData);
+            } else {
+                state.items = booksData;
+            }
+
+            applyFilters();
+            state.nextUrl = data.next || null;
+            loadMoreBtn.style.display = state.nextUrl ? 'inline-flex' : 'none';
+        } catch (error) {
+            console.error('Failed to load genre books', error);
+            grid.innerHTML = '<div class="empty-state">Không thể tải dữ liệu. Vui lòng thử lại sau.</div>';
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    loadMoreBtn.addEventListener('click', () => {
+        if (state.nextUrl) {
+            fetchBooks(state.nextUrl, true);
+        }
+    });
+
+    searchInput.addEventListener('input', BookReview.utils.debounce(event => {
+        state.search = event.target.value.trim();
+        applyFilters();
+    }, 250));
+
+    filterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            filterButtons.forEach(btn => btn.classList.remove('chip--active'));
+            button.classList.add('chip--active');
+            state.order = button.dataset.order;
+            applyFilters();
+        });
+    });
+
+    fetchBooks(apiBase);
+});
+</script>
+{% endblock %}
+
