@@ -105,7 +105,8 @@ def change_password_view(request):
 def review_editor_view(request):
     """Review editor page with markdown preview and autosave support"""
     review_id = request.GET.get('review')
-    book_slug = request.GET.get('slug')
+    
+    book_slug = request.GET.get('slug') or request.GET.get('book') 
 
     existing_review = None
     selected_book = None
@@ -158,7 +159,6 @@ def review_editor_view(request):
         'existing_review': existing_review,
         'initial_review': initial_review,
         'storage_key': storage_key,
-        'REVIEW_MIN_LENGTH': settings.REVIEW_MIN_LENGTH,
     }
     return render(request, 'reviews/review_editor.html', context)
 
