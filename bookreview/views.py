@@ -85,6 +85,11 @@ def settings_view(request):
     """User settings page"""
     return render(request, 'users/settings.html')
 
+@login_required
+def change_password_view(request):
+    """User settings page"""
+    return render(request, 'users/password-change.html')
+
 
 @login_required
 def review_editor_view(request):
