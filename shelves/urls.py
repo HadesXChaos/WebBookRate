@@ -12,7 +12,7 @@ urlpatterns = [
     path('', ShelfListView.as_view(), name='shelf_list'),
     path('<int:pk>/', ShelfDetailView.as_view(), name='shelf_detail'),
     path('<int:shelf_id>/books/<int:book_id>/', shelf_item_view, name='shelf_item'),
-    path('users/<str:username>/', UserShelvesView.as_view(), name='user_shelves'),
+    path('users/<int:user_id>/', UserShelvesView.as_view(), name='user_shelves'),
     
     # Reading Progress
     path('progress/', ReadingProgressListView.as_view(), name='progress_list'),
