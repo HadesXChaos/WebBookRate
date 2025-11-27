@@ -97,7 +97,7 @@
                 <button class="btn btn-primary" id="add-to-shelf-btn">
                     Thêm vào kệ sách
                 </button>
-                <a href="/reviews/create/?book={{ book.id }}" class="btn btn-outline">
+                <a href="{% url 'review_editor' %}?book={{ book.id }}" class="btn btn-outline">
                     Viết review
                 </a>
                 <button class="btn btn-outline" id="follow-book-btn" data-book-id="{{ book.id }}">

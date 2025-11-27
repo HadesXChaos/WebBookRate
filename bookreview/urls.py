@@ -14,7 +14,7 @@ from .views import (
     home_view, explore_view, login_view, register_view, password_reset_view,
     user_profile_view, user_shelves_view, settings_view,
     search_view, notifications_view, logout_view_frontend,
-    book_list_view,
+    book_list_view, review_editor_view,
 )
 from books.models import Book
 from reviews.models import Review
@@ -56,6 +56,7 @@ urlpatterns = [
     path('settings/', settings_view, name='settings'),
     path('notifications/', notifications_view, name='notifications'),
     path('books/', book_list_view, name='book_list_view'),
+    path('reviews/write/', review_editor_view, name='review_editor'),
     
     
     # Frontend detail pages

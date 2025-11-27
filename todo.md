@@ -32,6 +32,58 @@
 | C2-09 | Đảm bảo responsive breakpoints, dark mode toggle cơ bản. | CSS | ☐ |
 | C2-10 | Viết phần mô tả “Chức năng nâng cao” (lazy-load hình, markdown preview, realtime badge) trong tài liệu chương 2. | Docs | ☐ |
 
+**Chi tiết thực hiện C2**
+
+- **C2-01 Brand kit**
+  - Tổng hợp yêu cầu nhận diện trong `requirement.md`, tham khảo palette thương hiệu BookReview.vn hiện có.
+  - Định nghĩa màu chính/phụ, trạng thái (hover, error, success), typography scale (heading H1–H6, body, caption), spacing system (4/8pt).
+  - Cập nhật `static/css/main.css` với CSS variables (`:root { --color-primary: ... }`) và chuẩn hóa mixins/utility classes.
+  - Xuất bảng guideline (PDF/appendix) để reuse cho các template khác.
+- **C2-02 Wireframe/Hi-fi**
+  - Dùng Figma (hoặc công cụ tương đương) tạo flow đầy đủ cho 10 màn hình đã nêu; mỗi màn hình gồm desktop + mobile breakpoint.
+  - Dán link Figma vào phụ lục + export PNG đặt tại `docs/figures/frontend`.
+  - Note state quan trọng: empty state, loading, error, skeleton.
+- **C2-03 Collections UI**
+  - Tạo template mới `templates/social/collection_list.html`, `collection_detail.html`, `collection_form.html`.
+  - Bổ sung form partial, include validation error, flash message.
+  - Thêm module JS xử lý drag-and-drop (HTML5 API hoặc SortableJS), gửi thứ tự mới qua endpoint `/collections/<id>/reorder/`.
+  - Style card collection dùng brand kit; đảm bảo trạng thái public/private badge.
+- **C2-04 Reading progress viz**
+  - Quyết định thư viện (Chart.js ưu tiên). Load qua `static/js/vendor/chart.min.js`.
+  - API `shelves/progress` trả JSON { week, pages, status }; hiển thị line chart + timeline card list.
+  - Thêm legend, tooltip, xử lý empty state (“Chưa có log đọc nào”).
+  - Responsive: chart chuyển sang sparkline trên mobile.
+- **C2-05 Explore page**
+  - Thiết kế filter panel trái (accordion) với multi-select genre, slider year, toggle language, rating stars.
+  - Section top: Trending, New arrivals, Personalized (dữ liệu mock nếu backend chưa xong).
+  - Áp dụng infinite scroll/lazy-load; fallback pagination.
+  - SEO: heading, breadcrumb, meta description customizable.
+- **C2-06 Markdown preview + autosave**
+  - Module `static/js/review-editor.js`: debounce input, render markdown preview (marked.js) bên phải.
+  - Autosave draft vào localStorage mỗi 5s; hiển thị toast khi khôi phục.
+  - Sanitizer cho preview (DOMPurify) để tránh XSS.
+  - Hook vào form submit để xóa draft sau khi thành công.
+- **C2-07 Mention autocomplete**
+  - Reuse API `/api/mentions/search?q=` trả user/book/author.
+  - JS component lắng nghe `@` trong textarea, hiển thị dropdown (keyboard navigation).
+  - Insert tag dạng `[@username](user:123)` để backend parse.
+  - Bao phủ cả comment + review editor; cân nhắc aria-role listbox.
+- **C2-08 Realtime notification badge**
+  - Tạo endpoint polling `/notifications/unread-count/` (5s) hoặc WebSocket stub qua Django Channels.
+  - Badge trên navbar cập nhật số lượng, pulsate khi >0.
+  - Dropdown hiển thị 5 mục mới nhất, link tới trang Notifications.
+  - Graceful degradation: nếu WebSocket lỗi fallback polling.
+- **C2-09 Responsive + dark mode**
+  - Xác định breakpoint xs (<480), sm, md, lg, xl; tạo mixin SCSS hoặc CSS @media chuẩn.
+  - Kiểm tra từng template chính; sửa layout để tránh overflow.
+  - Dark mode toggle lưu prefer trong localStorage, apply class `theme-dark`; dùng CSS variables để đổi màu.
+  - Test contrast ratio ≥4.5/3.0, focus state rõ ràng.
+- **C2-10 Docs “Chức năng nâng cao”**
+  - Tổng hợp mô tả kỹ thuật cho lazy-load image (IntersectionObserver), markdown preview, realtime badge.
+  - Đưa screenshot minh họa + flow diagram (nếu cần) vào Chapter 2 document.
+  - Liên kết commit/PR tương ứng, mô tả lợi ích (UX, performance).
+  - Chuẩn bị checklist demo để giảng viên dễ kiểm chứng.
+
 ---
 
 ## Chương 3 – Backend & Cơ sở dữ liệu
