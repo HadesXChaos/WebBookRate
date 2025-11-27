@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load reviews
     function loadReviews(sort = 'latest', page = 1) {
         const sortParam = sort === 'latest' ? '-created_at' : sort === 'rating' ? '-rating' : '-like_count';
-        fetch(`/api/reviews/?book_id=${bookId}&ordering=${sortParam}&page=${page}`)
+        fetch(`/api/reviews/?book=${bookId}&ordering=${sortParam}&page=${page}`)
             .then(res => res.json())
             .then(data => {
                 const container = document.getElementById('reviews-list');
