@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <p class="book-author">${book.authors?.[0]?.name || 'N/A'}</p>
                                     <div class="book-rating">
                                         <div class="rating-stars" data-rating="${book.avg_rating || 0}"></div>
-                                        <span class="rating-value">${(book.avg_rating || 0).toFixed(1)}</span>
+                                        <span class="rating-value">${parseFloat(book.avg_rating || 0).toFixed(1)}</span>
                                         <span class="rating-count">(${book.rating_count || 0})</span>
                                     </div>
                                 </div>
@@ -201,6 +201,63 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
     
+    //load trendingbook
+    function loadTrendingBooks() {
+        const container = document.getElementById('books-list');
+        const loadMoreBtn = document.getElementById('load-more-books');
+
+        container.innerHTML = '<div class="loading">Đang tải...</div>';
+
+        fetch('/api/books/trending/')
+            .then(res => res.json())
+            .then(data => {
+                container.innerHTML = '';
+
+                // Trending trả về dạng LIST ([]) chứ không có data.results
+                const books = Array.isArray(data) ? data : (data.results || []);
+
+                if (books.length === 0) {
+                    container.innerHTML = '<p>Không có sách thịnh hành.</p>';
+                    loadMoreBtn.style.display = 'none';
+                    return;
+                }
+
+                books.forEach(book => {
+                    const bookCard = document.createElement('div');
+                    bookCard.className = 'book-card';
+                    bookCard.innerHTML = `
+                        <a href="/books/${book.slug}/">
+                            <div class="book-cover">
+                                <img src="${book.cover || '/static/images/default-book.svg'}" 
+                                     alt="${book.title}" loading="lazy">
+                            </div>
+                            <div class="book-info">
+                                <h3 class="book-title">${book.title}</h3>
+                                <p class="book-author">${book.authors?.[0]?.name || 'N/A'}</p>
+                                <div class="book-rating">
+                                    <div class="rating-stars" data-rating="${book.avg_rating || 0}"></div>
+                                    <span class="rating-value">${parseFloat(book.avg_rating || 0).toFixed(1)}</span>
+                                    <span class="rating-count">(${book.rating_count || 0})</span>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                    container.appendChild(bookCard);
+                });
+
+                // Render sao
+                container.querySelectorAll('[data-rating]').forEach(el => {
+                    BookReview.renderStars(parseFloat(el.dataset.rating), el);
+                });
+
+                // Trending không phân trang
+                loadMoreBtn.style.display = 'none';
+            })
+            .catch(err => {
+                console.error('Error loading trending books:', err);
+                container.innerHTML = '<p>Có lỗi xảy ra khi tải dữ liệu.</p>';
+            });
+    }
     // Filters form
     document.getElementById('filters-form').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -221,9 +278,18 @@ document.addEventListener('DOMContentLoaded', function() {
         currentPage++;
         loadBooks(currentPage, false);
     });
+
+    // Khi bấm "Xóa bộ lọc" -> reset filters + load trending
+    const resetBtn = document.querySelector('#filters-form button[type="reset"]');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', function () {
+            currentFilters = {};
+            loadTrendingBooks();
+        });
+    }
     
-    // Initial load
-    loadBooks(1, true);
+    // Initial load: show trending books
+    loadTrendingBooks();
 });
 </script>
 {% endblock %}
