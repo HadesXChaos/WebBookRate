@@ -2,10 +2,21 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
+from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
+
 
 
 class User(AbstractUser):
     """Custom User Model"""
+    class Role(models.TextChoices):
+        READER = 'reader', _('Reader')
+        REVIEWER = 'reviewer', _('Reviewer')
+        MODERATOR = 'moderator', _('Moderator')
+        ADMIN = 'admin', _('Admin')
+
+    base_role = Role.READER
+    role = models.CharField(_('role'), max_length=50, choices=Role.choices, default=base_role)
     email = models.EmailField(_('email address'), unique=True)
     is_verified = models.BooleanField(_('verified'), default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -54,6 +65,36 @@ class Profile(models.Model):
 
     def get_absolute_url(self):
         return reverse('user_profile', kwargs={'username': self.user.username})
+    
+    def is_fully_completed(self):
+        required_fields = [
+            self.bio, 
+            self.location,
+        ]
+        profile_ok = all(required_fields)
+        user_email_ok = bool(self.user.email)
+        
+        return profile_ok and user_email_ok
+    
+    @property
+    def follower_count(self):
+        """Count of followers"""
+        from social.models import Follow
+        from django.contrib.contenttypes.models import ContentType
+        user_ct = ContentType.objects.get_for_model(self.user) 
+
+        return Follow.objects.filter(
+            content_type=user_ct, 
+            object_id=self.user.id
+        ).count()
+
+    @property
+    def following_count(self):
+        return self.user.following.count()
+        
+    @property
+    def review_count(self):
+        return self.user.reviews.filter(status='public').count()
 
 
 class EmailVerification(models.Model):

@@ -7,7 +7,6 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from django.conf import settings
 
 from books.models import Book, Author, Publisher
 from .models import Review, Comment, Like

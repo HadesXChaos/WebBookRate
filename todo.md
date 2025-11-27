@@ -1,477 +1,167 @@
-# TODO - Tiến độ thực hiện BookReview.vn
+# TODO – Kế hoạch hoàn thiện BookReview.vn
 
-## Tổng quan
-Dự án BookReview.vn - Web đánh giá sách giúp người dùng khám phá, đọc nhận xét, chấm điểm, theo dõi tiến độ đọc và tương tác cộng đồng.
-
-**Ngày cập nhật:** $(date)
+**Nguồn tham chiếu chính:** `requirement.md`, tài liệu rubric *“Yêu cầu tiểu luận và tiêu chí đánh giá.pdf”*, repo code hiện tại (Django + DRF).  
+**Mục tiêu:** đưa sản phẩm đạt đủ 6 chương theo rubric, đáp ứng toàn bộ user stories trong SRS, sẵn sàng bảo vệ đồ án.
 
 ---
 
-## 1. Cấu trúc dự án - ✅ Đã hoàn thành
+## Chương 1 – Giới thiệu, mục tiêu và kế hoạch
 
-### 1.1 Module Structure
-- ✅ **bookreview/** - Django project settings
-- ✅ **users/** - User authentication & profiles
-- ✅ **books/** - Books, authors, genres, publishers
-- ✅ **reviews/** - Reviews, comments, likes
-- ✅ **shelves/** - Shelves & reading progress
-- ✅ **social/** - Follow, notifications, collections
-- ✅ **moderation/** - Reports & moderator actions
-- ✅ **search/** - Search functionality
-
-### 1.2 Templates & Static Files
-- ✅ Templates structure (`templates/`)
-- ✅ Static files (`static/`)
-- ✅ Base template (`base.html`)
-- ✅ Auth templates (login, register, logout)
-- ✅ Book detail template
-- ✅ Review detail template
-- ✅ User profile template
-- ✅ Search template
-- ✅ Shelves template
-- ✅ Notifications template
-
-### 1.3 Infrastructure
-- ✅ Docker setup (`Dockerfile`, `docker-compose.yml`)
-- ✅ Requirements (`requirements.txt`)
-- ✅ Environment example (`.env.example`)
-- ✅ Django migrations structure
-- ✅ Settings configuration
+| ID | Task | Liên quan | Trạng thái |
+|----|------|-----------|------------|
+| C1-01 | Viết lại phần mô tả đề tài, mục tiêu, đối tượng, phạm vi dựa trên Section 1–4 của `requirement.md`. | Document | ☐ |
+| C1-02 | Lập stakeholder map + ma trận vai trò/quyền (Anonymous/User/Moderator/Admin). | Document | ☐ |
+| C1-03 | Thiết kế sitemap tổng thể (home, books, reviews, shelves, social, moderation, auth, explore). Xuất bản trong phụ lục. | Frontend/Docs | ☐ |
+| C1-04 | Mô tả kiến trúc triển khai (Dockerized Django + Postgres + Redis + Celery + S3). Gắn với tiêu chí “domain & hosting”. | DevOps/Docs | ☐ |
+| C1-05 | Lập kế hoạch thực hiện (timeline theo sprint + phân công nhiệm vụ). Chuyển roadmap MVP/V1 trong SRS thành bảng tiến độ. | PM/Docs | ☐ |
 
 ---
 
-## 2. Authentication & User Management - ✅ Đã hoàn thành cơ bản
+## Chương 2 – Thiết kế & Xây dựng Frontend
 
-### 2.1 Models
-- ✅ User model (Django auth)
-- ✅ User Profile model
-- ✅ User migrations
+| ID | Task | Liên quan | Trạng thái |
+|----|------|-----------|------------|
+| C2-01 | Xây dựng brand kit: palette, typography, spacing, components guideline; cập nhật `static/css/main.css`. | UI/CSS | ☐ |
+| C2-02 | Tạo wireframe/hi-fi cho: Home, Explore, Book detail, Review detail, Profile, Shelves, Notifications, Moderator dashboard, Collections, Reading progress chart. | UX/Docs | ☐ |
+| C2-03 | Bổ sung template cho Collections CRUD (tận dụng `social` app) + giao diện drag-drop reorder. | Templates/JS | ☐ |
+| C2-04 | Implement reading progress visualization (chart + history timeline) trong `shelves` templates + JS (Chart.js/D3). | Templates/JS | ☐ |
+| C2-05 | Hoàn thiện Explore page: filter panel (genre/year/lang/rating), sections trending/new/personalized. | Templates | ☐ |
+| C2-06 | Thêm inline markdown preview + autosave draft khi viết review (JS module trong `static/js/main.js`). | JS/Reviews | ☐ |
+| C2-07 | Thêm mention autocomplete UI trong comment editor (frontend). | JS/Reviews | ☐ |
+| C2-08 | Thêm realtime notification badge (polling/WebSocket stub) + UI update. | JS/Social | ☐ |
+| C2-09 | Đảm bảo responsive breakpoints, dark mode toggle cơ bản. | CSS | ☐ |
+| C2-10 | Viết phần mô tả “Chức năng nâng cao” (lazy-load hình, markdown preview, realtime badge) trong tài liệu chương 2. | Docs | ☐ |
 
-### 2.2 API Endpoints
-- ✅ `POST /api/auth/register/` - Đăng ký
-- ✅ `POST /api/auth/login/` - Đăng nhập
-- ✅ `POST /api/auth/logout/` - Đăng xuất (API)
-- ✅ `GET /api/auth/profile/` - Xem/chỉnh sửa profile
+**Chi tiết thực hiện C2**
 
-### 2.3 Frontend Views
-- ✅ `GET /login/` - Trang đăng nhập
-- ✅ `GET /register/` - Trang đăng ký
-- ✅ `GET /logout/` - Trang đăng xuất (frontend view)
-
-### 2.4 User Stories
-- ✅ **US-REG-01**: Đăng ký/đăng nhập (email) - ✅ Đã hoàn thành cơ bản
-  - ⚠️ OAuth (Google/Facebook/Apple) - 🔄 Chưa triển khai
-  - ✅ Email verification - ✅ Đã triển khai
-  - ✅ Password reset - ✅ Đã triển khai
-  - ✅ Rate-limit - ✅ Đã triển khai
-
-### 2.5 Bug Fixes
-- ✅ **Fix 2025-01-XX**: Fix lỗi 405 Method Not Allowed cho `/api/auth/logout/`
-  - Đã tạo `logout_view_frontend` để xử lý GET request từ frontend
-  - Tự động submit POST form khi truy cập `/logout/`
-
----
-
-## 3. Books & Metadata Management - ✅ Đã hoàn thành cơ bản
-
-### 3.1 Models
-- ✅ Book model
-- ✅ Author model
-- ✅ Genre model
-- ✅ Publisher model
-- ✅ Tag model
-- ✅ BookEdition model
-- ✅ BookAuthor relationship
-- ✅ BookTag relationship
-
-### 3.2 API Endpoints
-- ✅ `GET /api/books/` - Danh sách sách
-- ✅ `GET /api/books/{slug}/` - Chi tiết sách
-- ✅ `GET /api/books/authors/` - Danh sách tác giả
-- ✅ `GET /api/books/genres/` - Danh sách thể loại
-- ✅ `GET /api/books/publishers/` - Danh sách nhà xuất bản
-- ✅ `GET /api/books/tags/` - Danh sách thẻ
-
-### 3.3 Frontend Views
-- ✅ `GET /books/{slug}/` - Trang chi tiết sách
-
-### 3.4 Features
-- ✅ Slug duy nhất cho books, authors, genres
-- ✅ Tính toán điểm trung bình và số lượng review (signals)
-
-### 3.5 Bug Fixes
-- ✅ **Fix 2025-01-XX**: Fix lỗi 404 cho `/api/books/genres/`
-  - Sắp xếp lại URL patterns trong `books/urls.py`
-  - Đặt các pattern cụ thể (`genres/`, `authors/`, `publishers/`, `tags/`) trước pattern catch-all `<str:slug>/`
-
-### 3.6 User Stories
-- ✅ **US-BOOK-01**: Tìm sách theo tên, tác giả, ISBN - ✅ Đã triển khai
-  - ⚠️ Cache optimization - 🔄 Chưa triển khai
-  - ⚠️ Autocomplete - 🔄 Chưa triển khai đầy đủ
+- **C2-01 Brand kit**
+  - Tổng hợp yêu cầu nhận diện trong `requirement.md`, tham khảo palette thương hiệu BookReview.vn hiện có.
+  - Định nghĩa màu chính/phụ, trạng thái (hover, error, success), typography scale (heading H1–H6, body, caption), spacing system (4/8pt).
+  - Cập nhật `static/css/main.css` với CSS variables (`:root { --color-primary: ... }`) và chuẩn hóa mixins/utility classes.
+  - Xuất bảng guideline (PDF/appendix) để reuse cho các template khác.
+- **C2-02 Wireframe/Hi-fi**
+  - Dùng Figma (hoặc công cụ tương đương) tạo flow đầy đủ cho 10 màn hình đã nêu; mỗi màn hình gồm desktop + mobile breakpoint.
+  - Dán link Figma vào phụ lục + export PNG đặt tại `docs/figures/frontend`.
+  - Note state quan trọng: empty state, loading, error, skeleton.
+- **C2-03 Collections UI**
+  - Tạo template mới `templates/social/collection_list.html`, `collection_detail.html`, `collection_form.html`.
+  - Bổ sung form partial, include validation error, flash message.
+  - Thêm module JS xử lý drag-and-drop (HTML5 API hoặc SortableJS), gửi thứ tự mới qua endpoint `/collections/<id>/reorder/`.
+  - Style card collection dùng brand kit; đảm bảo trạng thái public/private badge.
+- **C2-04 Reading progress viz**
+  - Quyết định thư viện (Chart.js ưu tiên). Load qua `static/js/vendor/chart.min.js`.
+  - API `shelves/progress` trả JSON { week, pages, status }; hiển thị line chart + timeline card list.
+  - Thêm legend, tooltip, xử lý empty state (“Chưa có log đọc nào”).
+  - Responsive: chart chuyển sang sparkline trên mobile.
+- **C2-05 Explore page**
+  - Thiết kế filter panel trái (accordion) với multi-select genre, slider year, toggle language, rating stars.
+  - Section top: Trending, New arrivals, Personalized (dữ liệu mock nếu backend chưa xong).
+  - Áp dụng infinite scroll/lazy-load; fallback pagination.
+  - SEO: heading, breadcrumb, meta description customizable.
+- **C2-06 Markdown preview + autosave**
+  - Module `static/js/review-editor.js`: debounce input, render markdown preview (marked.js) bên phải.
+  - Autosave draft vào localStorage mỗi 5s; hiển thị toast khi khôi phục.
+  - Sanitizer cho preview (DOMPurify) để tránh XSS.
+  - Hook vào form submit để xóa draft sau khi thành công.
+- **C2-07 Mention autocomplete**
+  - Reuse API `/api/mentions/search?q=` trả user/book/author.
+  - JS component lắng nghe `@` trong textarea, hiển thị dropdown (keyboard navigation).
+  - Insert tag dạng `[@username](user:123)` để backend parse.
+  - Bao phủ cả comment + review editor; cân nhắc aria-role listbox.
+- **C2-08 Realtime notification badge**
+  - Tạo endpoint polling `/notifications/unread-count/` (5s) hoặc WebSocket stub qua Django Channels.
+  - Badge trên navbar cập nhật số lượng, pulsate khi >0.
+  - Dropdown hiển thị 5 mục mới nhất, link tới trang Notifications.
+  - Graceful degradation: nếu WebSocket lỗi fallback polling.
+- **C2-09 Responsive + dark mode**
+  - Xác định breakpoint xs (<480), sm, md, lg, xl; tạo mixin SCSS hoặc CSS @media chuẩn.
+  - Kiểm tra từng template chính; sửa layout để tránh overflow.
+  - Dark mode toggle lưu prefer trong localStorage, apply class `theme-dark`; dùng CSS variables để đổi màu.
+  - Test contrast ratio ≥4.5/3.0, focus state rõ ràng.
+- **C2-10 Docs “Chức năng nâng cao”**
+  - Tổng hợp mô tả kỹ thuật cho lazy-load image (IntersectionObserver), markdown preview, realtime badge.
+  - Đưa screenshot minh họa + flow diagram (nếu cần) vào Chapter 2 document.
+  - Liên kết commit/PR tương ứng, mô tả lợi ích (UX, performance).
+  - Chuẩn bị checklist demo để giảng viên dễ kiểm chứng.
 
 ---
 
-## 4. Reviews & Ratings - ✅ Đã hoàn thành cơ bản
+## Chương 3 – Backend & Cơ sở dữ liệu
 
-### 4.1 Models
-- ✅ Review model (với markdown support)
-- ✅ Rating model
-- ✅ ReviewImage model
-- ✅ Comment model (thread support)
-- ✅ Like model (generic foreign key)
-
-### 4.2 API Endpoints
-- ✅ `GET /api/reviews/` - Danh sách review
-- ✅ `POST /api/reviews/` - Tạo review
-- ✅ `GET /api/reviews/{id}/` - Chi tiết review
-- ✅ `PATCH /api/reviews/{id}/` - Chỉnh sửa review
-- ✅ `DELETE /api/reviews/{id}/` - Xóa review
-- ✅ `POST /api/reviews/{id}/like/` - Like review
-- ✅ `DELETE /api/reviews/{id}/like/` - Unlike review
-
-### 4.3 Frontend Views
-- ✅ `GET /reviews/{id}/` - Trang chi tiết review
-
-### 4.4 Features
-- ✅ Markdown support cho review body
-- ✅ HTML sanitization (bleach)
-- ✅ Rating 1-5
-- ✅ Like/unlike functionality
-- ✅ Comment threading
-
-### 4.5 User Stories
-- ✅ **US-REV-01**: Viết review với rating 1-5 - ✅ Đã hoàn thành cơ bản
-  - ✅ Validation tối thiểu 100 ký tự - ✅ Đã triển khai (REVIEW_MIN_LENGTH setting)
-  - ⚠️ Anti-spam - 🔄 Chưa triển khai
-- ✅ **US-REV-02**: Chỉnh sửa/xoá review - ✅ Đã triển khai
-  - ⚠️ Lưu lịch sử sửa - 🔄 Chưa triển khai
-- ✅ **US-CMT-01**: Bình luận dưới review - ✅ Đã triển khai
-  - ⚠️ Mention @username - 🔄 Chưa triển khai
-  - ✅ Rate-limit - ✅ Đã triển khai (20 comments/hour)
-- ✅ **US-LIKE-01**: Like review/bình luận - ✅ Đã triển khai
+| ID | Task | Liên quan | Trạng thái |
+|----|------|-----------|------------|
+| C3-01 | Cập nhật ERD + docs phản ánh models hiện tại (Users, Books, Reviews, Shelves, Social, Moderation). | Docs | ☐ |
+| C3-02 | Hoàn thiện OAuth (Google/Facebook/Apple) bằng django-allauth hoặc social-auth; cấu hình callback + secrets. | Auth | ☐ |
+| C3-03 | Implement anti-spam pipeline: banned words config, Akismet (hoặc rule engine), nâng throttle review/comment. | Moderation | ☐ |
+| C3-04 | Thêm review edit history (version table + API + admin view). | Reviews | ☐ |
+| C3-05 | Implement mention backend: parser, `Mention` model (or reuse notifications), trigger noti + highlight. | Reviews/Social | ☐ |
+| C3-06 | Hoàn thiện follow system cho author/book/user (API + signals cho feed). | Social | ☐ |
+| C3-07 | Collections API đầy đủ (CRUD, share/private, cover upload). | Social | ☐ |
+| C3-08 | Reading progress API v2: weekly aggregation, summary endpoint, Celery job để rebuild stats. | Shelves/Celery | ☐ |
+| C3-09 | Reports SLA tracking: store timestamps, expose SLA status, auto reminders, moderator action log UI/API. | Moderation | ☐ |
+| C3-10 | Precompute trending/top books job (Celery) + cache invalidation. | Books/Celery | ☐ |
+| C3-11 | Import CSV/ISBN + OpenLibrary integration (async fetch via Celery, CLI command, admin UI). | Books/Integrations | ☐ |
+| C3-12 | GDPR export/delete workflow + data packaging job. | Users/Compliance | ☐ |
+| C3-13 | Document session/cookie strategy + client-side state management per rubric. | Docs/Security | ☐ |
+| C3-14 | Harden security: 2FA (TOTP/email), CAPTCHA, CSP headers, rate-limit for moderation endpoints. | Security | ☐ |
 
 ---
 
-## 5. Shelves & Reading Progress - ✅ Đã hoàn thành cơ bản
+## Chương 4 – Kiểm thử & Tối ưu hóa
 
-### 5.1 Models
-- ✅ Shelf model (hệ thống + tùy chỉnh)
-- ✅ ShelfItem model
-- ✅ ReadingProgress model
-
-### 5.2 API Endpoints
-- ✅ `GET /api/shelves/` - Danh sách kệ sách
-- ✅ `POST /api/shelves/` - Tạo kệ sách
-- ✅ `GET /api/shelves/{id}/` - Chi tiết kệ sách
-- ✅ `POST /api/shelves/{id}/books/{book_id}/` - Thêm sách vào kệ
-
-### 5.3 Frontend Views
-- ✅ `GET /shelves/` - Trang quản lý kệ sách
-
-### 5.4 User Stories
-- ✅ **US-SHL-01**: Thêm sách vào kệ Want-to-Read/Reading/Read - ✅ Đã triển khai
-- ⚠️ **US-PROG-01**: Cập nhật tiến độ đọc - 🔄 Chưa triển khai đầy đủ
-  - ⚠️ Biểu đồ tuần - 🔄 Chưa triển khai
+| ID | Task | Liên quan | Trạng thái |
+|----|------|-----------|------------|
+| C4-01 | Viết test matrix chi tiết (theo Section 14 requirement). | QA/Docs | ☐ |
+| C4-02 | Nâng code coverage ≥90%: thêm unit/integration tests cho social, moderation, import, Celery jobs, OAuth. | QA/Code | ☐ |
+| C4-03 | Thiết lập load test (k6/Locust) cho search, review creation, notification feed; lưu kết quả. | Performance | ☐ |
+| C4-04 | Tối ưu truy vấn (prefetch/select_related audits) và cache miss analysis cho endpoints nặng. | Backend/Perf | ☐ |
+| C4-05 | SEO/A11y audit: Lighthouse ≥80/95, fix ARIA roles, heading structure, keyboard trap. | Frontend | ☐ |
+| C4-06 | Cross-browser/device test matrix (Chrome/Firefox/Safari/Edge + mobile breakpoints). | QA | ☐ |
+| C4-07 | Performance profiling Celery jobs (stats in Prometheus/Sentry). | DevOps | ☐ |
 
 ---
 
-## 6. Social Features - ✅ Đã hoàn thành cơ bản
+## Chương 5 – Triển khai & Đánh giá
 
-### 6.1 Models
-- ✅ Follow model (generic foreign key)
-- ✅ Notification model
-- ✅ Collection model (tùy chọn)
-
-### 6.2 API Endpoints
-- ✅ `GET /api/social/notifications/` - Danh sách thông báo
-- ✅ `PATCH /api/social/notifications/{id}/` - Đánh dấu đã đọc
-
-### 6.3 Frontend Views
-- ✅ `GET /notifications/` - Trang thông báo
-
-### 6.4 User Stories
-- ⚠️ **US-FLW-01**: Follow user/author/book - 🔄 Chưa triển khai đầy đủ
-- ⚠️ **US-COLL-01**: Tạo collection - 🔄 Chưa triển khai
+| ID | Task | Liên quan | Trạng thái |
+|----|------|-----------|------------|
+| C5-01 | Hoàn thiện `.env` templates cho dev/staging/prod + secrets rotation guide. | DevOps | ☐ |
+| C5-02 | Thiết lập CI/CD (GitHub Actions) chạy lint, tests, docker build, security scan (Bandit, Trivy). | DevOps | ☐ |
+| C5-03 | Viết script deploy (Ansible/Terraform or documented manual) và chạy thử lên staging; ghi log so sánh hiệu suất trước/sau tối ưu (cache/CDN). | DevOps/Docs | ☐ |
+| C5-04 | Thiết lập monitoring: Sentry, Prometheus metrics, Grafana dashboards, alert rules (latency, error rate, Celery backlog). | Observability | ☐ |
+| C5-05 | Hoàn thiện health checks (`/healthz`, Celery beat job) + uptime documentation. | DevOps | ☐ |
+| C5-06 | Chuẩn bị tài liệu đánh giá triển khai theo rubric (screenshot deploy, thông số). | Docs | ☐ |
 
 ---
 
-## 7. Search & Discovery - ✅ Đã hoàn thành cơ bản
+## Chương 6 – Tổng kết & Phụ lục
 
-### 7.1 API Endpoints
-- ✅ `GET /api/search/?q=query` - Tìm kiếm
-- ✅ `GET /api/search/autocomplete/?q=query` - Autocomplete
-
-### 7.2 Frontend Views
-- ✅ `GET /search/` - Trang tìm kiếm
-- ✅ `GET /explore/` - Trang khám phá
-
-### 7.3 Features
-- ✅ Full-text search cơ bản
-- ✅ Advanced filtering - ✅ Đã triển khai (genre, rating, year, author, publisher, language, sorting)
-- ⚠️ Trending algorithm - 🔄 Chưa triển khai
+| ID | Task | Liên quan | Trạng thái |
+|----|------|-----------|------------|
+| C6-01 | Viết chương tổng kết: kết quả đạt được, hạn chế, hướng phát triển (tham chiếu roadmap Section 20 SRS). | Docs | ☐ |
+| C6-02 | Tổng hợp phụ lục: wireframe, ERD, test reports, Lighthouse, load test charts, deployment evidence. | Docs | ☐ |
+| C6-03 | Chuẩn bị slide/demo script + account demo. | Presentation | ☐ |
+| C6-04 | Checklist DoD (Section 23 SRS) + xác nhận không còn bug P0. | QA/Docs | ☐ |
 
 ---
 
-## 8. Moderation - ✅ Đã hoàn thành cơ bản
+## Cross-cutting Enhancements (không gắn chương cụ thể)
 
-### 8.1 Models
-- ✅ Report model
-- ✅ ModeratorAction model
-
-### 8.2 API Endpoints
-- ✅ `POST /api/moderation/reports/` - Báo cáo vi phạm
-- ✅ `GET /api/moderation/reports/` - Danh sách báo cáo (moderator)
-
-### 8.3 User Stories
-- ⚠️ **US-RPT-01**: Báo cáo nội dung vi phạm - 🔄 Chưa triển khai đầy đủ
-  - ⚠️ Moderator dashboard - 🔄 Chưa triển khai
-  - ⚠️ SLA xử lý 48h - 🔄 Chưa triển khai
+| ID | Task | Liên quan | Trạng thái |
+|----|------|-----------|------------|
+| X-01 | i18n: gettext setup (vi/en), locale switcher, translate templates. | Frontend/Backend | ☐ |
+| X-02 | CDN/static optimization (Whitenoise/CloudFront config, cache headers). | DevOps | ☐ |
+| X-03 | Advanced analytics dashboard (user growth, top genres, retention). | Backend/Data | ☐ |
+| X-04 | Content moderation tooling UI (bulk actions, filters, audit trail). | Frontend/Moderation | ☐ |
+| X-05 | Accessibility sweep (aria-labels, focus states, color contrast). | Frontend | ☐ |
 
 ---
 
-## 9. SEO & Analytics - ✅ Đã hoàn thành cơ bản
+## Theo dõi tiến độ
 
-### 9.1 Features
-- ✅ Sitemap (books, authors, reviews) - `sitemaps.py`
-- ✅ Robots.txt
-- ✅ Slug URLs cho SEO-friendly
-- ✅ Schema.org markup - ✅ Đã triển khai (Book, Review với AggregateRating)
-- ✅ OpenGraph tags - ✅ Đã triển khai (title, description, image, url)
-- ✅ Canonical URLs - ✅ Đã triển khai cho tất cả các trang
+- Mỗi task cập nhật tình trạng: ☐ (chưa), ◐ (đang làm), ☐→☑ (hoàn thành).  
+- Ưu tiên trước: C1-01 → C3-08 song song với C2-03/C2-04 để khóa nội dung chương 2–3; tiếp đến C4 nhóm testing; cuối cùng C5–C6 cho tài liệu và triển khai.  
+- Họp sync hàng tuần: rà soát blocking issues, điều chỉnh timeline.
 
-### 9.2 User Stories
-- ✅ **US-SEO-01**: Google index trang chi tiết sách - ✅ Đã hoàn thành
-  - ✅ Sitemap.xml, robots.txt
-  - ✅ Schema.org Book/Review - ✅ Đã triển khai
-
----
-
-## 10. Admin & Management - ✅ Đã hoàn thành cơ bản
-
-### 10.1 Features
-- ✅ Django Admin interface
-- ✅ Admin cho các models chính
-- ⚠️ Custom admin dashboard - 🔄 Chưa triển khai
-- ⚠️ Banner management - 🔄 Chưa triển khai
-- ⚠️ Banned words configuration - 🔄 Chưa triển khai
-
----
-
-## 11. Performance & Cache - ✅ Đã triển khai cơ bản
-
-### 11.1 Requirements
-- ✅ Cache layer (Redis) - ✅ Đã cấu hình
-- ✅ Cache trang sách (60s) - ✅ Đã triển khai
-- ✅ Cache danh mục (5 phút) - ✅ Đã triển khai
-- ⚠️ Precompute top books (Celery job) - 🔄 Chưa triển khai
-- ✅ Optimize queries (select_related/prefetch_related) - ✅ Đã triển khai
-
----
-
-## 12. Security & Privacy - ✅ Đã triển khai cơ bản
-
-### 12.1 Features
-- ✅ CSRF protection (Django default)
-- ✅ HTML sanitization (bleach cho markdown)
-- ✅ Rate limiting - ✅ Đã triển khai (register, login, password reset, email verification, comments)
-- ✅ Password strength validation - ✅ Đã triển khai (uppercase, lowercase, digit, special char, min 8 chars)
-- ⚠️ 2FA - 🔄 Chưa triển khai
-- ⚠️ reCAPTCHA/Turnstile - 🔄 Chưa triển khai
-- ⚠️ GDPR data export - 🔄 Chưa triển khai
-
----
-
-## 13. Testing - ✅ Đã triển khai cơ bản
-
-### 13.1 Requirements
-- ✅ Unit tests - ✅ Đã triển khai (models: User, Book, Review, Comment, Author, Genre)
-- ✅ Integration tests - ✅ Đã triển khai (API endpoints: auth, books, reviews)
-- ✅ Test validators - ✅ Đã triển khai (password strength validation)
-- ⚠️ Test coverage 90% - 🔄 Chưa đạt (cần bổ sung thêm tests)
-
----
-
-## 14. Documentation - ✅ Đã hoàn thành cơ bản
-
-### 14.1 Files
-- ✅ README.md - Hướng dẫn cài đặt và sử dụng
-- ✅ requirement.md - Tài liệu yêu cầu phần mềm (SRS)
-- ✅ todo.md - File này
-
----
-
-## 15. Deployment & DevOps - ✅ Đã hoàn thành cơ bản
-
-### 15.1 Infrastructure
-- ✅ Docker configuration
-- ✅ Docker Compose setup
-- ✅ Environment variables setup
-- ✅ Production deployment guide - ✅ Đã hoàn thiện (DEPLOYMENT.md)
-- ⚠️ CI/CD pipeline - 🔄 Chưa triển khai
-- ⚠️ Monitoring (Sentry, Prometheus) - 🔄 Chưa triển khai
-
----
-
-## 16. Bug Fixes Log
-
-### 2025-01-XX
-1. ✅ **Fix URL ordering trong books/urls.py**
-   - **Vấn đề:** `/api/books/genres/` trả về 404
-   - **Nguyên nhân:** Pattern catch-all `<str:slug>/` được đặt trước các pattern cụ thể
-   - **Giải pháp:** Sắp xếp lại URL patterns, đặt các pattern cụ thể trước pattern catch-all
-   - **File thay đổi:** `books/urls.py`
-
-2. ✅ **Fix logout view cho frontend**
-   - **Vấn đề:** `/api/auth/logout/` trả về 405 Method Not Allowed khi truy cập từ frontend
-   - **Nguyên nhân:** API endpoint chỉ chấp nhận POST, nhưng frontend redirect sử dụng GET
-   - **Giải pháp:** Tạo `logout_view_frontend` xử lý cả GET và POST, tự động submit POST form
-   - **Files thay đổi:** 
-     - `bookreview/views.py` - Thêm `logout_view_frontend`
-     - `bookreview/urls.py` - Cập nhật logout URL
-     - `templates/auth/logout.html` - Template mới
-
-### 2025-01-XX (Triển khai MVP Features)
-3. ✅ **Triển khai Email Verification**
-   - **Tính năng:** Gửi email xác nhận khi đăng ký, xác nhận email qua link
-   - **Files thay đổi:**
-     - `users/utils.py` - Thêm `send_verification_email()`
-     - `users/views.py` - Cập nhật `RegisterView` và `verify_email()`
-     - `templates/emails/verification_email.html` - Email template
-     - `templates/auth/email_verified.html` - Frontend verification page
-     - `bookreview/settings.py` - Thêm `BASE_URL` setting
-
-4. ✅ **Triển khai Password Reset**
-   - **Tính năng:** Yêu cầu đặt lại mật khẩu qua email, đặt lại mật khẩu với token
-   - **Files thay đổi:**
-     - `users/models.py` - Thêm `PasswordResetToken` model
-     - `users/serializers.py` - Thêm `PasswordResetRequestSerializer`, `PasswordResetConfirmSerializer`
-     - `users/views.py` - Thêm `password_reset_request()`, `password_reset_confirm()`
-     - `users/utils.py` - Thêm `send_password_reset_email()`
-     - `templates/emails/password_reset_email.html` - Email template
-     - `templates/auth/password_reset.html` - Frontend request page
-     - `templates/auth/password_reset_confirm.html` - Frontend confirm page
-     - `bookreview/views.py` - Thêm `password_reset_view()`
-
-5. ✅ **Triển khai Rate Limiting**
-   - **Tính năng:** Giới hạn số lượng request cho các endpoints quan trọng
-   - **Files thay đổi:**
-     - `users/throttles.py` - Custom throttle classes (Register, Login, PasswordReset, EmailVerification)
-     - `users/views.py` - Áp dụng throttles cho các views
-     - `bookreview/settings.py` - Cấu hình throttle rates
-
-6. ✅ **Cải thiện Cache Optimization**
-   - **Tính năng:** Cache cho books, reviews, và danh mục
-   - **Files thay đổi:**
-     - `books/views.py` - Thêm cache cho `BookDetailView` (60s), danh sách genres/authors/publishers/tags (5 phút)
-     - `reviews/views.py` - Thêm cache cho `ReviewDetailView` (60s), invalidate cache khi update
-
-### 2025-01-XX (Hoàn thiện MVP Features)
-7. ✅ **Triển khai Password Strength Validation**
-   - **Tính năng:** Validation mật khẩu nâng cao (uppercase, lowercase, digit, special char, min 8 chars)
-   - **Files thay đổi:**
-     - `users/validators.py` - Thêm `validate_password_strength()` function
-     - `users/serializers.py` - Áp dụng validator cho RegisterSerializer và PasswordResetConfirmSerializer
-
-8. ✅ **Thêm Rate Limiting cho Comments**
-   - **Tính năng:** Giới hạn số lượng comment (20 comments/hour per user)
-   - **Files thay đổi:**
-     - `users/throttles.py` - Thêm `CommentThrottle` class
-     - `reviews/views.py` - Áp dụng throttle cho `CommentListView`
-     - `bookreview/settings.py` - Thêm `comment` throttle rate
-
-9. ✅ **Triển khai Advanced Search & Filtering**
-   - **Tính năng:** Tìm kiếm nâng cao với filters (genre, rating, year, author, publisher, language, sorting)
-   - **Files thay đổi:**
-     - `search/views.py` - Cải thiện `search_view()` với advanced filtering và sorting
-
-10. ✅ **Thêm Schema.org Markup**
-    - **Tính năng:** Structured data cho Book và Review để cải thiện SEO
-    - **Files thay đổi:**
-      - `templates/books/book_detail.html` - Thêm Book schema với AggregateRating
-      - `templates/reviews/review_detail.html` - Thêm Review schema với Rating
-
-11. ✅ **Thêm Canonical URLs và OpenGraph Tags**
-    - **Tính năng:** Canonical URLs và OpenGraph tags đầy đủ cho SEO và social sharing
-    - **Files thay đổi:**
-      - `templates/base.html` - Thêm canonical URL và og:url
-      - `templates/books/book_detail.html` - Thêm canonical và og tags
-      - `templates/reviews/review_detail.html` - Thêm canonical và og tags
-
-### 2025-01-XX (Testing & Deployment)
-12. ✅ **Triển khai Testing Infrastructure**
-    - **Tính năng:** Unit tests và integration tests cho các modules chính
-    - **Files thay đổi:**
-      - `users/tests.py` - Tests cho User model, API endpoints, validators, email verification, password reset
-      - `books/tests.py` - Tests cho Book, Author, Genre models và API endpoints
-      - `reviews/tests.py` - Tests cho Review, Comment, Like models và API endpoints
-
-13. ✅ **Tạo Production Deployment Guide**
-    - **Tính năng:** Hướng dẫn chi tiết triển khai lên production
-    - **Files thay đổi:**
-      - `DEPLOYMENT.md` - Hướng dẫn đầy đủ về deployment, cấu hình Nginx, Gunicorn, Celery, SSL, backup, monitoring
-
----
-
-## Tổng kết
-
-### Đã hoàn thành (✅)
-- Cấu trúc dự án và module structure
-- Authentication & User Management cơ bản
-- Books & Metadata Management
-- Reviews & Ratings cơ bản
-- Shelves & Reading Progress cơ bản
-- Social Features cơ bản
-- Search & Discovery cơ bản
-- Moderation models
-- SEO cơ bản (sitemap, robots.txt)
-- Admin interface cơ bản
-- Docker setup
-- Documentation cơ bản
-
-### Đang triển khai / Cần bổ sung (🔄)
-- OAuth (Google/Facebook/Apple)
-- Trending algorithm
-- Precompute top books (Celery job)
-- Security enhancements (2FA, reCAPTCHA)
-- Test coverage 90% (cần bổ sung thêm tests)
-- CI/CD pipeline
-- Monitoring & logging (Sentry, Prometheus)
-- i18n (đa ngôn ngữ)
-- Advanced features (collections, reading progress charts)
-- GDPR data export
-- Anti-spam cho reviews
-- Mention @username trong comments
-- Lưu lịch sử sửa review
-
-### Chưa bắt đầu (❌)
-- Import CSV/ISBN functionality
-- OpenLibrary API integration
-- Advanced analytics
-- CDN setup
-- Advanced moderation dashboard
-
----
-
-## Lộ trình tiếp theo (Ưu tiên)
-
-### MVP (Minimum Viable Product) - Ưu tiên cao
-1. ✅ Core features (đã hoàn thành)
-2. ✅ Email verification
-3. ✅ Rate limiting
-4. ✅ Cache optimization
-5. ✅ Testing cơ bản (unit tests, integration tests)
-6. ✅ Production deployment guide
-
-### V1 - Tính năng nâng cao
-1. OAuth integration
-2. Advanced search & filtering
-3. Trending algorithm
-4. Collections feature
-5. Reading progress charts
-6. Advanced moderation dashboard
-7. i18n support
-
----
-
-**Ghi chú:** File này sẽ được cập nhật thường xuyên khi có tiến độ mới.
+**Ghi chú:** File phải được cập nhật liên tục; mọi thay đổi quan trọng cần tham chiếu rõ tới module/code commit tương ứng.
 

@@ -1,5 +1,6 @@
 from rest_framework import generics, status, permissions
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.contrib.contenttypes.models import ContentType
@@ -11,33 +12,6 @@ from .serializers import FollowSerializer, NotificationSerializer, CollectionSer
 from books.models import Book, Author
 
 User = get_user_model()
-
-
-class FollowView(generics.CreateAPIView):
-    """Follow User/Author/Book"""
-    serializer_class = FollowSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def perform_create(self, serializer):
-        serializer.save(follower=self.request.user)
-
-
-@api_view(['DELETE'])
-@permission_classes([permissions.IsAuthenticated])
-def unfollow_view(request, target_type, target_id):
-    """Unfollow User/Author/Book"""
-    try:
-        # Convert string target_type to ContentType
-        content_type = ContentType.objects.get(model=target_type)
-        follow = Follow.objects.get(
-            follower=request.user,
-            content_type=content_type,
-            object_id=target_id
-        )
-        follow.delete()
-        return Response({'message': 'Unfollowed successfully'}, status=status.HTTP_200_OK)
-    except (Follow.DoesNotExist, ContentType.DoesNotExist):
-        return Response({'error': 'Not following'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class NotificationListView(generics.ListAPIView):
@@ -169,3 +143,51 @@ def feed_view(request):
     from reviews.serializers import ReviewListSerializer
     serializer = ReviewListSerializer(reviews, many=True, context={'request': request})
     return Response(serializer.data)
+
+
+class FollowToggleView(APIView):
+    """Follow or Unfollow User/Author/Book"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = FollowSerializer(data=request.data)
+        if serializer.is_valid():
+            target_type = serializer.validated_data.get('target_type')
+            object_id = serializer.validated_data.get('object_id')
+            try:
+                content_type = ContentType.objects.get(model=target_type)
+            except ContentType.DoesNotExist:
+                return Response({'error': 'Invalid target type'}, status=status.HTTP_400_BAD_REQUEST)
+
+            Follow.objects.get_or_create(
+                follower=request.user,
+                content_type=content_type,
+                object_id=object_id
+            )
+            return Response({'message': 'Followed successfully'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        """Unfollow User/Author/Book"""
+        target_type = request.data.get('target_type')
+        target_id = request.data.get('target_id')
+
+        if not target_type or not target_id:
+            return Response({'error': 'Missing target_type or target_id'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            content_type = ContentType.objects.get(model=target_type)
+            
+            follow = Follow.objects.get(
+                follower=request.user,
+                content_type=content_type,
+                object_id=target_id
+            )
+            follow.delete()
+            
+            return Response({'message': 'Unfollowed successfully'}, status=status.HTTP_200_OK)
+            
+        except ContentType.DoesNotExist:
+            return Response({'error': 'Invalid target type'}, status=status.HTTP_400_BAD_REQUEST)
+        except Follow.DoesNotExist:
+            return Response({'error': 'Not following'}, status=status.HTTP_404_NOT_FOUND)

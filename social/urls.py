@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (
-    FollowView, unfollow_view,
+    FollowToggleView,
     NotificationListView, mark_notification_read, mark_all_notifications_read,
     CollectionListView, CollectionDetailView, collection_item_view,
     feed_view,
@@ -9,9 +9,8 @@ from .views import (
 app_name = 'social'
 
 urlpatterns = [
-    # Follow
-    path('follow/', FollowView.as_view(), name='follow'),
-    path('follow/<str:target_type>/<int:target_id>/', unfollow_view, name='unfollow'),
+    # Follow / Unfollow
+    path('follow/', FollowToggleView.as_view(), name='follow-toggle'),
     
     # Notifications
     path('notifications/', NotificationListView.as_view(), name='notification_list'),

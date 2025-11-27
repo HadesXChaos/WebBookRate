@@ -1,7 +1,9 @@
 """
 Frontend views for BookReview.vn
 """
+from django.conf import settings
 from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.contenttypes.models import ContentType
 from django.views.generic import TemplateView, DetailView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -11,6 +13,7 @@ from django.contrib.auth import logout
 from users.models import User
 from books.models import Book
 from reviews.models import Review
+from social.models import Follow
 
 
 def home_view(request):
@@ -53,10 +56,21 @@ def user_profile_view(request, username):
     
     # Get counts
     reviews_count = Review.objects.filter(user=profile_user, status='published').count()
+
+    is_following = False
+    if request.user.is_authenticated and request.user != profile_user:
+        user_content_type = ContentType.objects.get_for_model(User)
+        
+        is_following = Follow.objects.filter(
+            follower=request.user,
+            content_type=user_content_type,
+            object_id=profile_user.id
+        ).exists()
     
     context = {
         'profile_user': profile_user,
         'reviews_count': reviews_count,
+        'is_following': is_following,
     }
     return render(request, 'users/profile.html', context)
 
@@ -70,6 +84,68 @@ def user_shelves_view(request):
 def settings_view(request):
     """User settings page"""
     return render(request, 'users/settings.html')
+
+
+@login_required
+def review_editor_view(request):
+    """Review editor page with markdown preview and autosave support"""
+    review_id = request.GET.get('review')
+    book_id = request.GET.get('book')
+
+    existing_review = None
+    selected_book = None
+
+    if review_id:
+        existing_review = get_object_or_404(Review, pk=review_id, user=request.user)
+        selected_book = existing_review.book
+    elif book_id:
+        selected_book = get_object_or_404(Book, pk=book_id, is_active=True)
+
+    initial_review = None
+    if existing_review:
+        initial_review = {
+            'id': existing_review.id,
+            'title': existing_review.title,
+            'body_md': existing_review.body_md,
+            'rating': float(existing_review.rating) if existing_review.rating is not None else None,
+            'status': existing_review.status,
+            'saved_at': existing_review.updated_at.isoformat() if existing_review.updated_at else None,
+            'book': {
+                'id': existing_review.book.id,
+                'title': existing_review.book.title,
+                'slug': existing_review.book.slug,
+                'cover': existing_review.book.cover.url if existing_review.book.cover else None,
+            },
+        }
+
+    selected_book_data = None
+    if selected_book:
+        authors = list(selected_book.authors.values_list('name', flat=True))
+        selected_book_data = {
+            'id': selected_book.id,
+            'title': selected_book.title,
+            'slug': selected_book.slug,
+            'cover': selected_book.cover.url if selected_book.cover else None,
+            'authors': authors,
+            'year': selected_book.year,
+            'pages': selected_book.pages,
+        }
+
+    storage_key = f"review_draft_user_{request.user.id}"
+    if existing_review:
+        storage_key += f"_review_{existing_review.id}"
+    elif selected_book:
+        storage_key += f"_book_{selected_book.id}"
+
+    context = {
+        'selected_book': selected_book,
+        'selected_book_data': selected_book_data,
+        'existing_review': existing_review,
+        'initial_review': initial_review,
+        'storage_key': storage_key,
+        'REVIEW_MIN_LENGTH': settings.REVIEW_MIN_LENGTH,
+    }
+    return render(request, 'reviews/review_editor.html', context)
 
 
 def search_view(request):
