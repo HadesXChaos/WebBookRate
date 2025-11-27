@@ -5,19 +5,21 @@ echo "Đang chờ PostgreSQL..."
 while ! nc -z db 5432; do sleep 1; done
 echo "PostgreSQL sẵn sàng!"
 
-python manage.py migrate --noinput
-
-# --- QUAN TRỌNG: CHẠY SEED DATA TRƯỚC ---
-# Để có sách thật cho Reviewer viết bài, ta nên chạy seed_data trước (nếu file tồn tại)
+# Chỉ chạy migrate và seed data ở container WEB
 if [ "$1" != "celery" ] && [[ "$1" != *"beat"* ]]; then
+
+    echo ">>> Đang chạy Migration..."
+    python manage.py migrate --noinput
+
+    # 1. CHẠY SEED DATA TRƯỚC (Để có sách)
     if [ -f seed_data.py ]; then
-        echo ">>> CHẠY SEED DATA (Để import sách trước)..."
+        echo ">>> CHẠY SEED DATA (Sách & Tác giả)..."
         python seed_data.py
     fi
-fi
 
-# Script Python tạo Users và Reviews
-python <<END
+    # 2. TẠO USERS VÀ REVIEWS
+    echo ">>> Đang tạo Users và Reviews mẫu..."
+    python <<END
 import os, django
 import random
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bookreview.settings')
@@ -81,66 +83,63 @@ def create_reviews_for_user(username, count):
     try:
         user = User.objects.get(username=username)
         
-        # Lấy tất cả sách hiện có trong DB (từ seed_data)
-        # Loại trừ những sách user này ĐÃ review rồi (tránh lỗi duplicate)
         available_books = list(Book.objects.exclude(reviews__user=user))
-        random.shuffle(available_books) # Trộn ngẫu nhiên
+        random.shuffle(available_books)
         
         needed = count
         
-        print(f"--- {username} cần tạo {count} reviews. Sách khả dụng: {len(available_books)} ---")
-
-        # Viết review lên sách có sẵn
-        for i in range(min(len(available_books), count)):
-            book = available_books[i]
-            Review.objects.get_or_create(
-                user=user,
-                book=book,
-                defaults={
-                    'title': f"Review về {book.title}",
-                    'body_md': f"Sách '{book.title}' rất hay. Đây là bài review số {i+1} của tôi.",
-                    'rating': random.choice([3, 4, 5]),
-                    'status': 'public',
-                    'is_active': True
-                }
-            )
-            needed -= 1
-
-        # Nếu sách có sẵn không đủ (Ví dụ cần 19 bài mà kho chỉ có 10 sách)
-        # -> Tạo thêm sách ảo để đủ chỉ tiêu
         if needed > 0:
-            print(f"!!! Thiếu {needed} sách. Đang tạo thêm sách bổ sung cho {username}...")
-            # Tạo tác giả dummy nếu cần
-            dummy_author, _ = Author.objects.get_or_create(name="Tác giả Bổ Sung")
-            
-            for k in range(needed):
-                # Tạo sách mới hoàn toàn để không trùng
-                new_book = Book.objects.create(
-                    title=f"Sách Bổ Sung {k+1} cho {username}",
-                    description="Sách được tạo tự động để đủ KPI review.",
-                    pages=100
-                )
-                new_book.authors.add(dummy_author)
-                
-                Review.objects.create(
+            print(f"--- {username} cần tạo {count} reviews. Sách khả dụng: {len(available_books)} ---")
+
+            for i in range(min(len(available_books), count)):
+                book = available_books[i]
+                Review.objects.get_or_create(
                     user=user,
-                    book=new_book,
-                    title=f"Review bổ sung {k+1}",
-                    body_md="Bài viết để đủ số lượng thăng hạng.",
-                    rating=5,
-                    status='public',
-                    is_active=True
+                    book=book,
+                    defaults={
+                        'title': f"Review về {book.title}",
+                        'body_md': f"Sách '{book.title}' rất hay. Đây là bài review số {i+1} của tôi.",
+                        'rating': random.choice([3, 4, 5]),
+                        'status': 'public',
+                        'is_active': True # <--- ĐÃ SỬA LỖI CHÍNH TẢ Ở ĐÂY
+                    }
                 )
+                needed -= 1
+
+            if needed > 0:
+                print(f"!!! Thiếu {needed} sách. Đang tạo thêm sách bổ sung cho {username}...")
+                dummy_author, _ = Author.objects.get_or_create(name="Tác giả Bổ Sung")
+                
+                for k in range(needed):
+                    rand_suffix = random.randint(1000, 9999)
+                    new_book = Book.objects.create(
+                        title=f"Sách Bổ Sung {k+1}-{rand_suffix} cho {username}",
+                        description="Sách được tạo tự động để đủ KPI review.",
+                        pages=100
+                    )
+                    new_book.authors.add(dummy_author)
+                    
+                    Review.objects.create(
+                        user=user,
+                        book=new_book,
+                        title=f"Review bổ sung {k+1}",
+                        body_md="Bài viết để đủ số lượng thăng hạng.",
+                        rating=5,
+                        status='public',
+                        is_active=True
+                    )
 
     except User.DoesNotExist:
         print(f"User {username} không tồn tại.")
 
 # Thực hiện
-create_reviews_for_user('reader3', 19)   # Cần 19 bài
+create_reviews_for_user('reader3', 19)
 create_reviews_for_user('reviewer1', 2)
 create_reviews_for_user('reviewer2', 2)
 
 print(">>> HOÀN TẤT <<<")
 END
+
+fi 
 
 exec "$@"
