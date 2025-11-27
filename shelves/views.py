@@ -111,8 +111,8 @@ class UserShelvesView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        username = self.kwargs['username']
-        user = get_object_or_404(User, username=username)
+        user_id = self.kwargs.get("user_id")  # LẤY user_id từ URL
+        return Shelf.objects.filter(user_id=user_id).order_by("-id")
         
         if self.request.user == user:
             # Own shelves - show all

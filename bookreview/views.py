@@ -11,7 +11,7 @@ from django.contrib import messages
 from django.contrib.auth import logout
 
 from users.models import User
-from books.models import Book
+from books.models import Book, Genre
 from reviews.models import Review
 from social.models import Follow
 
@@ -105,7 +105,8 @@ def change_password_view(request):
 def review_editor_view(request):
     """Review editor page with markdown preview and autosave support"""
     review_id = request.GET.get('review')
-    book_id = request.GET.get('book')
+    
+    book_slug = request.GET.get('slug') or request.GET.get('book') 
 
     existing_review = None
     selected_book = None
@@ -113,8 +114,8 @@ def review_editor_view(request):
     if review_id:
         existing_review = get_object_or_404(Review, pk=review_id, user=request.user)
         selected_book = existing_review.book
-    elif book_id:
-        selected_book = get_object_or_404(Book, pk=book_id, is_active=True)
+    elif book_slug:
+        selected_book = get_object_or_404(Book, slug=book_slug, is_active=True)
 
     initial_review = None
     if existing_review:
@@ -150,7 +151,7 @@ def review_editor_view(request):
     if existing_review:
         storage_key += f"_review_{existing_review.id}"
     elif selected_book:
-        storage_key += f"_book_{selected_book.id}"
+        storage_key += f"_book_{selected_book.slug}"
 
     context = {
         'selected_book': selected_book,
@@ -158,7 +159,6 @@ def review_editor_view(request):
         'existing_review': existing_review,
         'initial_review': initial_review,
         'storage_key': storage_key,
-        'REVIEW_MIN_LENGTH': settings.REVIEW_MIN_LENGTH,
     }
     return render(request, 'reviews/review_editor.html', context)
 
@@ -202,3 +202,17 @@ def logout_view_frontend(request):
 
 def book_list_view(request):
     return render(request, 'books/book_list.html')
+
+
+def genre_directory_view(request):
+    """Public genre directory page that hydrates data via REST API"""
+    return render(request, 'books/genre_list.html')
+
+
+def genre_detail_view(request, slug):
+    """Genre detail landing page (frontend)"""
+    genre = get_object_or_404(Genre, slug=slug, is_active=True)
+    context = {
+        'genre': genre,
+    }
+    return render(request, 'books/genre_detail.html', context)

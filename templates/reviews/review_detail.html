@@ -90,9 +90,8 @@
         <div class="card">
             <div class="card-body">
                 <div class="review-body" style="line-height: 1.8; color: #475569;">
-                    {{ review.body_html|safe|default:review.body }}
+                    {{ review.body_html|safe|default:review.body_md }}
                 </div>
-                
                 {% if review.images.all %}
                 <div class="review-images" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
                     {% for image in review.images.all %}

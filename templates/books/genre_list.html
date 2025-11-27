@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Thể loại sách - BookReview.vn{% endblock %}
+
+{% block content %}
+<section class="genre-hero">
+    <div class="container">
+        <p class="eyebrow-label">Khám phá thể loại</p>
+        <div class="genre-hero__header">
+            <div>
+                <h1>Kho thể loại sách</h1>
+                <p class="sub-text">Tìm cảm hứng cho cuốn sách tiếp theo dựa trên chủ đề bạn hứng thú.</p>
+            </div>
+            <div class="hero-stats">
+                <div>
+                    <span class="stat-label">Tổng thể loại</span>
+                    <strong id="genre-total">--</strong>
+                </div>
+                <div>
+                    <span class="stat-label">Trung bình sách/genre</span>
+                    <strong id="genre-average">--</strong>
+                </div>
+            </div>
+        </div>
+        <div class="genre-search-bar">
+            <div class="input-icon">
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M9 17a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm10 2-4.35-4.35"/></svg>
+                <input type="search" placeholder="Tìm tên thể loại..." id="genre-search-input" autocomplete="off">
+            </div>
+            <div class="genre-filters">
+                <button class="chip chip--active" data-sort="name">A-Z</button>
+                <button class="chip" data-sort="-book_count">Sách nhiều nhất</button>
+                <button class="chip" data-sort="-created_at">Gần cập nhật</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="genre-directory">
+    <div class="container genre-layout">
+        <aside class="genre-sidebar">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Nhóm chữ cái</h3>
+                </div>
+                <div class="card-body alphabet-filter" id="alphabet-filter">
+                    <button class="chip chip--small chip--active" data-letter="all">Tất cả</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Tính năng sắp ra mắt</h3>
+                </div>
+                <div class="card-body">
+                    <ul class="feature-list">
+                        <li>Gợi ý cá nhân hóa theo lịch sử đọc</li>
+                        <li>Biểu đồ xu hướng thể loại</li>
+                        <li>Playlist đọc thử</li>
+                    </ul>
+                </div>
+            </div>
+        </aside>
+
+        <div class="genre-content">
+            <div id="genre-grid" class="genre-grid">
+                {% for _ in "123456" %}
+                <div class="genre-card skeleton">
+                    <div class="skeleton-line skeleton-title"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line short"></div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="load-more-wrapper">
+                <button class="btn btn-outline" id="load-more-genres" style="display: none;">Tải thêm</button>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const API_BASE = '/api/books/genres/';
+    const grid = document.getElementById('genre-grid');
+    const loadMoreBtn = document.getElementById('load-more-genres');
+    const searchInput = document.getElementById('genre-search-input');
+    const sortButtons = document.querySelectorAll('[data-sort]');
+    const alphabetContainer = document.getElementById('alphabet-filter');
+    const statTotal = document.getElementById('genre-total');
+    const statAverage = document.getElementById('genre-average');
+
+    const state = {
+        nextUrl: API_BASE,
+        results: [],
+        search: '',
+        sort: 'name',
+        letter: 'all',
+    };
+
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    letters.forEach(letter => {
+        const btn = document.createElement('button');
+        btn.className = 'chip chip--small';
+        btn.dataset.letter = letter;
+        btn.textContent = letter;
+        alphabetContainer.appendChild(btn);
+    });
+
+    function setLoading(isLoading) {
+        if (isLoading) {
+            grid.classList.add('is-loading');
+        } else {
+            grid.classList.remove('is-loading');
+        }
+    }
+
+    function formatDescription(text) {
+        if (!text) return 'Chưa có mô tả cho thể loại này.';
+        return text.length > 160 ? text.slice(0, 157) + '...' : text;
+    }
+
+    function renderStats(data) {
+        statTotal.textContent = data.length;
+        const avg = data.length
+            ? Math.round(data.reduce((sum, item) => sum + (item.book_count || 0), 0) / data.length)
+            : 0;
+        statAverage.textContent = avg;
+    }
+
+    function renderGenres(data, reset = false) {
+        if (reset) {
+            grid.innerHTML = '';
+        }
+
+        if (!data.length) {
+            grid.innerHTML = '<div class="empty-state">Không tìm thấy thể loại nào khớp với tiêu chí.</div>';
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        data.forEach(genre => {
+            const card = document.createElement('article');
+            card.className = 'genre-card';
+            card.innerHTML = `
+                <div class="genre-card__header">
+                    <div>
+                        <p class="eyebrow-label">Thể loại</p>
+                        <h3>${genre.name}</h3>
+                    </div>
+                    <span class="genre-badge">${genre.book_count || 0} sách</span>
+                </div>
+                <p class="genre-description">${formatDescription(genre.description)}</p>
+                <div class="genre-card__actions">
+                    <a href="/explore/?genre=${genre.slug}" class="btn btn-sm btn-primary">Khám phá sách</a>
+                    <a href="/search/?q=${encodeURIComponent(genre.name)}" class="btn btn-sm btn-outline">Tìm thêm</a>
+                </div>
+            `;
+            fragment.appendChild(card);
+        });
+
+        grid.appendChild(fragment);
+    }
+
+    async function fetchGenres(url = API_BASE, reset = false) {
+        try {
+            setLoading(true);
+            const response = await fetch(url);
+            const data = await response.json();
+            const results = Array.isArray(data) ? data : data.results || [];
+
+            if (reset) {
+                state.results = results;
+            } else {
+                state.results = state.results.concat(results);
+            }
+            renderStats(state.results);
+            applyFilters();
+
+            state.nextUrl = data.next;
+            loadMoreBtn.style.display = state.nextUrl ? 'inline-flex' : 'none';
+        } catch (error) {
+            console.error('Failed to load genres', error);
+            grid.innerHTML = '<div class="empty-state">Không thể tải dữ liệu. Vui lòng thử lại sau.</div>';
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    function applyFilters() {
+        let filtered = [...state.results];
+
+        if (state.letter !== 'all') {
+            filtered = filtered.filter(item => item.name && item.name.toUpperCase().startsWith(state.letter));
+        }
+
+        if (state.search) {
+            const term = state.search.toLowerCase();
+            filtered = filtered.filter(item =>
+                item.name?.toLowerCase().includes(term) ||
+                item.description?.toLowerCase().includes(term)
+            );
+        }
+
+        filtered.sort((a, b) => {
+            switch (state.sort) {
+                case '-book_count':
+                    return (b.book_count || 0) - (a.book_count || 0);
+                case '-created_at':
+                    return new Date(b.created_at) - new Date(a.created_at);
+                default:
+                    return a.name.localeCompare(b.name, 'vi');
+            }
+        });
+
+        renderGenres(filtered, true);
+    }
+
+    loadMoreBtn.addEventListener('click', () => {
+        if (state.nextUrl) {
+            fetchGenres(state.nextUrl);
+        }
+    });
+
+    searchInput.addEventListener('input', BookReview.utils.debounce((event) => {
+        state.search = event.target.value.trim();
+        applyFilters();
+    }, 200));
+
+    sortButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            sortButtons.forEach(btn => btn.classList.remove('chip--active'));
+            button.classList.add('chip--active');
+            state.sort = button.dataset.sort;
+            applyFilters();
+        });
+    });
+
+    alphabetContainer.addEventListener('click', (event) => {
+        if (event.target.dataset.letter) {
+            alphabetContainer.querySelectorAll('.chip').forEach(btn => btn.classList.remove('chip--active'));
+            event.target.classList.add('chip--active');
+            state.letter = event.target.dataset.letter;
+            applyFilters();
+        }
+    });
+
+    fetchGenres(API_BASE, true);
+});
+</script>
+{% endblock %}
+

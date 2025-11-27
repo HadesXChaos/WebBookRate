@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.throttling import ScopedRateThrottle
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.views.decorators.csrf import csrf_exempt 
 from django.contrib.auth import login
 from django.utils import timezone
@@ -84,11 +85,15 @@ def logout_view(request):
 
 class ProfileView(generics.RetrieveUpdateAPIView):
     """User Profile"""
-    serializer_class = UserSerializer
+    serializer_class = ProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = (MultiPartParser, FormParser)
 
     def get_object(self):
-        return self.request.user
+        return self.request.user.profile
+    
+    def perform_update(self, serializer):
+        serializer.save(user=self.request.user)
 
     def get_serializer_context(self):
         return {'request': self.request}

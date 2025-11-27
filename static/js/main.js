@@ -335,22 +335,25 @@
   };
 
   // sửa đổi method cập nhật hồ sơ người dùng từ POST thành PUT
-  const csrftoken = utils.getCsrfToken();
+  document.addEventListener("DOMContentLoaded", () => {
+    const csrftoken = utils.getCsrfToken();
 
-  const form = document.getElementById("profile-form");
-  if (form) {
+    const form = document.getElementById("profile-form");
+    if (!form) return;
+
     const redirectUrl = form.dataset.redirectUrl;
+
     form.addEventListener("submit", async function (e) {
-      e.preventDefault(); // chặn submit mặc định (POST)
+      e.preventDefault();
 
       const formData = new FormData(form);
       const avatarInput = form.querySelector('input[name="avatar"]');
       if (avatarInput && avatarInput.files.length === 0) {
-        formData.delete("avatar"); // không gửi field avatar -> giữ hình cũ
+        formData.delete("avatar");
       }
 
       const response = await fetch("/api/auth/profile/", {
-        method: "PUT",
+        method: "PUT", // hoặc PATCH nếu bạn muốn
         headers: {
           "X-CSRFToken": csrftoken,
         },
@@ -366,7 +369,7 @@
         alert("Có lỗi khi cập nhật hồ sơ!");
       }
     });
-  }
+  });
 
   // ẩn/hiện mật khẩu
 
