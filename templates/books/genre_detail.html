@@ -1,405 +1,424 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}{{ genre.name }} - Thể loại sách{% endblock %}
-
-{% block meta_description %}Khám phá {{ genre.name }} – {{ genre.description|truncatewords:25 }}{% endblock %}
-
-{% block content %}
+{% extends 'base.html' %} {% load static %} {% block title %}{{ genre.name }} -
+Thể loại sách{% endblock %} {% block meta_description %}Khám phá {{ genre.name
+}} – {{ genre.description|truncatewords:25 }}{% endblock %} {% block content %}
 <section class="genre-detail-hero">
-    <div class="container">
-        <a href="{% url 'genre_directory' %}" class="back-link">
-            ← Trở lại danh sách thể loại
-        </a>
+  <div class="container">
+    <a href="{% url 'genre_directory' %}" class="back-link">
+      ← Trở lại danh sách thể loại
+    </a>
 
-        <div class="genre-detail-header">
-            <div>
-                <p class="eyebrow-label">Thể loại</p>
-                <h1>{{ genre.name }}</h1>
-                {% if genre.description %}
-                <p class="sub-text">{{ genre.description }}</p>
-                {% else %}
-                <p class="sub-text">Thể loại này đang được cộng đồng BookReview.vn cập nhật mô tả.</p>
-                {% endif %}
-            </div>
-            <div class="genre-detail-stats" id="genre-detail-stats">
-                <div>
-                    <span class="stat-label">Sách có trong thể loại</span>
-                    <strong id="stat-book-count">--</strong>
-                </div>
-                <div>
-                    <span class="stat-label">Điểm trung bình</span>
-                    <strong id="stat-rating">--</strong>
-                </div>
-                <div>
-                    <span class="stat-label">Đánh giá mới tuần này</span>
-                    <strong id="stat-new-reviews">--</strong>
-                </div>
-            </div>
+    <div class="genre-detail-header">
+      <div>
+        <p class="eyebrow-label">Thể loại</p>
+        <h1>{{ genre.name }}</h1>
+        {% if genre.description %}
+        <p class="sub-text">{{ genre.description }}</p>
+        {% else %}
+        <p class="sub-text">
+          Thể loại này đang được cộng đồng BookReview.vn cập nhật mô tả.
+        </p>
+        {% endif %}
+      </div>
+      <div class="genre-detail-stats" id="genre-detail-stats">
+        <div>
+          <span class="stat-label">Sách có trong thể loại</span>
+          <strong id="stat-book-count">--</strong>
         </div>
-
-        <div class="genre-detail-controls">
-            <div class="input-icon" style="max-width: 320px;">
-                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M9 17a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm10 2-4.35-4.35"/></svg>
-                <input type="search" placeholder="Lọc theo tên sách hoặc tác giả..." id="genre-book-search">
-            </div>
-            <div class="genre-filters">
-                <button class="chip chip--active" data-order="-avg_rating">Điểm cao</button>
-                <button class="chip" data-order="-created_at">Mới nhất</button>
-                <button class="chip" data-order="-rating_count">Nhiều đánh giá</button>
-            </div>
+        <div>
+          <span class="stat-label">Điểm trung bình</span>
+          <strong id="stat-rating">--</strong>
         </div>
+        <div>
+          <span class="stat-label">Đánh giá mới tuần này</span>
+          <strong id="stat-new-reviews">--</strong>
+        </div>
+      </div>
     </div>
+
+    <div class="genre-detail-controls">
+      <div class="input-icon" style="max-width: 320px">
+        <!-- <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M9 17a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm10 2-4.35-4.35"/></svg> -->
+        <input
+          type="search"
+          placeholder="Lọc theo tên sách hoặc tác giả..."
+          id="genre-book-search"
+        />
+      </div>
+      <div class="genre-filters">
+        <button class="chip chip--active" data-order="-avg_rating">
+          Điểm cao
+        </button>
+        <button class="chip" data-order="-created_at">Mới nhất</button>
+        <button class="chip" data-order="-rating_count">Nhiều đánh giá</button>
+      </div>
+    </div>
+  </div>
 </section>
 
 <section class="genre-book-section">
-    <div class="container">
-        <div id="genre-book-grid" class="genre-book-grid">
-            {% for _ in "1234" %}
-            <article class="book-card skeleton">
-                <div class="skeleton-line skeleton-title"></div>
-                <div class="skeleton-line"></div>
-                <div class="skeleton-line short"></div>
-            </article>
-            {% endfor %}
-        </div>
-        <div class="load-more-wrapper">
-            <button class="btn btn-outline" id="genre-load-more" style="display: none;">Tải thêm sách</button>
-        </div>
+  <div class="container">
+    <div id="genre-book-grid" class="genre-book-grid">
+      {% for _ in "1234" %}
+      <article class="book-card skeleton">
+        <div class="skeleton-line skeleton-title"></div>
+        <div class="skeleton-line"></div>
+        <div class="skeleton-line short"></div>
+      </article>
+      {% endfor %}
     </div>
+    <div class="load-more-wrapper">
+      <button
+        class="btn btn-outline"
+        id="genre-load-more"
+        style="display: none"
+      >
+        Tải thêm sách
+      </button>
+    </div>
+  </div>
 </section>
 
 <section class="genre-insights">
-    <div class="container">
-        <div class="insight-card">
-            <div>
-                <h2>Gợi ý đọc nhanh</h2>
-                <p class="sub-text">Chúng tôi phân loại bảng xếp hạng để bạn dễ chọn lựa.</p>
-            </div>
-            <div class="insight-tags" id="genre-insight-tags">
-                </div>
-        </div>
+  <div class="container">
+    <div class="insight-card">
+      <div>
+        <h2>Gợi ý đọc nhanh</h2>
+        <p class="sub-text">
+          Chúng tôi phân loại bảng xếp hạng để bạn dễ chọn lựa.
+        </p>
+      </div>
+      <div class="insight-tags" id="genre-insight-tags"></div>
     </div>
+  </div>
 </section>
 
-{{ genre.slug|json_script:"genre-slug" }}
-
-{% if user.is_authenticated %}
-<div id="shelf-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
-    <div class="card" style="max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
-        <div class="card-header">
-            <h3>Thêm vào kệ sách</h3>
-        </div>
-        <div class="card-body" id="shelf-list">
-            <div class="loading">Đang tải...</div>
-        </div>
-        <div class="card-footer">
-            <button class="btn btn-outline" id="close-shelf-modal">Đóng</button>
-        </div>
+{{ genre.slug|json_script:"genre-slug" }} {% if user.is_authenticated %}
+<div
+  id="shelf-modal"
+  style="
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+  "
+>
+  <div
+    class="card"
+    style="max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto"
+  >
+    <div class="card-header">
+      <h3>Thêm vào kệ sách</h3>
     </div>
+    <div class="card-body" id="shelf-list">
+      <div class="loading">Đang tải...</div>
+    </div>
+    <div class="card-footer">
+      <button class="btn btn-outline" id="close-shelf-modal">Đóng</button>
+    </div>
+  </div>
 </div>
-{% endif %}
-{% endblock %}
-
-{% block extra_js %}
+{% endif %} {% endblock %} {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const slug = JSON.parse(document.getElementById('genre-slug').textContent);
-    const grid = document.getElementById('genre-book-grid');
-    const loadMoreBtn = document.getElementById('genre-load-more');
-    const searchInput = document.getElementById('genre-book-search');
-    const filterButtons = document.querySelectorAll('[data-order]');
-    const statBook = document.getElementById('stat-book-count');
-    const statRating = document.getElementById('stat-rating');
-    const statReviews = document.getElementById('stat-new-reviews');
-    const insightTags = document.getElementById('genre-insight-tags');
+  document.addEventListener('DOMContentLoaded', function() {
+      const slug = JSON.parse(document.getElementById('genre-slug').textContent);
+      const grid = document.getElementById('genre-book-grid');
+      const loadMoreBtn = document.getElementById('genre-load-more');
+      const searchInput = document.getElementById('genre-book-search');
+      const filterButtons = document.querySelectorAll('[data-order]');
+      const statBook = document.getElementById('stat-book-count');
+      const statRating = document.getElementById('stat-rating');
+      const statReviews = document.getElementById('stat-new-reviews');
+      const insightTags = document.getElementById('genre-insight-tags');
 
-    const apiBase = `/api/books/genres/${slug}/`;
-    
-    // --- 1. KHỞI TẠO BIẾN DÙNG CHUNG ---
-    const isAuthenticated = {% if user.is_authenticated %}true{% else %}false{% endif %};
-    let shelfModal = null; // Sẽ khởi tạo nếu user đã đăng nhập
-    let shelfListContainer = null;
-    let currentBookId = null;
+      const apiBase = `/api/books/genres/${slug}/`;
 
-    // Helper CSRF
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
+      // --- 1. KHỞI TẠO BIẾN DÙNG CHUNG ---
+      const isAuthenticated = {% if user.is_authenticated %}true{% else %}false{% endif %};
+      let shelfModal = null; // Sẽ khởi tạo nếu user đã đăng nhập
+      let shelfListContainer = null;
+      let currentBookId = null;
 
-    // --- 2. LOGIC CẬP NHẬT TRẠNG THÁI NÚT (QUAN TRỌNG) ---
-    // Hàm này sẽ chạy sau khi sách được render để kiểm tra trạng thái "Đã lưu"
-    function checkAndUpdateButton(bookId) {
-        if (!isAuthenticated) return;
+      // Helper CSRF
+      function getCookie(name) {
+          let cookieValue = null;
+          if (document.cookie && document.cookie !== '') {
+              const cookies = document.cookie.split(';');
+              for (let i = 0; i < cookies.length; i++) {
+                  const cookie = cookies[i].trim();
+                  if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                      cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                      break;
+                  }
+              }
+          }
+          return cookieValue;
+      }
 
-        const btn = document.querySelector(`button[data-book="${bookId}"]`);
-        if (!btn) return;
+      // --- 2. LOGIC CẬP NHẬT TRẠNG THÁI NÚT (QUAN TRỌNG) ---
+      // Hàm này sẽ chạy sau khi sách được render để kiểm tra trạng thái "Đã lưu"
+      function checkAndUpdateButton(bookId) {
+          if (!isAuthenticated) return;
 
-        // Gọi API kiểm tra sách này
-        fetch(`/api/shelves/?check_book_id=${bookId}`)
-            .then(res => res.json())
-            .then(data => {
-                const shelves = Array.isArray(data) ? data : (data.results || []);
-                // Kiểm tra xem sách có trong ít nhất 1 kệ nào không
-                const isSaved = shelves.some(shelf => shelf.has_book);
+          const btn = document.querySelector(`button[data-book="${bookId}"]`);
+          if (!btn) return;
 
-                if (isSaved) {
-                    btn.innerHTML = '✓ Đã lưu';
-                    btn.classList.add('btn-success');
-                    btn.classList.remove('btn-outline');
-                } else {
-                    btn.innerHTML = '+ Kệ sách';
-                    btn.classList.remove('btn-success');
-                    btn.classList.add('btn-outline');
-                }
-            })
-            .catch(() => {});
-    }
+          // Gọi API kiểm tra sách này
+          fetch(`/api/shelves/?check_book_id=${bookId}`)
+              .then(res => res.json())
+              .then(data => {
+                  const shelves = Array.isArray(data) ? data : (data.results || []);
+                  // Kiểm tra xem sách có trong ít nhất 1 kệ nào không
+                  const isSaved = shelves.some(shelf => shelf.has_book);
 
-    // --- 3. LOGIC MODAL & TOGGLE ---
-    if (isAuthenticated) {
-        // Tạo Modal HTML động một lần duy nhất
-        document.body.insertAdjacentHTML('beforeend', `
-            <div id="shelf-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
-                <div class="card" style="max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
-                    <div class="card-header"><h3>Thêm vào kệ sách</h3></div>
-                    <div class="card-body" id="shelf-list"><div class="loading">Đang tải...</div></div>
-                    <div class="card-footer"><button class="btn btn-outline" id="close-shelf-modal">Đóng</button></div>
-                </div>
-            </div>
-        `);
-        
-        shelfModal = document.getElementById('shelf-modal');
-        shelfListContainer = document.getElementById('shelf-list');
+                  if (isSaved) {
+                      btn.innerHTML = '✓ Đã lưu';
+                      btn.classList.add('btn-success');
+                      btn.classList.remove('btn-outline');
+                  } else {
+                      btn.innerHTML = '+ Kệ sách';
+                      btn.classList.remove('btn-success');
+                      btn.classList.add('btn-outline');
+                  }
+              })
+              .catch(() => {});
+      }
 
-        // Đóng modal
-        document.getElementById('close-shelf-modal').addEventListener('click', () => {
-            shelfModal.style.display = 'none';
-            // Khi đóng modal, cập nhật lại nút bấm bên ngoài cho chính xác
-            if(currentBookId) checkAndUpdateButton(currentBookId);
-        });
+      // --- 3. LOGIC MODAL & TOGGLE ---
+      if (isAuthenticated) {
+          // Tạo Modal HTML động một lần duy nhất
+          document.body.insertAdjacentHTML('beforeend', `
+              <div id="shelf-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
+                  <div class="card" style="max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                      <div class="card-header"><h3>Thêm vào kệ sách</h3></div>
+                      <div class="card-body" id="shelf-list"><div class="loading">Đang tải...</div></div>
+                      <div class="card-footer"><button class="btn btn-outline" id="close-shelf-modal">Đóng</button></div>
+                  </div>
+              </div>
+          `);
 
-        // Bắt sự kiện click nút "+ Kệ sách"
-        document.body.addEventListener('click', function(e) {
-            const btn = e.target.closest('button[data-action="shelf"]');
-            if (btn) {
-                e.preventDefault();
-                currentBookId = btn.dataset.book;
-                
-                shelfListContainer.innerHTML = '<div class="loading">Đang tải...</div>';
-                shelfModal.style.display = 'flex';
+          shelfModal = document.getElementById('shelf-modal');
+          shelfListContainer = document.getElementById('shelf-list');
 
-                fetch(`/api/shelves/?check_book_id=${currentBookId}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        const shelves = Array.isArray(data) ? data : (data.results || []);
-                        if (shelves.length > 0) {
-                            shelfListContainer.innerHTML = shelves.map(shelf => `
-                                <label class="shelf-item-row" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; cursor: pointer;">
-                                    <input type="checkbox" 
-                                           style="width: 18px; height: 18px; margin-right: 12px; cursor: pointer;"
-                                           ${shelf.has_book ? 'checked' : ''} 
-                                           onchange="toggleShelf(${shelf.id}, ${currentBookId}, this)">
-                                    <div style="flex: 1;">
-                                        <div style="font-weight: 600; font-size: 15px;">${shelf.name}</div>
-                                        <div style="font-size: 13px; color: #666;">
-                                            ${shelf.visibility === 'private' ? '🔒 Riêng tư' : '🌐 Công khai'} • ${shelf.book_count} cuốn
-                                        </div>
-                                    </div>
-                                </label>
-                            `).join('');
-                        } else {
-                            shelfListContainer.innerHTML = '<p>Bạn chưa có kệ nào. <a href="/shelves/">Tạo ngay!</a></p>';
-                        }
-                    });
-            }
-        });
+          // Đóng modal
+          document.getElementById('close-shelf-modal').addEventListener('click', () => {
+              shelfModal.style.display = 'none';
+              // Khi đóng modal, cập nhật lại nút bấm bên ngoài cho chính xác
+              if(currentBookId) checkAndUpdateButton(currentBookId);
+          });
 
-        window.toggleShelf = function(shelfId, bookId, checkbox) {
-            checkbox.disabled = true;
-            const originalState = !checkbox.checked;
-            const method = checkbox.checked ? 'POST' : 'DELETE';
-            
-            fetch(`/api/shelves/${shelfId}/books/${bookId}/`, {
-                method: method,
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') }
-            })
-            .then(res => {
-                if (!res.ok) throw new Error('Lỗi server');
-                // Thành công thì gọi hàm update nút bên ngoài ngay lập tức để đồng bộ
-                checkAndUpdateButton(bookId); 
-            })
-            .catch(err => {
-                console.error(err);
-                checkbox.checked = originalState;
-            })
-            .finally(() => { checkbox.disabled = false; });
-        }
-    } else {
-        // Chưa đăng nhập -> Chuyển hướng
-        document.body.addEventListener('click', function(e) {
-            if (e.target.closest('button[data-action="shelf"]')) {
-                e.preventDefault();
-                window.location.href = '/login/?next=' + window.location.pathname;
-            }
-        });
-    }
+          // Bắt sự kiện click nút "+ Kệ sách"
+          document.body.addEventListener('click', function(e) {
+              const btn = e.target.closest('button[data-action="shelf"]');
+              if (btn) {
+                  e.preventDefault();
+                  currentBookId = btn.dataset.book;
 
-    // --- 4. LOGIC RENDER SÁCH ---
-    const state = {
-        nextUrl: apiBase,
-        items: [],
-        filtered: [],
-        order: '-avg_rating',
-        search: '',
-    };
+                  shelfListContainer.innerHTML = '<div class="loading">Đang tải...</div>';
+                  shelfModal.style.display = 'flex';
 
-    function setLoading(isLoading) {
-        if (isLoading) grid.classList.add('is-loading');
-        else grid.classList.remove('is-loading');
-    }
+                  fetch(`/api/shelves/?check_book_id=${currentBookId}`)
+                      .then(res => res.json())
+                      .then(data => {
+                          const shelves = Array.isArray(data) ? data : (data.results || []);
+                          if (shelves.length > 0) {
+                              shelfListContainer.innerHTML = shelves.map(shelf => `
+                                  <label class="shelf-item-row" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; cursor: pointer;">
+                                      <input type="checkbox"
+                                             style="width: 18px; height: 18px; margin-right: 12px; cursor: pointer;"
+                                             ${shelf.has_book ? 'checked' : ''}
+                                             onchange="toggleShelf(${shelf.id}, ${currentBookId}, this)">
+                                      <div style="flex: 1;">
+                                          <div style="font-weight: 600; font-size: 15px;">${shelf.name}</div>
+                                          <div style="font-size: 13px; color: #666;">
+                                              ${shelf.visibility === 'private' ? '🔒 Riêng tư' : '🌐 Công khai'} • ${shelf.book_count} cuốn
+                                          </div>
+                                      </div>
+                                  </label>
+                              `).join('');
+                          } else {
+                              shelfListContainer.innerHTML = '<p>Bạn chưa có kệ nào. <a href="/shelves/">Tạo ngay!</a></p>';
+                          }
+                      });
+              }
+          });
 
-    function formatAuthors(authors) {
-        if (!Array.isArray(authors) || !authors.length) return 'Đang cập nhật tác giả';
-        return authors.map(author => author.name).join(', ');
-    }
+          window.toggleShelf = function(shelfId, bookId, checkbox) {
+              checkbox.disabled = true;
+              const originalState = !checkbox.checked;
+              const method = checkbox.checked ? 'POST' : 'DELETE';
 
-    function updateStats(books) {
-        const count = books.length;
-        const ratingSum = books.reduce((sum, book) => sum + (parseFloat(book.avg_rating) || 0), 0);
-        const reviewSum = books.reduce((sum, book) => sum + (book.rating_count || 0), 0);
-        statBook.textContent = count;
-        statRating.textContent = count ? (ratingSum / count).toFixed(1) : '—';
-        statReviews.textContent = reviewSum;
+              fetch(`/api/shelves/${shelfId}/books/${bookId}/`, {
+                  method: method,
+                  headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') }
+              })
+              .then(res => {
+                  if (!res.ok) throw new Error('Lỗi server');
+                  // Thành công thì gọi hàm update nút bên ngoài ngay lập tức để đồng bộ
+                  checkAndUpdateButton(bookId);
+              })
+              .catch(err => {
+                  console.error(err);
+                  checkbox.checked = originalState;
+              })
+              .finally(() => { checkbox.disabled = false; });
+          }
+      } else {
+          // Chưa đăng nhập -> Chuyển hướng
+          document.body.addEventListener('click', function(e) {
+              if (e.target.closest('button[data-action="shelf"]')) {
+                  e.preventDefault();
+                  window.location.href = '/login/?next=' + window.location.pathname;
+              }
+          });
+      }
 
-        const topBooks = [...books].sort((a, b) => (parseFloat(b.avg_rating) || 0) - (parseFloat(a.avg_rating) || 0)).slice(0, 3);
-        insightTags.innerHTML = '';
-        topBooks.forEach(book => {
-            const tag = document.createElement('a');
-            tag.href = `/books/${book.slug}/`;
-            tag.className = 'insight-pill';
-            tag.innerHTML = `<strong>${book.title}</strong><span>${book.avg_rating || '0.0'} ★</span>`;
-            insightTags.appendChild(tag);
-        });
-    }
+      // --- 4. LOGIC RENDER SÁCH ---
+      const state = {
+          nextUrl: apiBase,
+          items: [],
+          filtered: [],
+          order: '-avg_rating',
+          search: '',
+      };
 
-    function renderBooks(books, reset = false) {
-        if (reset) grid.innerHTML = '';
+      function setLoading(isLoading) {
+          if (isLoading) grid.classList.add('is-loading');
+          else grid.classList.remove('is-loading');
+      }
 
-        if (!books.length) {
-            grid.innerHTML = '<div class="empty-state">Chưa có cuốn sách nào phù hợp với bộ lọc hiện tại.</div>';
-            return;
-        }
+      function formatAuthors(authors) {
+          if (!Array.isArray(authors) || !authors.length) return 'Đang cập nhật tác giả';
+          return authors.map(author => author.name).join(', ');
+      }
 
-        const fragment = document.createDocumentFragment();
-        books.forEach(book => {
-            const card = document.createElement('article');
-            card.className = 'book-card book-card--genre';
-            card.innerHTML = `
-                <a href="/books/${book.slug}/" class="book-card__cover">
-                    <img src="${book.cover || '{% static "images/default-book.svg" %}'}" alt="${book.title}">
-                </a>
-                <div class="book-card__body">
-                    <a href="/books/${book.slug}/"><h3>${book.title}</h3></a>
-                    <p class="book-card__meta">${formatAuthors(book.authors)}</p>
-                    <div class="book-card__stats">
-                        <span>${book.avg_rating || '0.0'} ★</span>
-                        <span>${book.rating_count || 0} đánh giá</span>
-                    </div>
-                    <div class="book-card__actions">
-                        <a href="/books/${book.slug}/" class="btn btn-sm btn-primary">Xem chi tiết</a>
-                        <button class="btn btn-sm btn-outline" data-book="${book.id}" data-action="shelf">+ Kệ sách</button>
-                    </div>
-                </div>
-            `;
-            fragment.appendChild(card);
-        });
+      function updateStats(books) {
+          const count = books.length;
+          const ratingSum = books.reduce((sum, book) => sum + (parseFloat(book.avg_rating) || 0), 0);
+          const reviewSum = books.reduce((sum, book) => sum + (book.rating_count || 0), 0);
+          statBook.textContent = count;
+          statRating.textContent = count ? (ratingSum / count).toFixed(1) : '—';
+          statReviews.textContent = reviewSum;
 
-        grid.appendChild(fragment);
+          const topBooks = [...books].sort((a, b) => (parseFloat(b.avg_rating) || 0) - (parseFloat(a.avg_rating) || 0)).slice(0, 3);
+          insightTags.innerHTML = '';
+          topBooks.forEach(book => {
+              const tag = document.createElement('a');
+              tag.href = `/books/${book.slug}/`;
+              tag.className = 'insight-pill';
+              tag.innerHTML = `<strong>${book.title}</strong><span>${book.avg_rating || '0.0'} ★</span>`;
+              insightTags.appendChild(tag);
+          });
+      }
 
-        // Re-render stars
-        grid.querySelectorAll('[data-rating]').forEach(el => {
-            BookReview.renderStars(parseFloat(el.dataset.rating), el);
-        });
+      function renderBooks(books, reset = false) {
+          if (reset) grid.innerHTML = '';
 
-        // --- CẬP NHẬT TRẠNG THÁI NÚT "ĐÃ LƯU" ---
-        if (isAuthenticated) {
-            books.forEach(book => {
-                checkAndUpdateButton(book.id);
-            });
-        }
-    }
+          if (!books.length) {
+              grid.innerHTML = '<div class="empty-state">Chưa có cuốn sách nào phù hợp với bộ lọc hiện tại.</div>';
+              return;
+          }
 
-    function applyFilters() {
-        const term = state.search.toLowerCase();
-        state.filtered = state.items.filter(book => {
-            const matchTitle = book.title?.toLowerCase().includes(term);
-            const matchAuthor = book.authors?.some(author => author.name?.toLowerCase().includes(term));
-            return term ? (matchTitle || matchAuthor) : true;
-        });
+          const fragment = document.createDocumentFragment();
+          books.forEach(book => {
+              const card = document.createElement('article');
+              card.className = 'book-card book-card--genre';
+              card.innerHTML = `
+                  <a href="/books/${book.slug}/" class="book-card__cover">
+                      <img src="${book.cover || '{% static "images/default-book.svg" %}'}" alt="${book.title}">
+                  </a>
+                  <div class="book-card__body">
+                      <a href="/books/${book.slug}/"><h3>${book.title}</h3></a>
+                      <p class="book-card__meta">${formatAuthors(book.authors)}</p>
+                      <div class="book-card__stats">
+                          <span>${book.avg_rating || '0.0'} ★</span>
+                          <span>${book.rating_count || 0} đánh giá</span>
+                      </div>
+                      <div class="book-card__actions">
+                          <a href="/books/${book.slug}/" class="btn btn-sm btn-primary">Xem chi tiết</a>
+                          <button class="btn btn-sm btn-outline" data-book="${book.id}" data-action="shelf">+ Kệ sách</button>
+                      </div>
+                  </div>
+              `;
+              fragment.appendChild(card);
+          });
 
-        state.filtered.sort((a, b) => {
-            switch (state.order) {
-                case '-created_at': return new Date(b.created_at) - new Date(a.created_at);
-                case '-rating_count': return (b.rating_count || 0) - (a.rating_count || 0);
-                default: return (parseFloat(b.avg_rating) || 0) - (parseFloat(a.avg_rating) || 0);
-            }
-        });
+          grid.appendChild(fragment);
 
-        updateStats(state.filtered);
-        renderBooks(state.filtered, true);
-    }
+          // Re-render stars
+          grid.querySelectorAll('[data-rating]').forEach(el => {
+              BookReview.renderStars(parseFloat(el.dataset.rating), el);
+          });
 
-    async function fetchBooks(url = apiBase, append = false) {
-        try {
-            setLoading(true);
-            const res = await fetch(url);
-            const data = await res.json();
-            const payload = data.results ? data.results : data;
-            const booksData = payload.books || payload.results || [];
+          // --- CẬP NHẬT TRẠNG THÁI NÚT "ĐÃ LƯU" ---
+          if (isAuthenticated) {
+              books.forEach(book => {
+                  checkAndUpdateButton(book.id);
+              });
+          }
+      }
 
-            if (append) state.items = state.items.concat(booksData);
-            else state.items = booksData;
+      function applyFilters() {
+          const term = state.search.toLowerCase();
+          state.filtered = state.items.filter(book => {
+              const matchTitle = book.title?.toLowerCase().includes(term);
+              const matchAuthor = book.authors?.some(author => author.name?.toLowerCase().includes(term));
+              return term ? (matchTitle || matchAuthor) : true;
+          });
 
-            applyFilters();
-            state.nextUrl = data.next || null;
-            loadMoreBtn.style.display = state.nextUrl ? 'inline-flex' : 'none';
-        } catch (error) {
-            console.error('Failed to load genre books', error);
-            grid.innerHTML = '<div class="empty-state">Không thể tải dữ liệu. Vui lòng thử lại sau.</div>';
-        } finally {
-            setLoading(false);
-        }
-    }
+          state.filtered.sort((a, b) => {
+              switch (state.order) {
+                  case '-created_at': return new Date(b.created_at) - new Date(a.created_at);
+                  case '-rating_count': return (b.rating_count || 0) - (a.rating_count || 0);
+                  default: return (parseFloat(b.avg_rating) || 0) - (parseFloat(a.avg_rating) || 0);
+              }
+          });
 
-    loadMoreBtn.addEventListener('click', () => { if (state.nextUrl) fetchBooks(state.nextUrl, true); });
-    
-    searchInput.addEventListener('input', BookReview.utils.debounce(event => {
-        state.search = event.target.value.trim();
-        applyFilters();
-    }, 250));
+          updateStats(state.filtered);
+          renderBooks(state.filtered, true);
+      }
 
-    filterButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            filterButtons.forEach(btn => btn.classList.remove('chip--active'));
-            button.classList.add('chip--active');
-            state.order = button.dataset.order;
-            applyFilters();
-        });
-    });
+      async function fetchBooks(url = apiBase, append = false) {
+          try {
+              setLoading(true);
+              const res = await fetch(url);
+              const data = await res.json();
+              const payload = data.results ? data.results : data;
+              const booksData = payload.books || payload.results || [];
 
-    fetchBooks(apiBase);
-});
+              if (append) state.items = state.items.concat(booksData);
+              else state.items = booksData;
+
+              applyFilters();
+              state.nextUrl = data.next || null;
+              loadMoreBtn.style.display = state.nextUrl ? 'inline-flex' : 'none';
+          } catch (error) {
+              console.error('Failed to load genre books', error);
+              grid.innerHTML = '<div class="empty-state">Không thể tải dữ liệu. Vui lòng thử lại sau.</div>';
+          } finally {
+              setLoading(false);
+          }
+      }
+
+      loadMoreBtn.addEventListener('click', () => { if (state.nextUrl) fetchBooks(state.nextUrl, true); });
+
+      searchInput.addEventListener('input', BookReview.utils.debounce(event => {
+          state.search = event.target.value.trim();
+          applyFilters();
+      }, 250));
+
+      filterButtons.forEach(button => {
+          button.addEventListener('click', () => {
+              filterButtons.forEach(btn => btn.classList.remove('chip--active'));
+              button.classList.add('chip--active');
+              state.order = button.dataset.order;
+              applyFilters();
+          });
+      });
+
+      fetchBooks(apiBase);
+  });
 </script>
 {% endblock %}
