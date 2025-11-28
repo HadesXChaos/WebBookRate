@@ -46,11 +46,12 @@
 {% block content %}
 <div class="container">
     <!-- Book Header -->
-    <section class="book-header" style="display: flex; gap: 2rem; margin-bottom: 2rem; padding: 2rem 0;">
-        <div class="book-cover-large" style="flex-shrink: 0;">
+    <section class="book-header animate-slide-up" style="display: flex; gap: 2rem; margin-bottom: 2rem; padding: 2rem 0;" data-aos="fade-up">
+        <div class="book-cover-large hover-scale" style="flex-shrink: 0;">
             <img src="{% if book.cover %}{{ book.cover.url }}{% else %}{% static 'images/default-book.svg' %}{% endif %}" 
                  alt="{{ book.title }}" 
-                 style="width: 200px; height: auto; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+                 class="img-scale-in"
+                 style="width: 200px; height: auto; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
         </div>
         
         <div class="book-info-large" style="flex: 1;">
@@ -82,8 +83,8 @@
             </div>
             <div class="book-actions" style="display: flex; gap: 1rem; flex-wrap: wrap;"> 
             {% if book.link_buy %}
-                <a href="{{ book.link_buy }}" target="_blank" rel="nofollow noopener" class="btn" 
-                   style="background-color: #10b981; color: white; border: 1px solid #10b981; display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                <a href="{{ book.link_buy }}" target="_blank" rel="nofollow noopener" class="btn btn-animated hover-lift" 
+                   style="background-color: #10b981; color: white; border: 1px solid #10b981; display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; transition: all 0.3s ease;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
                         <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -94,18 +95,18 @@
             {% endif %}
             
             {% if user.is_authenticated %}
-                <button class="btn btn-primary" id="add-to-shelf-btn">
+                <button class="btn btn-primary btn-animated hover-lift" id="add-to-shelf-btn" style="transition: all 0.3s ease;">
                     Thêm vào kệ sách
                 </button>
-                <a href="{% url 'review_editor' %}?slug={{ book.slug }}" class="btn btn-outline">
+                <a href="{% url 'review_editor' %}?slug={{ book.slug }}" class="btn btn-outline btn-animated hover-lift" style="transition: all 0.3s ease;">
                     Viết review
                 </a>
-                <button class="btn btn-outline" id="follow-book-btn" data-book-id="{{ book.id }}">
+                <button class="btn btn-outline btn-animated hover-lift" id="follow-book-btn" data-book-id="{{ book.id }}" style="transition: all 0.3s ease;">
                     <span id="follow-text">Theo dõi</span>
                 </button>
             {% else %}
                 <div class="book-actions">
-                    <a href="/login/" class="btn btn-primary">Đăng nhập để đánh giá</a>
+                    <a href="/login/" class="btn btn-primary btn-animated hover-lift" style="transition: all 0.3s ease;">Đăng nhập để đánh giá</a>
                 </div>
             {% endif %}
             </div>

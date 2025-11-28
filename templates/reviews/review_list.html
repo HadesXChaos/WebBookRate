@@ -9,6 +9,10 @@ nhất từ cộng đồng BookReview.vn{% endblock %} {% block extra_css %}
   }
   .review-card .card-body {
     padding: 1.25rem 1.5rem;
+    transition: all 0.3s ease;
+  }
+  .review-card:hover .card-body {
+    padding: 1.5rem 1.75rem;
   }
   .review-meta {
     display: flex;
@@ -86,11 +90,17 @@ nhất từ cộng đồng BookReview.vn{% endblock %} {% block extra_css %}
     font-size: 0.875rem;
     color: #64748b;
     text-decoration: none;
+    display: inline-block;
+  }
+  .filter-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
   .filter-pill.active {
     background: #0f766e;
     border-color: #0f766e;
     color: #fff;
+    box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
   }
   .pagination {
     margin-top: 1.5rem;
@@ -136,25 +146,29 @@ nhất từ cộng đồng BookReview.vn{% endblock %} {% block extra_css %}
       <div class="filter-pills">
         <a
           href="?sort=newest"
-          class="filter-pill {% if sort == 'newest' %}active{% endif %}"
+          class="filter-pill {% if sort == 'newest' %}active{% endif %} hover-lift transition-all duration-300"
+          style="transition: all 0.3s ease;"
         >
           Mới nhất
         </a>
         <a
           href="?sort=top_rated"
-          class="filter-pill {% if sort == 'top_rated' %}active{% endif %}"
+          class="filter-pill {% if sort == 'top_rated' %}active{% endif %} hover-lift transition-all duration-300"
+          style="transition: all 0.3s ease;"
         >
           Điểm cao nhất
         </a>
         <a
           href="?sort=most_liked"
-          class="filter-pill {% if sort == 'most_liked' %}active{% endif %}"
+          class="filter-pill {% if sort == 'most_liked' %}active{% endif %} hover-lift transition-all duration-300"
+          style="transition: all 0.3s ease;"
         >
           Nhiều lượt thích
         </a>
         <a
           href="?sort=most_commented"
-          class="filter-pill {% if sort == 'most_commented' %}active{% endif %}"
+          class="filter-pill {% if sort == 'most_commented' %}active{% endif %} hover-lift transition-all duration-300"
+          style="transition: all 0.3s ease;"
         >
           Nhiều bình luận
         </a>
@@ -164,13 +178,15 @@ nhất từ cộng đồng BookReview.vn{% endblock %} {% block extra_css %}
     {% if reviews %}
     <div class="reviews-list">
       {% for review in reviews %}
-      <article class="card review-card">
+      <article class="card review-card stagger-item interactive-card hover-lift" data-aos="fade-up" data-aos-delay="{% widthratio forloop.counter0 1 100 %}">
         <div class="card-body">
           <div class="review-meta">
             <div class="review-user">
               <img
                 src="{% if review.user.profile.avatar %}{{ review.user.profile.avatar.url }}{% else %}{% static 'images/default-avatar.svg' %}{% endif %}"
                 alt="{{ review.user.username }}"
+                class="hover-scale transition-transform duration-300"
+                style="transition: transform 0.3s ease;"
               />
               <div>
                 <div>
@@ -205,7 +221,7 @@ nhất từ cộng đồng BookReview.vn{% endblock %} {% block extra_css %}
           </div>
 
           <h2 class="review-title">
-            <a href="{% url 'review_detail_frontend' review.pk %}">
+            <a href="{% url 'review_detail_frontend' review.pk %}" class="hover:text-primary transition-colors duration-300">
               {{ review.title }}
             </a>
           </h2>

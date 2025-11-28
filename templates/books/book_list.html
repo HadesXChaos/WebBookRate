@@ -4,270 +4,244 @@
 {% block title %}Danh sách sách - BookReview.vn{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1 style="margin-bottom: 20px;">Danh sách sách</h1>
+<div class="container mx-auto px-4 py-8">
+  <div class="mb-8" data-aos="fade-up">
+    <h1 class="text-4xl font-bold text-gray-700 mb-2">Danh sách sách</h1>
+    <p class="text-gray-600">Khám phá hàng ngàn cuốn sách hay từ cộng đồng</p>
+  </div>
 
-    <div id="book-list" class="book-grid">
-        <div class="loading-state">Đang tải dữ liệu...</div>
+  <!-- Loading State -->
+  <div id="book-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 min-h-[500px]">
+    <!-- Skeleton Loading -->
+    {% for i in "123456789012" %}
+    <div class="animate-pulse">
+      <div class="bg-gray-200 rounded-lg aspect-[2/3] mb-2"></div>
+      <div class="h-4 bg-gray-200 rounded mb-2"></div>
+      <div class="h-3 bg-gray-200 rounded w-3/4"></div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination -->
+  <div class="mt-12 flex flex-col items-center space-y-4" id="pagination-container">
+    <div class="flex items-center space-x-2" id="pagination-controls">
+      <button id="btn-first" class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-md btn-animated" disabled>
+        <i class="fas fa-angle-double-left"></i>
+      </button>
+      <button id="btn-prev" class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-md btn-animated" disabled>
+        <i class="fas fa-angle-left mr-1"></i> Trước
+      </button>
+      <span id="page-info" class="px-4 py-2 text-gray-700 font-medium">
+        Trang <b id="current-page-num">1</b> / <b id="total-pages">--</b>
+      </span>
+      <button id="btn-next" class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-md btn-animated" disabled>
+        Sau <i class="fas fa-angle-right ml-1"></i>
+      </button>
+      <button id="btn-last" class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-md btn-animated" disabled>
+        <i class="fas fa-angle-double-right"></i>
+      </button>
     </div>
 
-    <div class="pagination-container">
-        <div class="pagination-controls">
-            <button id="btn-first" class="btn-page" disabled>⟪ Đầu</button>
-            <button id="btn-prev" class="btn-page" disabled>❮ Trước</button>
-            <span id="page-info">Trang <b id="current-page-num">1</b> / <b id="total-pages">--</b></span>
-            <button id="btn-next" class="btn-page" disabled>Sau ❯</button>
-            <button id="btn-last" class="btn-page" disabled>Cuối ⟫</button>
-        </div>
-
-        <div class="jump-to-page">
-            <input type="number" id="page-input" placeholder="Số trang" min="1">
-            <button id="btn-go" class="btn-go">Đi</button>
-        </div>
+    <div class="flex items-center space-x-2" id="jump-to-page">
+      <input 
+        type="number" 
+        id="page-input" 
+        placeholder="Số trang" 
+        min="1" 
+        class="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+      >
+      <button id="btn-go" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-all duration-300 font-medium btn-animated hover:scale-105 shadow-md hover:shadow-lg">
+        Đi
+      </button>
     </div>
+  </div>
 </div>
+{% endblock %}
 
-<style>
-    .book-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 25px;
-        min-height: 500px;
-        /* Giữ khung không bị giật khi load */
-    }
-
-    .book-card {
-        border: 1px solid #eee;
-        border-radius: 8px;
-        overflow: hidden;
-        transition: transform 0.2s;
-        background: #fff;
-    }
-
-    .book-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .book-card img {
-        width: 100%;
-        height: 280px;
-        object-fit: cover;
-    }
-
-    .book-info {
-        padding: 10px;
-    }
-
-    .book-title {
-        font-weight: bold;
-        margin-bottom: 5px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    /* Style Phân trang */
-    .pagination-container {
-        margin-top: 40px;
-        margin-bottom: 40px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 15px;
-    }
-
-    .pagination-controls {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-
-    .btn-page,
-    .btn-go {
-        padding: 8px 16px;
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-
-    .btn-page:hover:not(:disabled) {
-        background: #f0f0f0;
-    }
-
-    .btn-page:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    .jump-to-page input {
-        padding: 8px;
-        width: 80px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-    }
-</style>
-
+{% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // --- CẤU HÌNH ---
-    const PAGE_SIZE = 20; // Số lượng sách mỗi trang (Phải khớp với settings.py)
+  const PAGE_SIZE = 20;
+  const urlParams = new URLSearchParams(window.location.search);
+  let currentPage = parseInt(urlParams.get('page')) || 1;
+  let totalPages = 1;
 
-    // --- KHỞI TẠO ---
-    const urlParams = new URLSearchParams(window.location.search);
-    let currentPage = parseInt(urlParams.get('page')) || 1;
-    let totalPages = 1; // Biến lưu tổng số trang
+  fetchBooks(currentPage);
 
-    // Gọi hàm load lần đầu
-    fetchBooks(currentPage);
-
-    // --- CÁC HÀM XỬ LÝ ---
-
-    function fetchBooks(page) {
-        // Cập nhật UI loading
-        const listContainer = document.getElementById('book-list');
-        listContainer.innerHTML = '<div class="loading-state">Đang tải dữ liệu...</div>';
-        listContainer.style.opacity = '0.5';
-
-        // Gọi API
-        let apiUrl = `/api/books/?page=${page}`;
-        
-        fetch(apiUrl)
-            .then(response => {
-                if (!response.ok) {
-                    // Nếu lỗi 404 (trang không tồn tại), có thể do page quá lớn -> thử về trang 1
-                    if (response.status === 404 && page > 1) {
-                        fetchBooks(1);
-                        return null;
-                    }
-                    throw new Error('Lỗi kết nối');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (!data) return; // Đã xử lý lỗi ở trên
-
-                // 1. Tính toán tổng số trang
-                if (data.count) {
-                    totalPages = Math.ceil(data.count / PAGE_SIZE);
-                } else {
-                    totalPages = 1;
-                }
-
-                // 2. Render dữ liệu
-                renderBooks(data.results);
-                
-                // 3. Cập nhật phân trang
-                updatePaginationUI(data, page);
-                
-                // 4. Cập nhật URL trình duyệt
-                const newUrl = page === 1 ? '/books/' : `/books/?page=${page}`;
-                window.history.pushState({path: newUrl}, '', newUrl);
-                
-                listContainer.style.opacity = '1';
-            })
-            .catch(error => {
-                console.error(error);
-                listContainer.innerHTML = '<p style="text-align:center; padding:20px;">Không thể tải dữ liệu.</p>';
-                listContainer.style.opacity = '1';
-            });
+  function fetchBooks(page) {
+    const listContainer = document.getElementById('book-list');
+    
+    // Show loading skeleton
+    listContainer.innerHTML = '';
+    for (let i = 0; i < 12; i++) {
+      listContainer.innerHTML += `
+        <div class="animate-pulse">
+          <div class="bg-gray-200 rounded-lg aspect-[2/3] mb-2"></div>
+          <div class="h-4 bg-gray-200 rounded mb-2"></div>
+          <div class="h-3 bg-gray-200 rounded w-3/4"></div>
+        </div>
+      `;
     }
 
-    function renderBooks(books) {
-        const container = document.getElementById('book-list');
-        container.innerHTML = '';
+    let apiUrl = `/api/books/?page=${page}`;
+    
+    fetch(apiUrl)
+      .then(response => {
+        if (!response.ok) {
+          if (response.status === 404 && page > 1) {
+            fetchBooks(1);
+            return null;
+          }
+          throw new Error('Lỗi kết nối');
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (!data) return;
 
-        if (!books || books.length === 0) {
-            container.innerHTML = '<p style="text-align:center; width:100%;">Không tìm thấy cuốn sách nào.</p>';
-            return;
+        if (data.count) {
+          totalPages = Math.ceil(data.count / PAGE_SIZE);
+        } else {
+          totalPages = 1;
         }
 
-        const html = books.map(book => {
-            const authorName = (book.authors && book.authors.length > 0) ? book.authors[0].name : 'Đang cập nhật';
-            // Fallback ảnh bìa nếu null
-            const coverUrl = book.cover || '/static/images/default-book.svg'; 
-            
-            return `
-                <div class="book-card">
-                    <a href="/books/${book.slug}/" style="display:block; overflow:hidden;">
-                        <img src="${coverUrl}" alt="${book.title}" loading="lazy">
-                    </a>
-                    <div class="book-info">
-                        <div class="book-title" title="${book.title}">
-                            <a href="/books/${book.slug}/" style="color: inherit; text-decoration: none;">${book.title}</a>
-                        </div>
-                        <div style="font-size: 0.9em; color: #666; margin-bottom:5px;">${authorName}</div>
-                        <div style="color: #f59e0b; font-weight:500;">★ ${parseFloat(book.avg_rating || 0).toFixed(1)}</div>
-                    </div>
+        renderBooks(data.results);
+        updatePaginationUI(data, page);
+        
+        const newUrl = page === 1 ? '/books/' : `/books/?page=${page}`;
+        window.history.pushState({path: newUrl}, '', newUrl);
+      })
+      .catch(error => {
+        console.error(error);
+        listContainer.innerHTML = `
+          <div class="col-span-full text-center py-12">
+            <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-4"></i>
+            <p class="text-gray-600">Không thể tải dữ liệu. Vui lòng thử lại sau.</p>
+            <button onclick="location.reload()" class="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-all">
+              Thử lại
+            </button>
+          </div>
+        `;
+      });
+  }
+
+  function renderBooks(books) {
+    const container = document.getElementById('book-list');
+    container.innerHTML = '';
+
+    if (!books || books.length === 0) {
+      container.innerHTML = `
+        <div class="col-span-full text-center py-12">
+          <i class="fas fa-book-open text-6xl text-gray-300 mb-4"></i>
+          <p class="text-gray-600 text-lg">Không tìm thấy cuốn sách nào.</p>
+        </div>
+      `;
+      return;
+    }
+
+    const html = books.map((book, index) => {
+      const authorName = (book.authors && book.authors.length > 0) ? book.authors[0].name : 'Đang cập nhật';
+      const coverUrl = book.cover || '/static/images/default-book.svg';
+      
+      return `
+        <div class="group stagger-item book-card-animated" data-aos="fade-up" data-aos-delay="${index % 6 * 50}">
+          <a href="/books/${book.slug}/" class="block">
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden group-hover:shadow-xl transition-all duration-300 transform group-hover:-translate-y-2 hover-glow">
+              <div class="aspect-[2/3] overflow-hidden bg-gray-100">
+                <img 
+                  data-src="${coverUrl}" 
+                  alt="${book.title}" 
+                  class="lazyload w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                >
+              </div>
+              <div class="p-3">
+                <h3 class="font-semibold text-sm mb-1 line-clamp-2 text-gray-700 group-hover:text-primary transition-colors duration-300" title="${book.title}">
+                  ${book.title}
+                </h3>
+                <p class="text-xs text-gray-600 mb-2 line-clamp-1">${authorName}</p>
+                <div class="flex items-center space-x-1">
+                  <div class="rating-stars text-yellow-400 text-xs" data-rating="${book.avg_rating || 0}"></div>
+                  <span class="text-xs text-gray-600 font-medium">${parseFloat(book.avg_rating || 0).toFixed(1)}</span>
                 </div>
-            `;
-        }).join('');
-        
-        container.innerHTML = html;
+              </div>
+            </div>
+          </a>
+        </div>
+      `;
+    }).join('');
+    
+    container.innerHTML = html;
+
+    // Render stars
+    if (typeof BookReview !== 'undefined' && BookReview.renderStars) {
+      container.querySelectorAll('[data-rating]').forEach(el => {
+        BookReview.renderStars(parseFloat(el.dataset.rating), el);
+      });
+    }
+  }
+
+  function updatePaginationUI(data, page) {
+    currentPage = page;
+    
+    const pageInfo = document.getElementById('page-info');
+    if (pageInfo) {
+      pageInfo.innerHTML = `Trang <b>${page}</b> / <b>${totalPages}</b>`;
     }
 
-    function updatePaginationUI(data, page) {
-        currentPage = page;
-        
-        // Cập nhật text hiển thị số trang
-        const pageInfo = document.getElementById('page-info');
-        if (pageInfo) {
-            // Cần đảm bảo trong HTML có <span id="page-info">Trang <b id="current-page-num"></b> / <b id="total-pages"></b></span>
-            // Nếu HTML của bạn chưa có id="total-pages", code dưới đây sẽ tự xử lý text
-            pageInfo.innerHTML = `Trang <b>${page}</b> / <b>${totalPages}</b>`;
-        }
+    const btnFirst = document.getElementById('btn-first');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const btnLast = document.getElementById('btn-last');
 
-        const btnFirst = document.getElementById('btn-first');
-        const btnPrev = document.getElementById('btn-prev');
-        const btnNext = document.getElementById('btn-next');
-        const btnLast = document.getElementById('btn-last');
+    const isFirstPage = (page === 1);
+    const isLastPage = (page >= totalPages);
 
-        // Logic Disable/Enable nút
-        const isFirstPage = (page === 1);
-        const isLastPage = (page >= totalPages);
-
-        if (btnFirst) {
-            btnFirst.disabled = isFirstPage;
-            btnFirst.onclick = () => { if(!isFirstPage) fetchBooks(1); };
-        }
-
-        if (btnPrev) {
-            btnPrev.disabled = isFirstPage;
-            btnPrev.onclick = () => { if(!isFirstPage) fetchBooks(page - 1); };
-        }
-
-        if (btnNext) {
-            btnNext.disabled = isLastPage;
-            btnNext.onclick = () => { if(!isLastPage) fetchBooks(page + 1); };
-        }
-
-        if (btnLast) {
-            btnLast.disabled = isLastPage;
-            btnLast.onclick = () => { if(!isLastPage) fetchBooks(totalPages); };
-        }
+    if (btnFirst) {
+      btnFirst.disabled = isFirstPage;
+      btnFirst.onclick = () => { if(!isFirstPage) fetchBooks(1); };
     }
 
-    // Xử lý sự kiện nút "Đi đến trang" (Jump to page)
-    const btnGo = document.getElementById('btn-go');
-    const pageInput = document.getElementById('page-input');
-
-    if (btnGo && pageInput) {
-        btnGo.addEventListener('click', () => {
-            const inputVal = parseInt(pageInput.value);
-            if (inputVal >= 1 && inputVal <= totalPages) {
-                fetchBooks(inputVal);
-            } else {
-                alert(`Vui lòng nhập số trang từ 1 đến ${totalPages}`);
-            }
-        });
-        
-        pageInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                btnGo.click();
-            }
-        });
+    if (btnPrev) {
+      btnPrev.disabled = isFirstPage;
+      btnPrev.onclick = () => { if(!isFirstPage) fetchBooks(page - 1); };
     }
+
+    if (btnNext) {
+      btnNext.disabled = isLastPage;
+      btnNext.onclick = () => { if(!isLastPage) fetchBooks(page + 1); };
+    }
+
+    if (btnLast) {
+      btnLast.disabled = isLastPage;
+      btnLast.onclick = () => { if(!isLastPage) fetchBooks(totalPages); };
+    }
+  }
+
+  // Jump to page
+  const btnGo = document.getElementById('btn-go');
+  const pageInput = document.getElementById('page-input');
+
+  if (btnGo && pageInput) {
+    btnGo.addEventListener('click', () => {
+      const inputVal = parseInt(pageInput.value);
+      if (inputVal >= 1 && inputVal <= totalPages) {
+        fetchBooks(inputVal);
+        pageInput.value = '';
+      } else {
+        if (typeof BookReview !== 'undefined' && BookReview.utils) {
+          BookReview.utils.showAlert(`Vui lòng nhập số trang từ 1 đến ${totalPages}`, 'warning');
+        } else {
+          alert(`Vui lòng nhập số trang từ 1 đến ${totalPages}`);
+        }
+      }
+    });
+    
+    pageInput.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        btnGo.click();
+      }
+    });
+  }
 });
 </script>
 {% endblock %}

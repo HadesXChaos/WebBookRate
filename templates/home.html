@@ -1,268 +1,332 @@
-{% extends 'base.html' %} {% load static %} {% block title %}BookReview.vn -
-Đánh giá sách{% endblock %} {% block meta_description %}Khám phá, đánh giá và
-chia sẻ sách hay cùng cộng đồng yêu sách{% endblock %} {% block content %}
+{% extends 'base.html' %} 
+{% load static %} 
+
+{% block title %}BookReview.vn - Đánh giá sách{% endblock %} 
+
+{% block meta_description %}Khám phá, đánh giá và chia sẻ sách hay cùng cộng đồng yêu sách{% endblock %} 
+
+{% block content %}
 <!-- Hero Section -->
-<section class="hero">
-  <div class="container">
-    <h1>Khám phá thế giới sách</h1>
-    <p>Chia sẻ đánh giá, khám phá sách hay và kết nối với cộng đồng yêu sách</p>
-    <form
-      class="hero-search"
-      action="{% url 'search' %}"
-      method="get"
-      role="search"
-    >
-      <input
-        type="search"
-        name="q"
-        placeholder="Tìm kiếm sách, tác giả..."
-        aria-label="Tìm kiếm"
-        class="search-input"
-      />
-      <button type="submit" class="search-button" aria-label="Tìm kiếm">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path
-            d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16z"
-            stroke="currentColor"
-            stroke-width="2"
+<section class="relative bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white py-20 overflow-hidden gradient-animated" data-aos="fade">
+  <div class="absolute inset-0 bg-black opacity-10"></div>
+  <div class="container mx-auto px-4 relative z-10">
+    <div class="max-w-3xl mx-auto text-center animate-slide-up" data-aos="fade-up">
+      <h1 class="text-5xl md:text-6xl font-bold mb-6 animate-fade-in" style="animation-delay: 0.2s;">Khám phá thế giới sách</h1>
+      <p class="text-xl md:text-2xl mb-8 text-blue-100 animate-fade-in" style="animation-delay: 0.4s;">Chia sẻ đánh giá, khám phá sách hay và kết nối với cộng đồng yêu sách</p>
+      <form class="max-w-2xl mx-auto animate-fade-in" action="{% url 'search' %}" method="get" role="search" data-aos="fade-up" data-aos-delay="200" style="animation-delay: 0.6s;">
+        <div class="relative">
+          <input
+            type="search"
+            name="q"
+            placeholder="Tìm kiếm sách, tác giả..."
+            aria-label="Tìm kiếm"
+            class="w-full pl-12 pr-4 py-4 bg-white text-gray-700 rounded-lg focus:ring-2 focus:ring-white focus:outline-none shadow-lg hover:shadow-xl transition-all duration-300 focus:scale-105 placeholder-gray-400 border border-gray-200"
+            id="main-search"
           />
-          <path
-            d="m19 19-4.35-4.35"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-          />
-        </svg>
-      </button>
-    </form>
+          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <i class="fas fa-search text-gray-400 text-xl animate-pulse"></i>
+          </div>
+          <button type="submit" class="absolute right-2 top-2 bottom-2 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-300 font-medium btn-animated hover:scale-105 shadow-md hover:shadow-lg">
+            Tìm kiếm
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </section>
 
 <!-- Trending Books Section -->
-<section class="section">
-  <div class="container">
-    <div class="section-header">
-      <h2 class="section-title">Thịnh hành tuần</h2>
-      <a href="{% url 'explore' %}?sort=trending" class="section-link"
-        >Xem tất cả →</a
-      >
+<section class="py-16 bg-white">
+  <div class="container mx-auto px-4">
+    <div class="flex justify-between items-center mb-8" data-aos="fade-up">
+      <h2 class="text-3xl font-bold text-gray-700">Thịnh hành tuần</h2>
+      <a href="{% url 'explore' %}?sort=trending" class="text-primary hover:text-primary-hover font-medium flex items-center space-x-2 transition-colors">
+        <span>Xem tất cả</span>
+        <i class="fas fa-arrow-right"></i>
+      </a>
     </div>
-    <div class="grid grid-4" id="trending-books">
-      <!-- Books will be loaded via JavaScript -->
-      <div class="loading">Đang tải...</div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4" id="trending-books">
+      <!-- Skeleton Loading -->
+      {% for i in "12345678" %}
+      <div class="animate-pulse">
+        <div class="bg-gray-200 rounded-lg aspect-[2/3] mb-2"></div>
+        <div class="h-4 bg-gray-200 rounded mb-2"></div>
+        <div class="h-3 bg-gray-200 rounded w-3/4"></div>
+      </div>
+      {% endfor %}
     </div>
   </div>
 </section>
 
 <!-- New Reviews Section -->
-<section class="section">
-  <div class="container">
-    <div class="section-header">
-      <h2 class="section-title">Reviews mới nhất</h2>
-      <a href="{% url 'review_list_frontend' %}" class="section-link"
-        >Xem tất cả →</a
-      >
+<section class="py-16 bg-gray-50">
+  <div class="container mx-auto px-4">
+    <div class="flex justify-between items-center mb-8" data-aos="fade-up">
+      <h2 class="text-3xl font-bold text-gray-700">Reviews mới nhất</h2>
+      <a href="{% url 'review_list_frontend' %}" class="text-primary hover:text-primary-hover font-medium flex items-center space-x-2 transition-colors">
+        <span>Xem tất cả</span>
+        <i class="fas fa-arrow-right"></i>
+      </a>
     </div>
-    <div id="new-reviews">
-      <!-- Reviews will be loaded via JavaScript -->
-      <div class="loading">Đang tải...</div>
+    <div id="new-reviews" class="space-y-4">
+      <!-- Skeleton Loading -->
+      {% for i in "12345" %}
+      <div class="bg-white rounded-lg shadow-sm p-6 animate-pulse">
+        <div class="flex items-center space-x-4 mb-4">
+          <div class="w-12 h-12 bg-gray-200 rounded-full"></div>
+          <div class="flex-1">
+            <div class="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
+            <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        </div>
+        <div class="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
+        <div class="h-3 bg-gray-200 rounded w-full"></div>
+      </div>
+      {% endfor %}
     </div>
   </div>
 </section>
 
 <!-- Recommended Books Section -->
 {% if user.is_authenticated %}
-<section class="section">
-  <div class="container">
-    <div class="section-header">
-      <h2 class="section-title">Đề xuất cho bạn</h2>
-      <a href="{% url 'explore' %}" class="section-link">Xem tất cả →</a>
+<section class="py-16 bg-white">
+  <div class="container mx-auto px-4">
+    <div class="flex justify-between items-center mb-8" data-aos="fade-up">
+      <h2 class="text-3xl font-bold text-gray-700">Đề xuất cho bạn</h2>
+      <a href="{% url 'explore' %}" class="text-primary hover:text-primary-hover font-medium flex items-center space-x-2 transition-colors">
+        <span>Xem tất cả</span>
+        <i class="fas fa-arrow-right"></i>
+      </a>
     </div>
-    <div class="grid grid-4" id="recommended-books">
-      <!-- Books will be loaded via JavaScript -->
-      <div class="loading">Đang tải...</div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4" id="recommended-books">
+      <!-- Skeleton Loading -->
+      {% for i in "12345678" %}
+      <div class="animate-pulse">
+        <div class="bg-gray-200 rounded-lg aspect-[2/3] mb-2"></div>
+        <div class="h-4 bg-gray-200 rounded mb-2"></div>
+        <div class="h-3 bg-gray-200 rounded w-3/4"></div>
+      </div>
+      {% endfor %}
     </div>
   </div>
 </section>
 {% endif %}
 
 <!-- Popular Genres Section -->
-<section class="section">
-    <div class="container">
-        <div class="section-header">
-            <h2 class="section-title">Thể loại phổ biến</h2>
-            <a href="{% url 'genre_directory' %}" class="section-link">Xem tất cả →</a>
-        </div>
-        <div class="grid grid-2" id="popular-genres">
-            <!-- Genres will be loaded via JavaScript -->
-            <div class="loading">Đang tải...</div>
-        </div> 
+<section class="py-16 bg-gray-50">
+  <div class="container mx-auto px-4">
+    <div class="flex justify-between items-center mb-8" data-aos="fade-up">
+      <h2 class="text-3xl font-bold text-gray-700">Thể loại phổ biến</h2>
+      <a href="{% url 'genre_directory' %}" class="text-primary hover:text-primary-hover font-medium flex items-center space-x-2 transition-colors">
+        <span>Xem tất cả</span>
+        <i class="fas fa-arrow-right"></i>
+      </a>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="popular-genres">
+      <!-- Skeleton Loading -->
+      {% for i in "123456" %}
+      <div class="bg-white rounded-lg shadow-sm p-6 animate-pulse">
+        <div class="h-6 bg-gray-200 rounded w-1/2 mb-3"></div>
+        <div class="h-4 bg-gray-200 rounded w-1/3"></div>
+      </div>
+      {% endfor %}
+    </div>
   </div>
 </section>
-{% endblock %} {% block extra_js %}
+{% endblock %} 
+
+{% block extra_js %}
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-      //Load trending books
-      fetch('/api/books/trending/')
-          .then(res => res.json())
-          .then(data => {
-              const container = document.getElementById('trending-books');
+document.addEventListener('DOMContentLoaded', function() {
+  // Load trending books
+  fetch('/api/books/trending/')
+    .then(res => res.json())
+    .then(data => {
+      const container = document.getElementById('trending-books');
+      const books = Array.isArray(data) ? data : (data.results || []);
 
-              // SỬA 2: Xử lý dữ liệu trả về
-              const books = Array.isArray(data) ? data : (data.results || []);
+      if (books.length > 0) {
+        container.innerHTML = books.slice(0, 8).map((book, index) => {
+          let badgeClass = 'bg-gray-600';
+          let badgeIcon = `#${index + 1}`;
+          if (index === 0) {
+            badgeClass = 'bg-yellow-500';
+            badgeIcon = '🏆 1';
+          } else if (index === 1) {
+            badgeClass = 'bg-gray-400';
+            badgeIcon = '🥈 2';
+          } else if (index === 2) {
+            badgeClass = 'bg-orange-400';
+            badgeIcon = '🥉 3';
+          }
 
-              if (books.length > 0) {
-                  container.innerHTML = books.slice(0, 8).map((book, index) => {
-                      // SỬA 3: Logic tạo Huy hiệu xếp hạng
-                      let badgeHtml = '';
-                      if (index === 0) badgeHtml = '<div class="rank-badge rank-1">🏆 1</div>';
-                      else if (index === 1) badgeHtml = '<div class="rank-badge rank-2">🥈 2</div>';
-                      else if (index === 2) badgeHtml = '<div class="rank-badge rank-3">🥉 3</div>';
-                      else badgeHtml = `<div class="rank-badge rank-normal">#${index + 1}</div>`;
+          return `
+            <div class="group relative stagger-item book-card-animated" data-aos="fade-up" data-aos-delay="${index * 50}">
+              <div class="absolute -top-2 -right-2 ${badgeClass} text-white text-xs font-bold px-2 py-1 rounded-full z-10 shadow-lg animate-bounce">
+                ${badgeIcon}
+              </div>
+              <a href="/books/${book.slug}/" class="block">
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden group-hover:shadow-xl transition-all duration-300 transform group-hover:-translate-y-2 hover-glow">
+                  <div class="aspect-[2/3] overflow-hidden bg-gray-100">
+                    <img 
+                      data-src="${book.cover || '/static/images/default-book.svg'}" 
+                      alt="${book.title}" 
+                      class="lazyload w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    >
+                  </div>
+                  <div class="p-3">
+                    <h3 class="font-semibold text-sm mb-1 line-clamp-2 text-gray-700 group-hover:text-primary transition-colors duration-300">${book.title}</h3>
+                    <p class="text-xs text-gray-600 mb-2 line-clamp-1">${book.authors?.[0]?.name || 'Đang cập nhật'}</p>
+                    <div class="flex items-center space-x-1">
+                      <div class="rating-stars text-yellow-400 text-xs" data-rating="${book.avg_rating || 0}"></div>
+                      <span class="text-xs text-gray-600 font-medium">${parseFloat(book.avg_rating || 0).toFixed(1)}</span>
+                      <span class="text-xs text-gray-400">(${book.review_count || 0})</span>
+                    </div>
+                  </div>
+                </div>
+              </a>
+            </div>
+          `;
+        }).join('');
 
-                      return `
-                          <div class="book-card" style="position: relative;">
-                              ${badgeHtml}
-
-                              <a href="/books/${book.slug}/">
-                                  <div class="book-cover">
-                                      <img src="${book.cover || '/static/images/default-book.svg'}"
-                                          alt="${book.title}" loading="lazy">
-                                  </div>
-                                  <div class="book-info">
-                                      <h3 class="book-title">${book.title}</h3>
-                                      <p class="book-author">${book.authors?.[0]?.name || 'Đang cập nhật'}</p>
-                                      <div class="book-rating">
-                                          <div class="rating-stars" data-rating="${book.avg_rating || 0}"></div>
-                                          <span class="rating-value">${parseFloat(book.avg_rating || 0).toFixed(1)}</span>
-                                          <span class="rating-count">(${book.review_count || 0})</span>
-                                      </div>
-                                  </div>
-                              </a>
-                          </div>
-                      `;
-                  }).join('');
-
-                  // Render stars (Giữ nguyên logic của bạn)
-                  if (typeof BookReview !== 'undefined' && BookReview.renderStars) {
-                      container.querySelectorAll('[data-rating]').forEach(el => {
-                          BookReview.renderStars(parseFloat(el.dataset.rating), el);
-                      });
-                  }
-              } else {
-                  container.innerHTML = '<p>Chưa có dữ liệu thịnh hành tuần này.</p>';
-              }
-          })
-          .catch(err => {
-              console.error('Error loading trending books:', err);
-              document.getElementById('trending-books').innerHTML = '<p>Có lỗi xảy ra khi tải dữ liệu.</p>';
+        // Render stars
+        if (typeof BookReview !== 'undefined' && BookReview.renderStars) {
+          container.querySelectorAll('[data-rating]').forEach(el => {
+            BookReview.renderStars(parseFloat(el.dataset.rating), el);
           });
+        }
+      } else {
+        container.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">Chưa có dữ liệu thịnh hành tuần này.</div>';
+      }
+    })
+    .catch(err => {
+      console.error('Error loading trending books:', err);
+      document.getElementById('trending-books').innerHTML = '<div class="col-span-full text-center text-red-500 py-8">Có lỗi xảy ra khi tải dữ liệu.</div>';
+    });
 
-      // Load new reviews
-      fetch('/api/reviews/?ordering=-created_at')
-          .then(res => res.json())
-          .then(data => {
-              const container = document.getElementById('new-reviews');
-              if (data.results && data.results.length > 0) {
-                  container.innerHTML = data.results.slice(0, 5).map(review => `
-                      <div class="card" style="margin-bottom: 1rem;">
-                          <div class="card-body">
-                              <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
-                                  <img src="${review.user?.profile?.avatar || '/static/images/default-avatar.svg'}"
-                                       alt="${review.user?.username}"
-                                       style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
-                                  <div>
-                                      <strong><a href="/users/${review.user?.username}/">${review.user?.username}</a></strong>
-                                      <span style="color: #64748b; font-size: 0.875rem;"> đánh giá</span>
-                                      <a href="/books/${review.book?.slug}/">${review.book?.title}</a>
-                                  </div>
-                              </div>
-                              <div class="rating-stars" data-rating="${review.rating || 0}"></div>
-                              <h4 style="margin-top: 0.5rem;"><a href="/reviews/${review.id}/">${review.title}</a></h4>
-                              <p style="color: #64748b; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
-                                  ${review.body_html || review.body || ''}
-                              </p>
-                              <div style="display: flex; gap: 1rem; margin-top: 0.5rem; font-size: 0.875rem; color: #64748b;">
-                                  <span>${new Date(review.created_at).toLocaleDateString('vi-VN')}</span>
-                                  <a href="/reviews/${review.id}/#comments">💬 ${review.comment_count || 0} bình luận</a>
-                              </div>
-                          </div>
-                      </div>
-                  `).join('');
+  // Load new reviews
+  fetch('/api/reviews/?ordering=-created_at')
+    .then(res => res.json())
+    .then(data => {
+      const container = document.getElementById('new-reviews');
+      if (data.results && data.results.length > 0) {
+        container.innerHTML = data.results.slice(0, 5).map((review, index) => `
+          <div class="bg-white rounded-lg shadow-sm p-6 hover:shadow-xl transition-all duration-300 hover-lift interactive-card stagger-item" data-aos="fade-up" data-aos-delay="${index * 100}">
+            <div class="flex items-start space-x-4 mb-4">
+              <img 
+                src="${review.user?.profile?.avatar || '/static/images/default-avatar.svg'}"
+                alt="${review.user?.username}"
+                class="w-12 h-12 rounded-full object-cover border-2 border-gray-100"
+              >
+              <div class="flex-1">
+                <div class="flex items-center space-x-2 mb-1">
+                  <a href="/users/${review.user?.username}/" class="font-semibold text-gray-700 hover:text-primary transition-colors">
+                    ${review.user?.username}
+                  </a>
+                  <span class="text-gray-500 text-sm">đánh giá</span>
+                  <a href="/books/${review.book?.slug}/" class="text-primary hover:text-primary-hover font-medium">
+                    ${review.book?.title}
+                  </a>
+                </div>
+                <div class="rating-stars text-yellow-400 text-sm mb-2" data-rating="${review.rating || 0}"></div>
+              </div>
+            </div>
+            <h4 class="font-bold text-lg mb-2">
+              <a href="/reviews/${review.id}/" class="text-gray-700 hover:text-primary transition-colors">
+                ${review.title}
+              </a>
+            </h4>
+            <p class="text-gray-600 line-clamp-3 mb-4">
+              ${review.body_html || review.body || ''}
+            </p>
+            <div class="flex items-center space-x-4 text-sm text-gray-500">
+              <span><i class="far fa-clock mr-1"></i>${new Date(review.created_at).toLocaleDateString('vi-VN')}</span>
+              <a href="/reviews/${review.id}/#comments" class="hover:text-primary transition-colors">
+                <i class="far fa-comment mr-1"></i>${review.comment_count || 0} bình luận
+              </a>
+            </div>
+          </div>
+        `).join('');
 
-                  // Render stars
-                  container.querySelectorAll('[data-rating]').forEach(el => {
-                      BookReview.renderStars(parseFloat(el.dataset.rating), el);
-                  });
-              } else {
-                  container.innerHTML = '<p>Chưa có review nào.</p>';
-              }
-          })
-          .catch(err => {
-              console.error('Error loading new reviews:', err);
-              document.getElementById('new-reviews').innerHTML = '<p>Có lỗi xảy ra khi tải dữ liệu.</p>';
-          });
+        // Render stars
+        container.querySelectorAll('[data-rating]').forEach(el => {
+          BookReview.renderStars(parseFloat(el.dataset.rating), el);
+        });
+      } else {
+        container.innerHTML = '<div class="text-center text-gray-500 py-8">Chưa có review nào.</div>';
+      }
+    })
+    .catch(err => {
+      console.error('Error loading new reviews:', err);
+      document.getElementById('new-reviews').innerHTML = '<div class="text-center text-red-500 py-8">Có lỗi xảy ra khi tải dữ liệu.</div>';
+    });
 
-      {% if user.is_authenticated %}
-      // Load recommended books (if authenticated)
-      fetch('/api/books/?ordering=-avg_rating')
-          .then(res => res.json())
-          .then(data => {
-              const container = document.getElementById('recommended-books');
-              if (data.results && data.results.length > 0) {
-                  container.innerHTML = data.results.slice(0, 8).map(book => `
-                      <div class="book-card">
-                          <a href="/books/${book.slug}/">
-                              <div class="book-cover">
-                                  <img src="${book.cover || '/static/images/default-book.svg'}"
-                                       alt="${book.title}" loading="lazy">
-                              </div>
-                              <div class="book-info">
-                                  <h3 class="book-title">${book.title}</h3>
-                                  <p class="book-author">${book.authors?.[0]?.name || 'N/A'}</p>
-                                  <div class="book-rating">
-                                      <div class="rating-stars" data-rating="${book.avg_rating || 0}"></div>
-                                      <span class="rating-value">${parseFloat(book.avg_rating || 0).toFixed(1)}</span>
-                                  </div>
-                              </div>
-                          </a>
-                      </div>
-                  `).join('');
+  {% if user.is_authenticated %}
+  // Load recommended books
+  fetch('/api/books/?ordering=-avg_rating')
+    .then(res => res.json())
+    .then(data => {
+      const container = document.getElementById('recommended-books');
+      if (data.results && data.results.length > 0) {
+        container.innerHTML = data.results.slice(0, 8).map((book, index) => `
+          <div class="group stagger-item book-card-animated" data-aos="fade-up" data-aos-delay="${index * 50}">
+            <a href="/books/${book.slug}/" class="block">
+              <div class="bg-white rounded-lg shadow-sm overflow-hidden group-hover:shadow-xl transition-all duration-300 transform group-hover:-translate-y-2 hover-glow">
+                <div class="aspect-[2/3] overflow-hidden bg-gray-100">
+                  <img 
+                    data-src="${book.cover || '/static/images/default-book.svg'}" 
+                    alt="${book.title}" 
+                    class="lazyload w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  >
+                </div>
+                <div class="p-3">
+                  <h3 class="font-semibold text-sm mb-1 line-clamp-2 text-gray-900 group-hover:text-primary transition-colors duration-300">${book.title}</h3>
+                  <p class="text-xs text-gray-600 mb-2 line-clamp-1">${book.authors?.[0]?.name || 'N/A'}</p>
+                  <div class="flex items-center space-x-1">
+                    <div class="rating-stars text-yellow-400 text-xs" data-rating="${book.avg_rating || 0}"></div>
+                    <span class="text-xs text-gray-600 font-medium">${parseFloat(book.avg_rating || 0).toFixed(1)}</span>
+                  </div>
+                </div>
+              </div>
+            </a>
+          </div>
+        `).join('');
 
-                  // Render stars
-                  container.querySelectorAll('[data-rating]').forEach(el => {
-                      BookReview.renderStars(parseFloat(el.dataset.rating), el);
-                  });
-              } else {
-                  container.innerHTML = '<p>Chưa có sách nào.</p>';
-              }
-          })
-          .catch(err => {
-              console.error('Error loading recommended books:', err);
-          });
-      {% endif %}
+        // Render stars
+        container.querySelectorAll('[data-rating]').forEach(el => {
+          BookReview.renderStars(parseFloat(el.dataset.rating), el);
+        });
+      } else {
+        container.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">Chưa có sách nào.</div>';
+      }
+    })
+    .catch(err => {
+      console.error('Error loading recommended books:', err);
+    });
+  {% endif %}
 
-      // Load popular genres
-      fetch('/api/books/genres/')
-          .then(res => res.json())
-          .then(data => {
-              const container = document.getElementById('popular-genres');
-              if (data.results && data.results.length > 0) {
-                  container.innerHTML = data.results.slice(0, 6).map(genre => `
-                      <a href="/books/genres/${genre.slug}/" class="card">
-                          <div class="card-body">
-                              <h3>${genre.name}</h3>
-                              <p style="color: #64748b;">${genre.book_count || 0} cuốn sách</p>
-                          </div>
-                      </a>
-                  `).join('');
-              } else {
-                  container.innerHTML = '<p>Chưa có thể loại nào.</p>';
-              }
-          })
-          .catch(err => {
-              console.error('Error loading genres:', err);
-          });
-  });
+  // Load popular genres
+  fetch('/api/books/genres/')
+    .then(res => res.json())
+    .then(data => {
+      const container = document.getElementById('popular-genres');
+      if (data.results && data.results.length > 0) {
+        container.innerHTML = data.results.slice(0, 6).map((genre, index) => `
+          <a href="/books/genres/${genre.slug}/" 
+             class="block bg-white rounded-lg shadow-sm p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-l-4 border-primary hover-glow interactive-card stagger-item"
+             data-aos="fade-up" 
+             data-aos-delay="${index * 100}">
+            <h3 class="text-xl font-bold text-gray-700 mb-2 group-hover:text-primary transition-colors">${genre.name}</h3>
+            <p class="text-gray-600"><i class="fas fa-book mr-2 animate-pulse"></i>${genre.book_count || 0} cuốn sách</p>
+          </a>
+        `).join('');
+      } else {
+        container.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">Chưa có thể loại nào.</div>';
+      }
+    })
+    .catch(err => {
+      console.error('Error loading genres:', err);
+    });
+});
 </script>
 {% endblock %}
