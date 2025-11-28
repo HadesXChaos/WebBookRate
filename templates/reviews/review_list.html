@@ -1,4 +1,4 @@
-{% extends 'base.html' %} {% load static %} {% block title %}Tất cả reviews -
+{% extends "base.html" %} {% load static %} {% block title %}Tất cả reviews -
 BookReview.vn{% endblock %} {% block meta_description %}Xem các review sách mới
 nhất từ cộng đồng BookReview.vn{% endblock %} {% block extra_css %}
 <style>
@@ -114,9 +114,21 @@ nhất từ cộng đồng BookReview.vn{% endblock %} {% block extra_css %}
 {% endblock %} {% block content %}
 <section class="section">
   <div class="container" style="max-width: 1100px">
-    <div class="section-header">
-      <h1 class="section-title">Reviews</h1>
-      <p class="sub-text">Khám phá các đánh giá sách mới nhất từ cộng đồng.</p>
+    <div
+      class="section-header"
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 1rem;
+      "
+    >
+      <div>
+        <h1 class="section-title">Reviews</h1>
+        <p class="sub-text">
+          Khám phá các đánh giá sách mới nhất từ cộng đồng.
+        </p>
+      </div>
     </div>
 
     <!-- Thanh filter / sort -->
@@ -200,8 +212,9 @@ nhất từ cộng đồng BookReview.vn{% endblock %} {% block extra_css %}
 
           <div class="review-excerpt">
             {% if review.body_html %} {{
-            review.body_html|striptags|truncatewords:50 }} {% else %} {{
-            review.body_md|truncatewords:50 }} {% endif %}
+            review.body_html|striptags|truncatewords:50 }} {% elif
+            review.body_md %} {{ review.body_md|truncatewords:50 }} {% elif
+            review.body %} {{ review.body|truncatewords:50 }} {% endif %}
           </div>
 
           <div class="review-footer">
@@ -251,12 +264,14 @@ nhất từ cộng đồng BookReview.vn{% endblock %} {% block extra_css %}
 {% endblock %} {% block extra_js %}
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll("[data-rating]").forEach(function (el) {
-      var value = parseFloat(el.dataset.rating || "0");
-      if (!isNaN(value) && window.BookReview && BookReview.renderStars) {
-        BookReview.renderStars(value, el);
-      }
-    });
+    document
+      .querySelectorAll(".rating-stars[data-rating]")
+      .forEach(function (el) {
+        var value = parseFloat(el.dataset.rating || "0");
+        if (!isNaN(value) && window.BookReview && BookReview.renderStars) {
+          BookReview.renderStars(value, el);
+        }
+      });
   });
 </script>
 {% endblock %}
