@@ -62,6 +62,7 @@
     <link rel="stylesheet" href="{% static 'css/global-improvements.css' %}">
     <link rel="stylesheet" href="{% static 'css/hero-search.css' %}">
     <link rel="stylesheet" href="{% static 'css/comments.css' %}">
+    <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
     <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
     <link rel="alternate icon" type="image/x-icon" href="{% static 'images/favicon.svg' %}">
     
@@ -115,7 +116,9 @@
                     {% if user.is_authenticated %}
                         <a href="{% url 'notifications' %}" class="relative p-2 text-gray-600 hover:text-primary hover:bg-white rounded-lg transition-all" aria-label="Thông báo">
                             <i class="fas fa-bell text-xl"></i>
-                            <span class="absolute top-0 right-0 block h-2 w-2 bg-red-500 rounded-full notification-badge" id="notification-count" style="display: none;"></span>
+                            <span class="notification-badge" id="notification-count" style="display: none;">
+                                <span class="notification-count-number">0</span>
+                            </span>
                         </a>
                         <div class="relative" x-data="{ open: false }">
                             <button @click="open = !open" @click.away="open = false" class="flex items-center space-x-2 p-1 rounded-lg hover:bg-white transition-all" aria-label="Menu người dùng">
@@ -276,6 +279,55 @@
         });
       });
     </script>
+    
+    <!-- Load Notification Count -->
+    {% if user.is_authenticated %}
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const notificationBadge = document.getElementById('notification-count');
+        if (!notificationBadge) return;
+        
+        function updateNotificationCount() {
+          fetch('/api/social/notifications/unread-count/')
+            .then(res => {
+              if (!res.ok) throw new Error('Failed to fetch');
+              return res.json();
+            })
+            .then(data => {
+              const count = data.count || data.unread_count || 0;
+              const countNumber = notificationBadge.querySelector('.notification-count-number');
+              
+              if (count > 0) {
+                notificationBadge.style.display = 'flex';
+                if (countNumber) {
+                  countNumber.textContent = count > 99 ? '99+' : count.toString();
+                  
+                  // Add size classes based on count
+                  notificationBadge.classList.remove('large', 'very-large');
+                  if (count > 9 && count <= 99) {
+                    notificationBadge.classList.add('large');
+                  } else if (count > 99) {
+                    notificationBadge.classList.add('very-large');
+                  }
+                }
+              } else {
+                notificationBadge.style.display = 'none';
+              }
+            })
+            .catch(err => {
+              console.error('Error loading notification count:', err);
+              notificationBadge.style.display = 'none';
+            });
+        }
+        
+        // Load count on page load
+        updateNotificationCount();
+        
+        // Refresh count every 30 seconds
+        setInterval(updateNotificationCount, 30000);
+      });
+    </script>
+    {% endif %}
     
     {% block extra_js %}{% endblock %}
 </body>
