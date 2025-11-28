@@ -323,3 +323,7 @@ ALLOWED_HOSTS = [
     ".ngrok-free.dev",               # cho phép mọi subdomain ngrok-free.dev
     "crested-preoccassioned-kaya.ngrok-free.dev",  # hoặc ghi rõ domain đang dùng
 ]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.ngrok-free.dev",
+]
