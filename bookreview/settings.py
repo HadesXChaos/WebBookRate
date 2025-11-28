@@ -317,9 +317,9 @@ RATING_MIN = 1
 RATING_MAX = 5
 RATING_STEP = 0.5
 
-# ALLOWED_HOSTS = [
-#     "localhost",
-#     "127.0.0.1",
-#     ".ngrok-free.dev",               # cho phép mọi subdomain ngrok-free.dev
-#     "crested-preoccassioned-kaya.ngrok-free.dev",  # hoặc ghi rõ domain đang dùng
-# ]
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    ".ngrok-free.dev",               # cho phép mọi subdomain ngrok-free.dev
+    "crested-preoccassioned-kaya.ngrok-free.dev",  # hoặc ghi rõ domain đang dùng
+]
