@@ -1,326 +1,326 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="{% block meta_description %}BookReview.vn - Khám phá, đánh giá và chia sẻ sách hay{% endblock %}"
-    />
-    <meta
-      name="keywords"
-      content="{% block meta_keywords %}đánh giá sách, review sách, sách hay, reading, books{% endblock %}"
-    />
-    <meta
-      property="og:title"
-      content="{% block og_title %}BookReview.vn{% endblock %}"
-    />
-    <meta
-      property="og:description"
-      content="{% block og_description %}Khám phá, đánh giá và chia sẻ sách hay{% endblock %}"
-    />
-    <meta property="og:type" content="website" />
-    <meta
-      property="og:image"
-      content="{% block og_image %}{% static 'images/og-default.jpg' %}{% endblock %}"
-    />
-    <meta
-      property="og:url"
-      content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}"
-    />
-    <meta name="twitter:card" content="summary_large_image" />
-    {% block canonical_url %}
-    <link rel="canonical" href="{{ request.build_absolute_uri }}" />
-    {% endblock %}
-
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block meta_description %}BookReview.vn - Khám phá, đánh giá và chia sẻ sách hay{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}đánh giá sách, review sách, sách hay, reading, books{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}BookReview.vn{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Khám phá, đánh giá và chia sẻ sách hay{% endblock %}">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="{% block og_image %}{% static 'images/og-default.jpg' %}{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}">
+    <meta name="twitter:card" content="summary_large_image">
+    {% block canonical_url %}<link rel="canonical" href="{{ request.build_absolute_uri }}">{% endblock %}
+    
     <title>{% block title %}BookReview.vn - Đánh giá sách{% endblock %}</title>
-
-    <link rel="stylesheet" href="{% static 'css/main.css' %}" />
-    <link
-      rel="icon"
-      type="image/svg+xml"
-      href="{% static 'images/favicon.svg' %}"
-    />
-    <link
-      rel="alternate icon"
-      type="image/x-icon"
-      href="{% static 'images/favicon.svg' %}"
-    />
-
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#2563eb',
+              'primary-hover': '#1d4ed8',
+              'primary-light': '#3b82f6',
+            }
+          }
+        },
+        plugins: []
+      }
+    </script>
+    
+    <!-- DaisyUI CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <!-- Heroicons (via CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/@heroicons/react@2.0.18/24/outline/index.js" type="module"></script>
+    
+    <!-- AOS (Animate On Scroll) -->
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/tailwind-extras.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ux-improvements.css' %}">
+    <link rel="stylesheet" href="{% static 'css/daisyui-custom.css' %}">
+    <link rel="stylesheet" href="{% static 'css/animations.css' %}">
+    <link rel="stylesheet" href="{% static 'css/color-improvements.css' %}">
+    <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
+    <link rel="alternate icon" type="image/x-icon" href="{% static 'images/favicon.svg' %}">
+    
     {% block extra_css %}{% endblock %}
-  </head>
-  <body>
+</head>
+<body>
     <!-- Navigation Header -->
-    <nav class="navbar" role="navigation" aria-label="Main navigation">
-      <div class="container">
-        <div class="navbar-content">
-          <div class="navbar-brand">
-            <a
-              href="{% url 'home' %}"
-              class="logo"
-              aria-label="BookReview.vn Home"
-            >
-              <svg
-                width="32"
-                height="32"
-                viewBox="0 0 32 32"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M6 4C5.44772 4 5 4.44772 5 5V27C5 27.5523 5.44772 28 6 28H26C26.5523 28 27 27.5523 27 27V5C27 4.44772 26.5523 4 26 4H6Z"
-                  fill="currentColor"
-                />
-                <path
-                  d="M9 8H19M9 12H23M9 16H20M9 20H18"
-                  stroke="white"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                />
-              </svg>
-              <span>BookReview.vn</span>
-            </a>
-          </div>
-
-          <div class="navbar-menu">
-            <ul class="navbar-links">
-              <li><a href="{% url 'home' %}">Trang chủ</a></li>
-              <li><a href="{% url 'explore' %}">Khám phá</a></li>
-              <li><a href="{% url 'book_list_view' %}">Sách</a></li>
-              <li><a href="{% url 'review_list_frontend' %}">Reviews</a></li>
-            </ul>
-          </div>
-
-          <div class="navbar-search">
-            <form
-              class="search-form"
-              action="{% url 'search' %}"
-              method="get"
-              role="search"
-            >
-              <input
-                type="search"
-                name="q"
-                placeholder="Tìm kiếm sách, tác giả..."
-                aria-label="Tìm kiếm"
-                class="search-input"
-                id="main-search"
-              />
-              <button type="submit" class="search-button" aria-label="Tìm kiếm">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path
-                    d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16z"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  />
-                  <path
-                    d="m19 19-4.35-4.35"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  />
-                </svg>
-              </button>
-            </form>
-          </div>
-
-          <div class="navbar-actions">
-            {% if user.is_authenticated %}
-            <div class="user-menu">
-              <a
-                href="{% url 'notifications' %}"
-                class="icon-button"
-                aria-label="Thông báo"
-              >
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path
-                    d="M10 2C6.686 2 4 4.686 4 8V13L2 15V16H18V15L16 13V8C16 4.686 13.314 2 10 2Z"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                  />
-                  <circle cx="10" cy="2" r="1.5" fill="currentColor" />
-                </svg>
-                <span
-                  class="notification-badge"
-                  id="notification-count"
-                  style="display: none"
-                  >0</span
-                >
-              </a>
-              <div class="user-dropdown">
-                <button
-                  class="user-avatar-btn"
-                  aria-label="Menu người dùng"
-                  aria-expanded="false"
-                  id="user-menu-btn"
-                >
-                  <img
-                    src="{% if user.profile.avatar %}{{ user.profile.avatar.url }}{% else %}{% static 'images/default-avatar.svg' %}{% endif %}"
-                    alt="{{ user.username }}"
-                    class="avatar-sm"
-                  />
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path
-                      d="M4 6L8 10L12 6"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                    />
-                  </svg>
-                </button>
-                <div class="dropdown-menu" id="user-dropdown-menu">
-                  <a href="{% url 'user_profile' user.username %}"
-                    >Hồ sơ của tôi</a
-                  >
-                  <a href="{% url 'user_shelves' %}">Kệ sách</a>
-                  <a href="{% url 'settings' %}">Cài đặt</a>
-                  <hr />
-                  <a href="{% url 'logout' %}">Đăng xuất</a>
+    <nav class="bg-white shadow-sm sticky top-0 z-50 backdrop-blur-sm bg-opacity-95 animate-slide-down" role="navigation" aria-label="Main navigation" data-aos="fade-down">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex-shrink-0">
+                    <a href="{% url 'home' %}" class="flex items-center space-x-2 text-gray-700 hover:text-primary transition-all duration-300 hover:scale-105" aria-label="BookReview.vn Home">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-primary animate-float">
+                            <path d="M6 4C5.44772 4 5 4.44772 5 5V27C5 27.5523 5.44772 28 6 28H26C26.5523 28 27 27.5523 27 27V5C27 4.44772 26.5523 4 26 4H6Z" fill="currentColor"/>
+                            <path d="M9 8H19M9 12H23M9 16H20M9 20H18" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span class="font-bold text-xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">BookReview.vn</span>
+                    </a>
                 </div>
-              </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-1">
+                    <a href="{% url 'home' %}" class="px-4 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition-all duration-300 font-medium nav-link-animated hover:scale-105">Trang chủ</a>
+                    <a href="{% url 'explore' %}" class="px-4 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition-all duration-300 font-medium nav-link-animated hover:scale-105">Khám phá</a>
+                    <a href="{% url 'book_list_view' %}" class="px-4 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition-all duration-300 font-medium nav-link-animated hover:scale-105">Sách</a>
+                    <a href="{% url 'reviews:review_list' %}" class="px-4 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition-all duration-300 font-medium nav-link-animated hover:scale-105">Reviews</a>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="hidden lg:flex flex-1 max-w-md mx-8">
+                    <form class="relative w-full" action="{% url 'search' %}" method="get" role="search">
+                        <input 
+                            type="search" 
+                            name="q" 
+                            placeholder="Tìm kiếm sách, tác giả..." 
+                            aria-label="Tìm kiếm"
+                            class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all text-gray-700 placeholder-gray-400"
+                            id="main-search"
+                        >
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- User Actions -->
+                <div class="flex items-center space-x-3">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'notifications' %}" class="relative p-2 text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg transition-all" aria-label="Thông báo">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span class="absolute top-0 right-0 block h-2 w-2 bg-red-500 rounded-full notification-badge" id="notification-count" style="display: none;"></span>
+                        </a>
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" @click.away="open = false" class="flex items-center space-x-2 p-1 rounded-lg hover:bg-gray-50 transition-all" aria-label="Menu người dùng">
+                                <img src="{% if user.profile.avatar %}{{ user.profile.avatar.url }}{% else %}{% static 'images/default-avatar.svg' %}{% endif %}" 
+                                     alt="{{ user.username }}" class="w-8 h-8 rounded-full object-cover">
+                                <i class="fas fa-chevron-down text-xs text-gray-500"></i>
+                            </button>
+                            <div x-show="open" 
+                                 x-transition:enter="transition ease-out duration-100"
+                                 x-transition:enter-start="transform opacity-0 scale-95"
+                                 x-transition:enter-end="transform opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-75"
+                                 x-transition:leave-start="transform opacity-100 scale-100"
+                                 x-transition:leave-end="transform opacity-0 scale-95"
+                                 class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-200">
+                                <a href="{% url 'user_profile' user.username %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"><i class="fas fa-user mr-2"></i>Hồ sơ của tôi</a>
+                                <a href="{% url 'user_shelves' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"><i class="fas fa-book mr-2"></i>Kệ sách</a>
+                                <a href="{% url 'settings' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"><i class="fas fa-cog mr-2"></i>Cài đặt</a>
+                                <hr class="my-1">
+                                <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"><i class="fas fa-sign-out-alt mr-2"></i>Đăng xuất</a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="px-4 py-2 text-gray-700 hover:text-primary font-medium transition-colors hidden sm:block">Đăng nhập</a>
+                        <a href="{% url 'register' %}" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover font-medium transition-all duration-300 shadow-sm hover:shadow-lg btn-animated hover:scale-105">Đăng ký</a>
+                    {% endif %}
+                    
+                    <!-- Mobile Menu Toggle -->
+                    <button class="md:hidden p-2 text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg transition-all" aria-label="Toggle menu" aria-expanded="false" id="mobile-menu-btn">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
             </div>
-            {% else %}
-            <a href="{% url 'login' %}" class="btn btn-outline">Đăng nhập</a>
-            <a href="{% url 'register' %}" class="btn btn-primary">Đăng ký</a>
-            {% endif %}
-
-            <button
-              class="mobile-menu-toggle"
-              aria-label="Toggle menu"
-              aria-expanded="false"
-              id="mobile-menu-btn"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M3 12H21M3 6H21M3 18H21"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                />
-              </svg>
-            </button>
-          </div>
+            
+            <!-- Mobile Menu -->
+            <div class="hidden md:hidden border-t border-gray-200" id="mobile-menu">
+                <div class="px-4 py-3 space-y-1">
+                    <a href="{% url 'home' %}" class="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors font-medium">Trang chủ</a>
+                    <a href="{% url 'explore' %}" class="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors font-medium">Khám phá</a>
+                    <a href="{% url 'book_list_view' %}" class="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors font-medium">Sách</a>
+                    <a href="{% url 'reviews:review_list' %}" class="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors font-medium">Reviews</a>
+                    {% if user.is_authenticated %}
+                        <hr class="my-2">
+                        <a href="{% url 'user_profile' user.username %}" class="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">Hồ sơ</a>
+                        <a href="{% url 'user_shelves' %}" class="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">Kệ sách</a>
+                        <a href="{% url 'settings' %}" class="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">Cài đặt</a>
+                        <a href="{% url 'logout' %}" class="block px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">Đăng xuất</a>
+                    {% else %}
+                        <hr class="my-2">
+                        <a href="{% url 'login' %}" class="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">Đăng nhập</a>
+                        <a href="{% url 'register' %}" class="block px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors text-center">Đăng ký</a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-
-        <!-- Mobile Menu -->
-        <div class="mobile-menu" id="mobile-menu">
-          <ul class="mobile-menu-links">
-            <li><a href="{% url 'home' %}">Trang chủ</a></li>
-            <li><a href="{% url 'explore' %}">Khám phá</a></li>
-            <li><a href="{% url 'book_list_view' %}">Sách</a></li>
-            <li><a href="{% url 'review_list_frontend' %}">Reviews</a></li>
-
-            {% if user.is_authenticated %}
-            <li><a href="{% url 'user_profile' user.username %}">Hồ sơ</a></li>
-            <li><a href="{% url 'user_shelves' %}">Kệ sách</a></li>
-            <li><a href="{% url 'settings' %}">Cài đặt</a></li>
-            <li><a href="{% url 'logout' %}">Đăng xuất</a></li>
-            {% else %}
-            <li><a href="{% url 'login' %}">Đăng nhập</a></li>
-            <li><a href="{% url 'register' %}">Đăng ký</a></li>
-            {% endif %}
-          </ul>
-        </div>
-      </div>
     </nav>
-
+    
     <!-- Main Content -->
-    <main class="main-content">
-      {% if messages %}
-      <div class="messages-container">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}" role="alert">
-          {{ message }}
-          <button class="alert-close" aria-label="Close">&times;</button>
-        </div>
-        {% endfor %}
-      </div>
-      {% endif %} {% block content %}{% endblock %}
+    <main class="min-h-screen bg-gray-50">
+        {% if messages %}
+            <div class="fixed top-20 right-4 z-50 space-y-2 max-w-md" id="messages-container">
+                {% for message in messages %}
+                    <div class="bg-white rounded-lg shadow-lg p-4 border-l-4 {% if message.tags == 'error' %}border-red-500{% elif message.tags == 'success' %}border-green-500{% elif message.tags == 'warning' %}border-yellow-500{% else %}border-blue-500{% endif %} flex items-center justify-between notification-enter hover-lift" role="alert">
+                        <div class="flex items-center space-x-3">
+                            {% if message.tags == 'error' %}
+                                <i class="fas fa-exclamation-circle text-red-500"></i>
+                            {% elif message.tags == 'success' %}
+                                <i class="fas fa-check-circle text-green-500"></i>
+                            {% elif message.tags == 'warning' %}
+                                <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                            {% else %}
+                                <i class="fas fa-info-circle text-blue-500"></i>
+                            {% endif %}
+                            <span class="text-gray-700">{{ message }}</span>
+                        </div>
+                        <button class="text-gray-400 hover:text-gray-600 transition-colors ml-4" aria-label="Close" onclick="this.parentElement.remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {% block content %}{% endblock %}
     </main>
-
+    
     <!-- Footer -->
-    <footer class="footer" role="contentinfo">
-      <div class="container">
-        <div class="footer-content">
-          <div class="footer-section">
-            <h3>BookReview.vn</h3>
-            <p>
-              Khám phá, đánh giá và chia sẻ sách hay cùng cộng đồng yêu sách.
-            </p>
-          </div>
-
-          <div class="footer-section">
-            <h4>Khám phá</h4>
-            <ul>
-              <li><a href="{% url 'explore' %}">Khám phá sách</a></li>
-              <li><a href="{% url 'book_list_view' %}">Danh sách sách</a></li>
-              <li>
-                <a href="{% url 'review_list_frontend' %}">Reviews mới</a>
-              </li>
-
-              <li><a href="{% url 'books:author_list' %}">Tác giả</a></li>
-            </ul>
-          </div>
-
-          <div class="footer-section">
-            <h4>Tài khoản</h4>
-            <ul>
-              {% if user.is_authenticated %}
-              <li>
-                <a href="{% url 'user_profile' user.username %}">Hồ sơ</a>
-              </li>
-              <li><a href="{% url 'user_shelves' %}">Kệ sách</a></li>
-              <li><a href="{% url 'settings' %}">Cài đặt</a></li>
-              {% else %}
-              <li><a href="{% url 'login' %}">Đăng nhập</a></li>
-              <li><a href="{% url 'register' %}">Đăng ký</a></li>
-              {% endif %}
-            </ul>
-          </div>
-
-          <div class="footer-section">
-            <h4>Thông tin</h4>
-            <ul>
-              <li><a href="/about">Về chúng tôi</a></li>
-              <li><a href="/terms">Điều khoản</a></li>
-              <li><a href="/privacy">Chính sách</a></li>
-              <li><a href="/contact">Liên hệ</a></li>
-            </ul>
-          </div>
+    <footer class="bg-gradient-to-br from-gray-800 to-gray-900 text-gray-200 mt-16 animate-fade-in" role="contentinfo" data-aos="fade-up">
+        <div class="container mx-auto px-4 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-white text-xl font-bold mb-4">BookReview.vn</h3>
+                    <p class="text-gray-400">Khám phá, đánh giá và chia sẻ sách hay cùng cộng đồng yêu sách.</p>
+                </div>
+                
+                <div>
+                    <h4 class="text-white font-semibold mb-4">Khám phá</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{% url 'explore' %}" class="hover:text-white transition-colors">Khám phá sách</a></li>
+                        <li><a href="{% url 'book_list_view' %}" class="hover:text-white transition-colors">Danh sách sách</a></li>
+                        <li><a href="{% url 'reviews:review_list' %}" class="hover:text-white transition-colors">Reviews mới</a></li>
+                        <li><a href="{% url 'books:author_list' %}" class="hover:text-white transition-colors">Tác giả</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-white font-semibold mb-4">Tài khoản</h4>
+                    <ul class="space-y-2">
+                        {% if user.is_authenticated %}
+                            <li><a href="{% url 'user_profile' user.username %}" class="hover:text-white transition-colors">Hồ sơ</a></li>
+                            <li><a href="{% url 'user_shelves' %}" class="hover:text-white transition-colors">Kệ sách</a></li>
+                            <li><a href="{% url 'settings' %}" class="hover:text-white transition-colors">Cài đặt</a></li>
+                        {% else %}
+                            <li><a href="{% url 'login' %}" class="hover:text-white transition-colors">Đăng nhập</a></li>
+                            <li><a href="{% url 'register' %}" class="hover:text-white transition-colors">Đăng ký</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-white font-semibold mb-4">Thông tin</h4>
+                    <ul class="space-y-2">
+                        <li><a href="/about" class="hover:text-white transition-colors">Về chúng tôi</a></li>
+                        <li><a href="/terms" class="hover:text-white transition-colors">Điều khoản</a></li>
+                        <li><a href="/privacy" class="hover:text-white transition-colors">Chính sách</a></li>
+                        <li><a href="/contact" class="hover:text-white transition-colors">Liên hệ</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400">&copy; {% now "Y" %} BookReview.vn. All rights reserved.</p>
+                <div class="flex space-x-4 mt-4 md:mt-0">
+                    <a href="#" aria-label="Facebook" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fab fa-facebook text-2xl"></i>
+                    </a>
+                    <a href="#" aria-label="Twitter" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fab fa-twitter text-2xl"></i>
+                    </a>
+                </div>
+            </div>
         </div>
-
-        <div class="footer-bottom">
-          <p>&copy; {% now "Y" %} BookReview.vn. All rights reserved.</p>
-          <div class="footer-social">
-            <a href="#" aria-label="Facebook"
-              ><svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  d="M18 10a8 8 0 1 0-9 7.93v-5.61H5.9v-2.32h3.1V8.41c0-3.06 1.82-4.75 4.61-4.75 1.33 0 2.73.24 2.73.24v3H13.7c-1.5 0-1.97.93-1.97 1.89v2.25h3.33l-.53 2.32H11.73v5.61A8 8 0 0 0 18 10z"
-                /></svg
-            ></a>
-            <a href="#" aria-label="Twitter"
-              ><svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
-                /></svg
-            ></a>
-          </div>
-        </div>
-      </div>
     </footer>
-
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- AOS JS -->
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    
+    <!-- Swiper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
+    
+    <!-- LazySizes -->
+    <script src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js"></script>
+    
+    <!-- SortableJS -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    
+    <!-- Marked.js -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+    
+    <!-- DOMPurify -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    
+    <!-- Heroicons Loader -->
+    <script src="{% static 'js/heroicons-loader.js' %}"></script>
+    
+    <!-- Main JS -->
     <script src="{% static 'js/main.js' %}"></script>
+    
+    <!-- Initialize AOS -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        if (typeof AOS !== 'undefined') {
+          AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true,
+            offset: 100,
+            delay: 0,
+            disable: false,
+            startEvent: 'DOMContentLoaded',
+            initClassName: false,
+            animatedClassName: 'aos-animate',
+            useClassNames: false,
+            disableMutationObserver: false,
+            debounceDelay: 50,
+            throttleDelay: 99
+          });
+        }
+      });
+    </script>
+    
+    <!-- Initialize Swiper globally if needed -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Auto-initialize Swiper instances with data-swiper attribute
+        document.querySelectorAll('[data-swiper]').forEach(element => {
+          const config = JSON.parse(element.getAttribute('data-swiper-config') || '{}');
+          if (typeof Swiper !== 'undefined' && typeof BookReview !== 'undefined') {
+            BookReview.initSwiper(element, config);
+          }
+        });
+      });
+    </script>
+    
     {% block extra_js %}{% endblock %}
-  </body>
+</body>
 </html>
+

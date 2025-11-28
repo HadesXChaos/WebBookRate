@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Load comments
     function loadComments() {
-        fetch(`/api/reviews/comments/?review_id=${reviewId}`)
+        fetch(`/api/reviews/comments/?review=${reviewId}`)
             .then(res => res.json())
             .then(data => {
                 const container = document.getElementById('comments-list');
@@ -242,7 +242,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const body = this.querySelector('[name="body"]').value;
             
             try {
-                await BookReview.utils.apiRequest(`/api/reviews/${reviewId}/comments/`, 'POST', { body });
+                await BookReview.utils.apiRequest(
+                    `/api/reviews/comments/`,
+                    'POST',
+                    {
+                        body,
+                        review: reviewId   // 🔥 gửi kèm review id
+                    }
+                );
                 BookReview.utils.showAlert('Đã thêm bình luận thành công!', 'success');
                 this.reset();
                 loadComments();
@@ -251,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     // Initial load
     loadComments();
 });

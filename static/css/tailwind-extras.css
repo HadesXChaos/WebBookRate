@@ -1,0 +1,246 @@
+/* ===================================
+   Tailwind CSS Extensions & Utilities
+   =================================== */
+
+/* Custom Tailwind utilities */
+@layer utilities {
+  /* Animation utilities */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+  
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ===================================
+   Swiper Customization
+   =================================== */
+.swiper {
+  width: 100%;
+  height: 100%;
+}
+
+.swiper-slide {
+  text-align: center;
+  font-size: 18px;
+  background: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.swiper-button-next,
+.swiper-button-prev {
+  color: var(--primary-color) !important;
+}
+
+.swiper-pagination-bullet-active {
+  background: var(--primary-color) !important;
+}
+
+/* ===================================
+   LazySizes Integration
+   =================================== */
+img.lazyload {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+img.lazyloaded {
+  opacity: 1;
+}
+
+/* ===================================
+   SortableJS Styles
+   =================================== */
+.sortable-ghost {
+  opacity: 0.4;
+  background: var(--gray-100);
+}
+
+.sortable-chosen {
+  cursor: grabbing;
+}
+
+.sortable-drag {
+  opacity: 0.8;
+}
+
+/* ===================================
+   Chart.js Container
+   =================================== */
+.chart-container {
+  position: relative;
+  height: 300px;
+  width: 100%;
+}
+
+.chart-container-sm {
+  height: 200px;
+}
+
+.chart-container-lg {
+  height: 400px;
+}
+
+/* ===================================
+   SweetAlert2 Customization
+   =================================== */
+.swal2-popup {
+  border-radius: 0.75rem !important;
+  font-family: var(--font-family) !important;
+}
+
+.swal2-title {
+  font-weight: 600 !important;
+}
+
+/* ===================================
+   Loading Spinner
+   =================================== */
+.spinner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--gray-200);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===================================
+   Skeleton Loading
+   =================================== */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--gray-100) 25%,
+    var(--gray-200) 50%,
+    var(--gray-100) 75%
+  );
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-text {
+  height: 1em;
+  border-radius: 0.25rem;
+  margin-bottom: 0.5em;
+}
+
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.skeleton-image {
+  width: 100%;
+  aspect-ratio: 2/3;
+  border-radius: 0.5rem;
+}
+
+/* ===================================
+   Tailwind + Custom CSS Integration
+   =================================== */
+/* Ensure Tailwind utilities work with existing CSS variables */
+.text-primary {
+  color: var(--primary-color);
+}
+
+.bg-primary {
+  background-color: var(--primary-color);
+}
+
+.border-primary {
+  border-color: var(--primary-color);
+}
+
+.hover\:bg-primary:hover {
+  background-color: var(--primary-hover);
+}
+
+/* ===================================
+   Responsive Enhancements
+   =================================== */
+@media (max-width: 640px) {
+  .chart-container {
+    height: 250px;
+  }
+}
+
+/* ===================================
+   Print Styles
+   =================================== */
+@media print {
+  .swiper-button-next,
+  .swiper-button-prev,
+  .swiper-pagination {
+    display: none !important;
+  }
+}
+

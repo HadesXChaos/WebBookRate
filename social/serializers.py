@@ -60,12 +60,19 @@ class FollowSerializer(serializers.ModelSerializer):
 
 class NotificationSerializer(serializers.ModelSerializer):
     content_object = serializers.SerializerMethodField()
+    message = serializers.SerializerMethodField()
+    url = serializers.SerializerMethodField()
 
     class Meta:
         model = Notification
-        fields = ['id', 'notification_type', 'content_object', 'payload', 
-                 'is_read', 'created_at']
+        fields = ['id', 'notification_type', 'message', 'content_object',
+                  'payload', 'url', 'is_read', 'created_at']
         read_only_fields = ['id', 'created_at']
+
+    def get_message(self, obj):
+        if isinstance(obj.payload, dict):
+            return obj.payload.get('message')
+        return None
 
     def get_content_object(self, obj):
         if obj.content_object:
@@ -76,6 +83,51 @@ class NotificationSerializer(serializers.ModelSerializer):
             elif obj.content_type.model == 'comment':
                 from reviews.serializers import CommentSerializer
                 return CommentSerializer(obj.content_object, context=self.context).data
+        return None
+    
+    def get_url(self, obj):
+        """
+        Tạo URL để frontend redirect khi click vào notification
+        - Nếu payload có 'url' thì ưu tiên dùng luôn
+        - Nếu content_type là review/comment/user thì tự build URL tương ứng
+        """
+        from django.urls import reverse
+
+        # Nếu payload đã có url thì trả về luôn (để sau này dễ custom)
+        if isinstance(obj.payload, dict) and obj.payload.get('url'):
+            return obj.payload['url']
+
+        if not obj.content_type:
+            return None
+
+        model_name = obj.content_type.model
+
+        try:
+            # 1) Thông báo liên quan tới REVIEW (new_review, review_like, v.v.)
+            if model_name == 'review':
+                review = obj.content_object
+                if review:
+                    # Frontend xem review: /reviews/<pk>/
+                    return reverse('review_detail_frontend', args=[review.pk])
+
+            # 2) Thông báo liên quan tới COMMENT (review_comment, comment_reply, comment_like)
+            if model_name == 'comment':
+                comment = obj.content_object
+                if comment:
+                    # Nhảy tới trang review và cuộn tới khu vực comment
+                    return reverse('review_detail_frontend', args=[comment.review_id]) + '#comments'
+
+            # 3) Thông báo follow: content_object là USER (người follow mình)
+            if model_name == 'user':
+                user = obj.content_object
+                if user:
+                    # Trang profile frontend: /users/<username>/
+                    return reverse('user_profile', args=[user.username])
+
+        except Exception:
+            # Không để API toang nếu có lỗi build URL
+            return None
+
         return None
 
 

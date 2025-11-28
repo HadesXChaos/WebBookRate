@@ -74,36 +74,192 @@
     },
 
     /**
-     * Show notification/alert
+     * Show notification/alert using SweetAlert2
      */
-    showAlert: function (message, type = "info") {
-      const container =
-        document.querySelector(".messages-container") ||
-        document.createElement("div");
+    showAlert: function (message, type = "info", options = {}) {
+      // Map our types to SweetAlert2 types
+      const swalType = {
+        success: "success",
+        error: "error",
+        warning: "warning",
+        info: "info",
+      }[type] || "info";
 
-      if (!container.classList.contains("messages-container")) {
-        container.className = "messages-container";
-        document.body.appendChild(container);
+      const defaultOptions = {
+        title: message,
+        icon: swalType,
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      };
+
+      // Use SweetAlert2 if available, otherwise fallback to old method
+      if (typeof Swal !== "undefined") {
+        Swal.fire({ ...defaultOptions, ...options });
+      } else {
+        // Fallback to old alert method
+        const container =
+          document.querySelector(".messages-container") ||
+          document.createElement("div");
+
+        if (!container.classList.contains("messages-container")) {
+          container.className = "messages-container";
+          document.body.appendChild(container);
+        }
+
+        const alert = document.createElement("div");
+        alert.className = `alert alert-${type}`;
+        alert.innerHTML = `
+          <span>${message}</span>
+          <button class="alert-close" aria-label="Close">&times;</button>
+        `;
+
+        container.appendChild(alert);
+
+        setTimeout(() => {
+          alert.remove();
+        }, 5000);
+
+        alert.querySelector(".alert-close").addEventListener("click", () => {
+          alert.remove();
+        });
+      }
+    },
+
+    /**
+     * Show confirmation dialog using SweetAlert2
+     */
+    showConfirm: function (message, title = "Xác nhận", options = {}) {
+      const defaultOptions = {
+        title: title,
+        text: message,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Xác nhận",
+        cancelButtonText: "Hủy",
+        confirmButtonColor: "#2563eb",
+      };
+
+      if (typeof Swal !== "undefined") {
+        return Swal.fire({ ...defaultOptions, ...options });
+      } else {
+        return Promise.resolve({ isConfirmed: confirm(message) });
+      }
+    },
+
+    /**
+     * Render markdown to HTML (with sanitization)
+     */
+    renderMarkdown: function (markdown) {
+      if (typeof marked === "undefined") {
+        return markdown; // Fallback if marked.js not loaded
       }
 
-      const alert = document.createElement("div");
-      alert.className = `alert alert-${type}`;
-      alert.innerHTML = `
-                <span>${message}</span>
-                <button class="alert-close" aria-label="Close">&times;</button>
-            `;
+      const html = marked.parse(markdown);
+      
+      // Sanitize with DOMPurify if available
+      if (typeof DOMPurify !== "undefined") {
+        return DOMPurify.sanitize(html);
+      }
+      
+      return html;
+    },
 
-      container.appendChild(alert);
+    /**
+     * Initialize lazy loading for images
+     */
+    initLazyLoading: function () {
+      if (typeof lazysizes !== "undefined") {
+        // LazySizes will automatically handle images with data-src attribute
+        // Just ensure images use class="lazyload" and data-src instead of src
+      }
+    },
 
-      // Auto remove after 5 seconds
-      setTimeout(() => {
-        alert.remove();
-      }, 5000);
+    /**
+     * Initialize Sortable for drag and drop
+     */
+    initSortable: function (element, options = {}) {
+      if (typeof Sortable === "undefined") {
+        console.warn("SortableJS not loaded");
+        return null;
+      }
 
-      // Close button
-      alert.querySelector(".alert-close").addEventListener("click", () => {
-        alert.remove();
-      });
+      const defaultOptions = {
+        animation: 150,
+        ghostClass: "sortable-ghost",
+        chosenClass: "sortable-chosen",
+        dragClass: "sortable-drag",
+      };
+
+      return new Sortable(element, { ...defaultOptions, ...options });
+    },
+
+    /**
+     * Initialize Swiper carousel
+     */
+    initSwiper: function (selector, options = {}) {
+      if (typeof Swiper === "undefined") {
+        console.warn("Swiper not loaded");
+        return null;
+      }
+
+      const defaultOptions = {
+        slidesPerView: 1,
+        spaceBetween: 20,
+        loop: false,
+        autoplay: false,
+        navigation: {
+          nextEl: ".swiper-button-next",
+          prevEl: ".swiper-button-prev",
+        },
+        pagination: {
+          el: ".swiper-pagination",
+          clickable: true,
+          dynamicBullets: true,
+        },
+        breakpoints: {
+          640: {
+            slidesPerView: 2,
+            spaceBetween: 20,
+          },
+          768: {
+            slidesPerView: 3,
+            spaceBetween: 24,
+          },
+          1024: {
+            slidesPerView: 4,
+            spaceBetween: 30,
+          },
+        },
+        // AOS integration
+        on: {
+          init: function() {
+            if (typeof AOS !== 'undefined') {
+              AOS.refresh();
+            }
+          }
+        }
+      };
+
+      const element = typeof selector === "string" 
+        ? document.querySelector(selector)
+        : selector;
+
+      if (!element) {
+        console.warn("Swiper element not found:", selector);
+        return null;
+      }
+
+      const swiper = new Swiper(element, { ...defaultOptions, ...options });
+      
+      // Refresh AOS after Swiper initialization
+      if (typeof AOS !== 'undefined') {
+        setTimeout(() => AOS.refresh(), 100);
+      }
+      
+      return swiper;
     },
   };
 
@@ -118,30 +274,49 @@
       menuToggle.addEventListener("click", function () {
         const isExpanded = menuToggle.getAttribute("aria-expanded") === "true";
         menuToggle.setAttribute("aria-expanded", !isExpanded);
-        mobileMenu.classList.toggle("active");
+        mobileMenu.classList.toggle("hidden");
+        
+        // Update icon
+        const icon = menuToggle.querySelector("i");
+        if (icon) {
+          if (isExpanded) {
+            icon.classList.remove("fa-times");
+            icon.classList.add("fa-bars");
+          } else {
+            icon.classList.remove("fa-bars");
+            icon.classList.add("fa-times");
+          }
+        }
       });
 
       // Close menu when clicking outside
       document.addEventListener("click", function (event) {
         if (
           !menuToggle.contains(event.target) &&
-          !mobileMenu.contains(event.target)
+          !mobileMenu.contains(event.target) &&
+          !mobileMenu.classList.contains("hidden")
         ) {
           menuToggle.setAttribute("aria-expanded", "false");
-          mobileMenu.classList.remove("active");
+          mobileMenu.classList.add("hidden");
+          const icon = menuToggle.querySelector("i");
+          if (icon) {
+            icon.classList.remove("fa-times");
+            icon.classList.add("fa-bars");
+          }
         }
       });
     }
   };
 
   // ===================================
-  // User Dropdown
+  // User Dropdown (Fallback if Alpine.js not available)
   // ===================================
   const initUserDropdown = function () {
-    const menuBtn = document.getElementById("user-menu-btn");
-    const dropdown = document.getElementById("user-dropdown-menu");
+    // Alpine.js handles dropdown in base.html, but we keep this as fallback
+    const menuBtn = document.querySelector('[x-data]') ? null : document.getElementById("user-menu-btn");
+    const dropdown = document.querySelector('[x-data]') ? null : document.getElementById("user-dropdown-menu");
 
-    if (menuBtn && dropdown) {
+    if (menuBtn && dropdown && typeof Alpine === "undefined") {
       menuBtn.addEventListener("click", function (e) {
         e.stopPropagation();
         const isExpanded = menuBtn.getAttribute("aria-expanded") === "true";
@@ -329,31 +504,29 @@
           }
         } catch (error) {
           utils.showAlert("Có lỗi xảy ra. Vui lòng thử lại.", "error");
+          console.error("Like action error:", error);
         }
       });
     });
   };
 
   // sửa đổi method cập nhật hồ sơ người dùng từ POST thành PUT
-  document.addEventListener("DOMContentLoaded", () => {
-    const csrftoken = utils.getCsrfToken();
+  const csrftoken = utils.getCsrfToken();
 
-    const form = document.getElementById("profile-form");
-    if (!form) return;
-
+  const form = document.getElementById("profile-form");
+  if (form) {
     const redirectUrl = form.dataset.redirectUrl;
-
     form.addEventListener("submit", async function (e) {
-      e.preventDefault();
+      e.preventDefault(); // chặn submit mặc định (POST)
 
       const formData = new FormData(form);
       const avatarInput = form.querySelector('input[name="avatar"]');
       if (avatarInput && avatarInput.files.length === 0) {
-        formData.delete("avatar");
+        formData.delete("avatar"); // không gửi field avatar -> giữ hình cũ
       }
 
       const response = await fetch("/api/auth/profile/", {
-        method: "PUT", // hoặc PATCH nếu bạn muốn
+        method: "PUT",
         headers: {
           "X-CSRFToken": csrftoken,
         },
@@ -362,14 +535,17 @@
 
       const data = await response.json();
       if (response.ok) {
-        alert("Cập nhật hồ sơ thành công!");
-        window.location.href = redirectUrl;
+        utils.showAlert("Cập nhật hồ sơ thành công!", "success");
+        setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, 1500);
       } else {
         console.log(data);
-        alert("Có lỗi khi cập nhật hồ sơ!");
+        const errorMsg = data.detail || data.message || "Có lỗi khi cập nhật hồ sơ!";
+        utils.showAlert(errorMsg, "error");
       }
     });
-  });
+  }
 
   // ẩn/hiện mật khẩu
 
@@ -423,15 +599,18 @@
 
         const data = await response.json();
         if (response.ok) {
-          alert("Đổi mật khẩu thành công!");
-          window.location.href = "/login/";
+          utils.showAlert("Đổi mật khẩu thành công! Vui lòng đăng nhập lại.", "success");
+          setTimeout(() => {
+            window.location.href = "/login/";
+          }, 2000);
         } else {
           console.log("Change password error:", data);
-          alert("Đổi mật khẩu thất bại: " + JSON.stringify(data));
+          const errorMsg = data.detail || data.message || "Đổi mật khẩu thất bại";
+          utils.showAlert(errorMsg, "error");
         }
       } catch (err) {
         console.error(err);
-        alert("Có lỗi kết nối server!");
+        utils.showAlert("Có lỗi kết nối server!", "error");
       }
     });
   });
@@ -445,17 +624,43 @@
     initSearchAutocomplete();
     initAlerts();
     initLikeButtons();
+    initLazyLoading();
 
     // Render stars for all rating elements
     document.querySelectorAll("[data-rating]").forEach((element) => {
       const rating = parseFloat(element.dataset.rating);
       renderStars(rating, element);
     });
+
+    // Initialize AOS animations (if not already initialized in base.html)
+    if (typeof AOS !== "undefined" && AOS.init) {
+      AOS.init({
+        duration: 800,
+        easing: "ease-in-out",
+        once: true,
+        offset: 100,
+      });
+    }
   });
 
+  // ===================================
+  // Initialize Lazy Loading
+  // ===================================
+  const initLazyLoading = function () {
+    utils.initLazyLoading();
+  };
+
+  // ===================================
   // Export utils for use in other scripts
+  // ===================================
   window.BookReview = {
     utils: utils,
     renderStars: renderStars,
+    initSortable: utils.initSortable,
+    initSwiper: utils.initSwiper,
+    renderMarkdown: utils.renderMarkdown,
+    Swal: typeof Swal !== "undefined" ? Swal : null,
+    Chart: typeof Chart !== "undefined" ? Chart : null,
+    Swiper: typeof Swiper !== "undefined" ? Swiper : null,
   };
 })();

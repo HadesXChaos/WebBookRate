@@ -1,0 +1,200 @@
+/* ===================================
+   DaisyUI Custom Styles & Overrides
+   =================================== */
+
+/* DaisyUI Theme Customization */
+:root {
+  --rounded-box: 1rem;
+  --rounded-btn: 0.5rem;
+  --rounded-badge: 1.9rem;
+  --animation-btn: 0.25s;
+  --animation-input: 0.2s;
+  --btn-focus-scale: 0.95;
+  --border-btn: 1px;
+  --tab-border: 1px;
+  --tab-radius: 0.5rem;
+}
+
+/* DaisyUI Button Enhancements */
+.btn {
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+/* DaisyUI Card Enhancements */
+.card {
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* DaisyUI Modal Enhancements */
+.modal-box {
+  max-height: calc(100vh - 5em);
+  overflow-y: auto;
+}
+
+/* DaisyUI Dropdown Enhancements */
+.dropdown-content {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* DaisyUI Alert Enhancements */
+.alert {
+  border-left-width: 4px;
+}
+
+/* DaisyUI Badge Enhancements */
+.badge {
+  font-weight: 600;
+}
+
+/* DaisyUI Loading Spinner */
+.loading {
+  border-color: currentColor;
+  border-right-color: transparent;
+}
+
+/* DaisyUI Progress Bar */
+.progress {
+  border-radius: 9999px;
+}
+
+/* DaisyUI Tabs */
+.tab {
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  color: var(--primary-color);
+}
+
+.tab-active {
+  border-bottom-width: 2px;
+  border-bottom-color: var(--primary-color);
+}
+
+/* DaisyUI Tooltip */
+.tooltip {
+  z-index: 9999;
+}
+
+/* DaisyUI Toast */
+.toast {
+  animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* DaisyUI Stats */
+.stats {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.stat {
+  transition: all 0.2s ease;
+}
+
+.stat:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* DaisyUI Avatar */
+.avatar {
+  transition: all 0.2s ease;
+}
+
+.avatar:hover {
+  transform: scale(1.05);
+}
+
+/* DaisyUI Rating */
+.rating {
+  gap: 0.25rem;
+}
+
+.rating input {
+  cursor: pointer;
+}
+
+/* DaisyUI Menu */
+.menu {
+  border-radius: 0.5rem;
+}
+
+.menu li > * {
+  transition: all 0.2s ease;
+}
+
+.menu li > *:hover {
+  background-color: rgba(37, 99, 235, 0.1);
+  color: var(--primary-color);
+}
+
+/* DaisyUI Form Controls */
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* DaisyUI + AOS Integration */
+[data-aos] {
+  pointer-events: none;
+}
+
+[data-aos].aos-animate {
+  pointer-events: auto;
+}
+
+/* DaisyUI + Swiper Integration */
+.swiper {
+  overflow: visible;
+}
+
+.swiper-wrapper {
+  display: flex;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .modal-box {
+    max-height: calc(100vh - 2em);
+    margin: 1rem;
+  }
+  
+  .card {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .btn,
+  .dropdown,
+  .modal,
+  .tooltip {
+    display: none !important;
+  }
+}
+

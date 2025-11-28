@@ -1,0 +1,231 @@
+/* ===================================
+   Color Improvements - Replace Dark Colors
+   =================================== */
+
+/* Input Fields - Light and Modern */
+input[type="text"],
+input[type="search"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+textarea,
+select.form-select,
+select {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #475569 !important;
+  transition: all 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="search"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+textarea:focus,
+select.form-select:focus,
+select:focus {
+  background-color: #ffffff !important;
+  border-color: #2563eb !important;
+  color: #1e293b !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+  outline: none !important;
+}
+
+input[type="text"]::placeholder,
+input[type="search"]::placeholder,
+input[type="email"]::placeholder,
+textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Select Dropdowns - Light Background */
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E") !important;
+  background-position: right 0.5rem center !important;
+  background-repeat: no-repeat !important;
+  background-size: 1.5em 1.5em !important;
+  padding-right: 2.5rem !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+}
+
+select:focus {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%232563eb' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E") !important;
+}
+
+/* Text Colors - Lighter and Softer */
+.text-gray-900 {
+  color: #334155 !important; /* Changed from #0f172a to lighter */
+}
+
+.text-gray-800 {
+  color: #475569 !important; /* Changed from #1e293b to lighter */
+}
+
+/* Buttons - Better Colors */
+.btn-outline {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #475569 !important;
+  transition: all 0.3s ease;
+}
+
+.btn-outline:hover {
+  background-color: #f1f5f9 !important;
+  border-color: #2563eb !important;
+  color: #2563eb !important;
+}
+
+/* Cards - Light Borders */
+.card {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
+}
+
+.card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Footer - Lighter Background */
+footer.bg-gray-900 {
+  background-color: #1e293b !important; /* Changed from #0f172a */
+}
+
+/* Form Labels - Better Contrast */
+.form-label {
+  color: #475569 !important;
+  font-weight: 500;
+}
+
+/* Links - Softer Colors */
+a {
+  color: #2563eb !important;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #1d4ed8 !important;
+}
+
+/* Search Bar Specific */
+#main-search,
+input[type="search"] {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #334155 !important;
+}
+
+#main-search:focus,
+input[type="search"]:focus {
+  background-color: #ffffff !important;
+  border-color: #2563eb !important;
+  color: #1e293b !important;
+}
+
+/* Dropdown Menus */
+.dropdown-menu {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.dropdown-menu a {
+  color: #475569 !important;
+}
+
+.dropdown-menu a:hover {
+  background-color: #f1f5f9 !important;
+  color: #2563eb !important;
+}
+
+/* Navigation Links */
+.nav-link-animated {
+  color: #475569 !important;
+}
+
+.nav-link-animated:hover {
+  color: #2563eb !important;
+}
+
+/* Book Titles and Headings */
+h1, h2, h3, h4, h5, h6 {
+  color: #334155 !important; /* Lighter than before */
+}
+
+/* Review Cards */
+.review-card {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.review-card:hover {
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Filter Pills */
+.filter-pill {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #64748b !important;
+}
+
+.filter-pill:hover {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #475569 !important;
+}
+
+.filter-pill.active {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+/* Pagination */
+.pagination a {
+  color: #2563eb !important;
+  border: 1px solid #e2e8f0 !important;
+  background-color: #ffffff !important;
+}
+
+.pagination a:hover {
+  background-color: #f1f5f9 !important;
+  border-color: #2563eb !important;
+}
+
+/* Override any remaining dark backgrounds */
+.bg-gray-900 {
+  background-color: #1e293b !important; /* Lighter dark */
+}
+
+.bg-gray-800 {
+  background-color: #334155 !important; /* Much lighter */
+}
+
+/* Ensure all inputs are light */
+input:not([type="submit"]):not([type="button"]):not([type="reset"]),
+textarea,
+select {
+  background-color: #ffffff !important;
+  color: #334155 !important;
+}
+
+/* Placeholder text */
+::placeholder {
+  color: #94a3b8 !important;
+  opacity: 1;
+}
+
+:-ms-input-placeholder {
+  color: #94a3b8 !important;
+}
+
+::-ms-input-placeholder {
+  color: #94a3b8 !important;
+}
+
