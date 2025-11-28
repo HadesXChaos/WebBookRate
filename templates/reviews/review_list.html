@@ -210,12 +210,16 @@ nhất từ cộng đồng BookReview.vn{% endblock %} {% block extra_css %}
             </a>
           </h2>
 
-          <div class="review-excerpt">
-            {% if review.body_html %} {{
-            review.body_html|striptags|truncatewords:50 }} {% elif
-            review.body_md %} {{ review.body_md|truncatewords:50 }} {% elif
-            review.body %} {{ review.body|truncatewords:50 }} {% endif %}
-          </div>
+          <p>
+            {% if review.body_md %}
+  {{ review.body_md|truncatewords:50 }}
+{% elif review.body %}
+  {{ review.body|truncatewords:50 }}
+{% else %}
+  (Chưa có nội dung review)
+{% endif %}
+
+          </p>
 
           <div class="review-footer">
             <span>👍 {{ review.like_count }}</span>
