@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.contrib.auth import logout
+from django.core.paginator import Paginator  # NEW
 
 from users.models import User
 from books.models import Book, Genre
@@ -99,6 +100,36 @@ def settings_view(request):
 def change_password_view(request):
     """User settings page"""
     return render(request, 'users/password-change.html')
+
+def review_list_frontend(request):
+    """Trang danh sách reviews (frontend, không phải API)."""
+    sort = request.GET.get('sort', 'newest')
+
+    qs = Review.objects.filter(status='public', is_active=True) \
+        .select_related('book', 'user', 'user__profile') \
+        .prefetch_related('book__authors')
+
+    # Sắp xếp
+    if sort == 'top_rated':
+        qs = qs.order_by('-rating', '-created_at')
+    elif sort == 'most_liked':
+        qs = qs.order_by('-like_count', '-created_at')
+    elif sort == 'most_commented':
+        qs = qs.order_by('-comment_count', '-created_at')
+    else:
+        sort = 'newest'
+        qs = qs.order_by('-created_at')
+
+    paginator = Paginator(qs, 10)  # 10 review / trang
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'reviews': page_obj.object_list,
+        'sort': sort,
+    }
+    return render(request, 'reviews/review_list.html', context)
 
 
 @login_required

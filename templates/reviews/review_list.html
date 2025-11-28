@@ -1,0 +1,262 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Tất cả reviews -
+BookReview.vn{% endblock %} {% block meta_description %}Xem các review sách mới
+nhất từ cộng đồng BookReview.vn{% endblock %} {% block extra_css %}
+<style>
+  .reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .review-card .card-body {
+    padding: 1.25rem 1.5rem;
+  }
+  .review-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .review-user {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  .review-user img {
+    width: 48px;
+    height: 48px;
+    border-radius: 999px;
+    object-fit: cover;
+  }
+  .review-meta-line {
+    color: #64748b;
+    font-size: 0.875rem;
+  }
+  .review-time {
+    color: #94a3b8;
+    font-size: 0.8rem;
+  }
+  .review-rating {
+    text-align: right;
+    min-width: 150px;
+  }
+  .review-rating .rating-number {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.85rem;
+    color: #64748b;
+  }
+  .review-title {
+    margin-top: 0.75rem;
+    margin-bottom: 0.25rem;
+    font-size: 1.1rem;
+  }
+  .review-title a {
+    text-decoration: none;
+    color: inherit;
+  }
+  .review-excerpt {
+    color: #475569;
+    font-size: 0.95rem;
+    margin-top: 0.25rem;
+  }
+  .review-footer {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-top: 0.75rem;
+  }
+  .filters-bar {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.75rem;
+    align-items: center;
+  }
+  .filter-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .filter-pill {
+    border-radius: 999px;
+    border: 1px solid #e2e8f0;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    color: #64748b;
+    text-decoration: none;
+  }
+  .filter-pill.active {
+    background: #0f766e;
+    border-color: #0f766e;
+    color: #fff;
+  }
+  .pagination {
+    margin-top: 1.5rem;
+  }
+  .pagination ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+  }
+  .pagination a {
+    text-decoration: none;
+    color: #0f766e;
+    font-weight: 500;
+  }
+</style>
+{% endblock %} {% block content %}
+<section class="section">
+  <div class="container" style="max-width: 1100px">
+    <div class="section-header">
+      <h1 class="section-title">Reviews</h1>
+      <p class="sub-text">Khám phá các đánh giá sách mới nhất từ cộng đồng.</p>
+    </div>
+
+    <!-- Thanh filter / sort -->
+    <div class="filters-bar">
+      <div class="filter-pills">
+        <a
+          href="?sort=newest"
+          class="filter-pill {% if sort == 'newest' %}active{% endif %}"
+        >
+          Mới nhất
+        </a>
+        <a
+          href="?sort=top_rated"
+          class="filter-pill {% if sort == 'top_rated' %}active{% endif %}"
+        >
+          Điểm cao nhất
+        </a>
+        <a
+          href="?sort=most_liked"
+          class="filter-pill {% if sort == 'most_liked' %}active{% endif %}"
+        >
+          Nhiều lượt thích
+        </a>
+        <a
+          href="?sort=most_commented"
+          class="filter-pill {% if sort == 'most_commented' %}active{% endif %}"
+        >
+          Nhiều bình luận
+        </a>
+      </div>
+    </div>
+
+    {% if reviews %}
+    <div class="reviews-list">
+      {% for review in reviews %}
+      <article class="card review-card">
+        <div class="card-body">
+          <div class="review-meta">
+            <div class="review-user">
+              <img
+                src="{% if review.user.profile.avatar %}{{ review.user.profile.avatar.url }}{% else %}{% static 'images/default-avatar.svg' %}{% endif %}"
+                alt="{{ review.user.username }}"
+              />
+              <div>
+                <div>
+                  <strong>
+                    <a href="/users/{{ review.user.username }}/">
+                      {{ review.user.username }}
+                    </a>
+                  </strong>
+                </div>
+                <div class="review-meta-line">
+                  đánh giá
+                  <a href="/books/{{ review.book.slug }}/">
+                    {{ review.book.title }}
+                  </a>
+                </div>
+                <div class="review-time">
+                  {{ review.created_at|date:"d/m/Y H:i" }}
+                </div>
+              </div>
+            </div>
+            <div class="review-rating">
+              <div
+                class="rating-stars"
+                data-rating="{{ review.rating|default:0 }}"
+              ></div>
+              {% if review.rating %}
+              <span class="rating-number">
+                {{ review.rating|floatformat:"-1" }}/5
+              </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <h2 class="review-title">
+            <a href="{% url 'review_detail_frontend' review.pk %}">
+              {{ review.title }}
+            </a>
+          </h2>
+
+          <div class="review-excerpt">
+            {% if review.body_html %} {{
+            review.body_html|striptags|truncatewords:50 }} {% else %} {{
+            review.body_md|truncatewords:50 }} {% endif %}
+          </div>
+
+          <div class="review-footer">
+            <span>👍 {{ review.like_count }}</span>
+            <a href="{% url 'review_detail_frontend' review.pk %}#comments">
+              💬 {{ review.comment_count }} bình luận
+            </a>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="pagination" aria-label="Trang review">
+      <ul>
+        {% if page_obj.has_previous %}
+        <li>
+          <a
+            href="?page={{ page_obj.previous_page_number }}{% if sort != 'newest' %}&sort={{ sort }}{% endif %}"
+          >
+            ← Trang trước
+          </a>
+        </li>
+        {% endif %}
+
+        <li>
+          Trang {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+        </li>
+
+        {% if page_obj.has_next %}
+        <li>
+          <a
+            href="?page={{ page_obj.next_page_number }}{% if sort != 'newest' %}&sort={{ sort }}{% endif %}"
+          >
+            Trang sau →
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %} {% else %}
+    <p style="color: #64748b">Chưa có review nào.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("[data-rating]").forEach(function (el) {
+      var value = parseFloat(el.dataset.rating || "0");
+      if (!isNaN(value) && window.BookReview && BookReview.renderStars) {
+        BookReview.renderStars(value, el);
+      }
+    });
+  });
+</script>
+{% endblock %}

@@ -11,6 +11,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models.functions import Coalesce
 from django.db.models import Count, Q, F, FloatField, ExpressionWrapper
+from django.core.paginator import Paginator  # NEW
 
 from .models import Author, Genre, Publisher, Tag, Book, BookView
 from .serializers import (
