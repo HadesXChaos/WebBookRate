@@ -11,6 +11,10 @@ if [ "$1" != "celery" ] && [[ "$1" != *"beat"* ]]; then
     echo ">>> Đang chạy Migration..."
     python manage.py migrate --noinput
 
+    # Collect static files
+    echo ">>> Đang collect static files..."
+    python manage.py collectstatic --noinput || true
+
     # 1. CHẠY SEED DATA TRƯỚC
     if [ -f seed_data.py ]; then
         echo ">>> CHẠY SEED DATA (Sách & Tác giả)..."

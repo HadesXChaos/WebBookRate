@@ -5,23 +5,25 @@
 
 {% block content %}
 <div class="container" style="max-width: 1200px;">
-    <section class="profile-header" style="background: white; border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
-        <div style="display: flex; gap: 2rem; align-items: start;">
-            <div style="flex-shrink: 0; position: relative;">
-                <img src="{% if profile_user.profile.avatar %}{{ profile_user.profile.avatar.url }}{% else %}{% static 'images/default-avatar.svg' %}{% endif %}" 
-                     alt="{{ profile_user.username }}" 
-                     style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #e2e8f0;">
+    <section class="card profile-header mb-8" data-aos="fade-up">
+        <div class="card-body">
+            <div class="flex gap-6 items-start">
+                <div style="flex-shrink: 0; position: relative;">
+                    <img src="{% if profile_user.profile.avatar %}{{ profile_user.profile.avatar.url }}{% else %}{% static 'images/default-avatar.svg' %}{% endif %}" 
+                         alt="{{ profile_user.username }}" 
+                         class="user-avatar"
+                         style="width: 120px; height: 120px; border: 4px solid rgba(226, 232, 240, 0.6);">
+                    
+                    {% if profile_user.role == 'reviewer' %}
+                        <span class="badge" style="position: absolute; bottom: 0; right: 0; background: #8b5cf6; color: white !important; font-size: 0.75rem; padding: 4px 10px; border: 2px solid white;">Reviewer</span>
+                    {% elif profile_user.role == 'moderator' %}
+                        <span class="badge" style="position: absolute; bottom: 0; right: 0; background: #f59e0b; color: white !important; font-size: 0.75rem; padding: 4px 10px; border: 2px solid white;">Mod</span>
+                    {% endif %}
+                </div>
                 
-                {% if profile_user.role == 'reviewer' %}
-                    <span style="position: absolute; bottom: 0; right: 0; background: #8b5cf6; color: white; font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; border: 2px solid white;">Reviewer</span>
-                {% elif profile_user.role == 'moderator' %}
-                    <span style="position: absolute; bottom: 0; right: 0; background: #f59e0b; color: white; font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; border: 2px solid white;">Mod</span>
-                {% endif %}
-            </div>
-            
-            <div style="flex: 1;">
-                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                    <h1 style="margin: 0;">{{ profile_user.username }}</h1>
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-2">
+                        <h1 class="section-title mb-0">{{ profile_user.username }}</h1>
                     {% if profile_user.is_verified %}
                         <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20" style="width: 20px; color: #3b82f6;"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
                     {% endif %}
@@ -63,12 +65,12 @@
                         <a href="/settings/" class="btn btn-outline">Chỉnh sửa hồ sơ</a>
                     {% else %}
                         {% if profile_user.role != 'reader' %}
-                            <button class="btn {% if is_following %}btn-outline{% else %}btn-primary{% endif %}" 
-                                    id="follow-btn" 
-                                    data-user-id="{{ profile_user.id }}"
-                                    data-following="{{ is_following|yesno:'true,false' }}">
-                                <span id="follow-text">{% if is_following %}Đang theo dõi{% else %}Theo dõi{% endif %}</span>
-                            </button>
+                        <button class="btn {% if is_following %}btn-outline{% else %}btn-primary{% endif %}" 
+                                id="follow-btn" 
+                                data-user-id="{{ profile_user.id }}"
+                                data-following="{{ is_following|yesno:'true,false' }}">
+                            <span id="follow-text" style="color: inherit !important;">{% if is_following %}Đang theo dõi{% else %}Theo dõi{% endif %}</span>
+                        </button>
                         {% endif %}
                     
                     {% endif %}

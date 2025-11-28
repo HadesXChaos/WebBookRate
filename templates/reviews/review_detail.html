@@ -135,7 +135,7 @@
             </div>
             <div class="card-body">
                 {% if user.is_authenticated %}
-                <div class="comment-form" style="margin-bottom: 2rem;">
+                <div class="comment-form">
                     <form id="comment-form">
                         {% csrf_token %}
                         <textarea name="body" 
@@ -143,20 +143,24 @@
                                   class="form-textarea"
                                   rows="4"
                                   required></textarea>
-                        <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">
-                            Gửi bình luận
+                        <button type="submit" class="btn btn-primary mt-3">
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            <span>Gửi bình luận</span>
                         </button>
                     </form>
                 </div>
                 {% else %}
-                <p style="text-align: center; padding: 2rem; color: #64748b;">
-                    <a href="/login/">Đăng nhập</a> để bình luận
-                </p>
+                <div class="comments-empty">
+                    <div class="comments-empty-icon">🔒</div>
+                    <p class="comments-empty-text">
+                        <a href="{% url 'login' %}" class="text-primary hover:text-primary-hover font-semibold">Đăng nhập</a> để bình luận
+                    </p>
+                </div>
                 {% endif %}
                 
-                <div id="comments-list">
+                <div id="comments-list" class="comments-list">
                     <!-- Comments will be loaded via JavaScript -->
-                    <div class="loading">Đang tải...</div>
+                    <div class="comments-loading">Đang tải...</div>
                 </div>
             </div>
         </div>
@@ -207,34 +211,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 const container = document.getElementById('comments-list');
                 if (data.results && data.results.length > 0) {
                     container.innerHTML = data.results.map(comment => `
-                        <div class="comment-item" style="padding: 1rem; border-bottom: 1px solid #e2e8f0; margin-bottom: 1rem;">
-                            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                        <div class="comment-item" data-aos="fade-up">
+                            <div class="comment-header">
                                 <img src="${comment.user?.profile?.avatar || '/static/images/default-avatar.svg'}" 
                                      alt="${comment.user?.username}" 
-                                     style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
-                                <div>
-                                    <strong><a href="/users/${comment.user?.username}/">${comment.user?.username}</a></strong>
-                                    <span style="color: #64748b; font-size: 0.875rem; margin-left: 0.5rem;">${new Date(comment.created_at).toLocaleDateString('vi-VN')}</span>
+                                     class="comment-avatar">
+                                <div class="comment-user-info">
+                                    <div class="comment-username">
+                                        <a href="/users/${comment.user?.username}/">${comment.user?.username}</a>
+                                    </div>
+                                    <span class="comment-date">${new Date(comment.created_at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                                 </div>
                             </div>
-                            <div style="color: #475569; line-height: 1.7;">${comment.body || ''}</div>
-                            <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
-                                <button class="icon-button" style="font-size: 0.875rem; color: #64748b;">
-                                    ❤️ ${comment.like_count || 0}
+                            <div class="comment-body">${comment.body || ''}</div>
+                            <div class="comment-actions">
+                                <button class="comment-action like" data-comment-id="${comment.id}" onclick="likeComment(${comment.id}, this)">
+                                    <i class="far fa-heart"></i>
+                                    <span class="like-count">${comment.like_count || 0}</span>
                                 </button>
-                                <button class="icon-button" style="font-size: 0.875rem; color: #64748b;" onclick="replyToComment(${comment.id})">
-                                    💬 Trả lời
+                                <button class="comment-action reply" onclick="replyToComment(${comment.id})">
+                                    <i class="fas fa-reply"></i>
+                                    <span>Trả lời</span>
                                 </button>
                             </div>
                         </div>
                     `).join('');
                 } else {
-                    container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #64748b;">Chưa có bình luận nào.</p>';
+                    container.innerHTML = '<div class="comments-empty"><div class="comments-empty-icon">💬</div><p class="comments-empty-text">Chưa có bình luận nào.</p><p class="text-sm text-gray-500">Hãy là người đầu tiên bình luận!</p></div>';
                 }
             })
             .catch(err => {
                 console.error('Error loading comments:', err);
-                document.getElementById('comments-list').innerHTML = '<p>Có lỗi xảy ra khi tải dữ liệu.</p>';
+                document.getElementById('comments-list').innerHTML = '<div class="comments-empty"><div class="comments-empty-icon">⚠️</div><p class="comments-empty-text">Có lỗi xảy ra khi tải dữ liệu.</p></div>';
             });
     }
     
@@ -305,6 +313,22 @@ function shareReview() {
 function reportReview(id) {
     // Implement report functionality
     BookReview.utils.showAlert('Tính năng đang phát triển', 'info');
+}
+
+function likeComment(commentId, button) {
+    const likeCount = button.querySelector('.like-count');
+    const icon = button.querySelector('i');
+    const isLiked = icon.classList.contains('fas');
+    
+    if (isLiked) {
+        icon.classList.remove('fas');
+        icon.classList.add('far');
+        likeCount.textContent = parseInt(likeCount.textContent) - 1;
+    } else {
+        icon.classList.remove('far');
+        icon.classList.add('fas');
+        likeCount.textContent = parseInt(likeCount.textContent) + 1;
+    }
 }
 
 function replyToComment(id) {

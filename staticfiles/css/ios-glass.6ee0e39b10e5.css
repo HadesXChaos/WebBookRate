@@ -1,0 +1,118 @@
+/* ===================================
+   iOS 26 Glass Effect - Strong & Visible
+   =================================== */
+
+/* Force white background */
+body {
+  background: #ffffff !important;
+  background-image: none !important;
+}
+
+body::before {
+  display: none !important;
+}
+
+/* Navigation - Strong Glass Effect */
+nav {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(40px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.1) !important;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.7) !important;
+}
+
+/* All Cards - Strong Glass */
+.card,
+.book-card-animated,
+.review-card {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(40px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
+  border: 1px solid rgba(226, 232, 240, 0.7) !important;
+  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.1) !important;
+}
+
+.card:hover,
+.book-card-animated:hover,
+.review-card:hover {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(50px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(50px) saturate(200%) !important;
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.15) !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+}
+
+/* Input Fields - Glass */
+input[type="text"],
+input[type="search"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+textarea,
+select {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(20px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(200%) !important;
+  border: 1px solid rgba(226, 232, 240, 0.7) !important;
+}
+
+input[type="text"]:focus,
+input[type="search"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+textarea:focus,
+select:focus {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(30px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(200%) !important;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1) !important;
+}
+
+/* Buttons - Glass */
+.btn-outline {
+  background: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(20px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(200%) !important;
+  border: 1px solid rgba(203, 213, 225, 0.7) !important;
+}
+
+.btn-outline:hover {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(30px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(200%) !important;
+}
+
+/* Dropdown Menus */
+.dropdown-menu,
+[x-show] {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(40px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
+  border: 1px solid rgba(226, 232, 240, 0.7) !important;
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Sections - Glass Overlay */
+.section {
+  background: transparent !important;
+}
+
+/* Main Content */
+main {
+  background: transparent !important;
+}
+
+/* Override any conflicting styles */
+.bg-white {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(40px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
+}
+
+.bg-gray-50 {
+  background: rgba(248, 250, 252, 0.5) !important;
+  backdrop-filter: blur(20px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(200%) !important;
+}
+

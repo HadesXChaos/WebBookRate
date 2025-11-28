@@ -5,25 +5,26 @@
 
 {% block content %}
 <div class="container">
-    <div style="margin-bottom: 2rem;">
-        <h1>Tìm kiếm</h1>
-        <form class="search-form" action="{% url 'search' %}" method="get" style="max-width: 600px; margin-top: 1rem;">
-            <input 
-                type="search" 
-                name="q" 
-                value="{{ query }}"
-                placeholder="Tìm kiếm sách, tác giả, review..." 
-                aria-label="Tìm kiếm"
-                class="search-input"
-                style="width: 100%;"
-            >
-            <button type="submit" class="search-button" aria-label="Tìm kiếm">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16z" stroke="currentColor" stroke-width="2"/>
-                    <path d="m19 19-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-            </button>
-        </form>
+    <div class="section-header mb-8" data-aos="fade-up">
+        <div>
+            <h1 class="section-title mb-4">Tìm kiếm</h1>
+            <form class="search-form flex gap-2 max-w-2xl" action="{% url 'search' %}" method="get">
+                <div class="input-icon flex-1">
+                    <input 
+                        type="search" 
+                        name="q" 
+                        value="{{ query }}"
+                        placeholder="Tìm kiếm sách, tác giả, review..." 
+                        aria-label="Tìm kiếm"
+                        class="form-input"
+                    >
+                </div>
+                <button type="submit" class="btn btn-primary" aria-label="Tìm kiếm">
+                    <i class="fas fa-search"></i>
+                    <span>Tìm kiếm</span>
+                </button>
+            </form>
+        </div>
     </div>
     
     {% if query %}
@@ -31,8 +32,10 @@
         <div class="loading">Đang tìm kiếm...</div>
     </div>
     {% else %}
-    <div style="text-align: center; padding: 3rem; color: #64748b;">
-        <p>Nhập từ khóa để tìm kiếm sách, tác giả hoặc review.</p>
+    <div class="empty-state">
+        <div class="empty-state-icon">🔍</div>
+        <div class="empty-state-title">Bắt đầu tìm kiếm</div>
+        <p class="empty-state-description">Nhập từ khóa để tìm kiếm sách, tác giả hoặc review.</p>
     </div>
     {% endif %}
 </div>

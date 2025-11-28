@@ -1,0 +1,88 @@
+/* ===================================
+   Notification Badge - Modern Design
+   =================================== */
+
+.notification-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border: 2px solid #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px 0 rgba(239, 68, 68, 0.4);
+  z-index: 10;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.notification-count-number {
+  color: #ffffff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Pulse animation for unread notifications */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+/* Hover effect */
+a:hover .notification-badge {
+  animation: none;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px 0 rgba(239, 68, 68, 0.5);
+}
+
+/* Large number badge */
+.notification-badge.large {
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 12px;
+}
+
+.notification-badge.large .notification-count-number {
+  font-size: 0.75rem;
+}
+
+/* Very large number (99+) */
+.notification-badge.very-large {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 14px;
+}
+
+.notification-badge.very-large .notification-count-number {
+  font-size: 0.8125rem;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .notification-badge {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-width: 1.5px;
+  }
+  
+  .notification-count-number {
+    font-size: 0.625rem;
+  }
+}
+
