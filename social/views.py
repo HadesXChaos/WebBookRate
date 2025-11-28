@@ -6,10 +6,12 @@ from django.shortcuts import get_object_or_404
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.contrib.auth import get_user_model
+from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Follow, Notification, Collection, CollectionItem
 from .serializers import FollowSerializer, NotificationSerializer, CollectionSerializer, CollectionItemSerializer
 from books.models import Book, Author
+from .models import Follow, Notification, Collection, CollectionItem
 
 User = get_user_model()
 
@@ -18,6 +20,8 @@ class NotificationListView(generics.ListAPIView):
     """Notification List"""
     serializer_class = NotificationSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['is_read', 'notification_type']
 
     def get_queryset(self):
         return Notification.objects.filter(user=self.request.user).order_by('-created_at')
@@ -38,6 +42,13 @@ def mark_all_notifications_read(request):
     """Mark all notifications as read"""
     Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
     return Response({'message': 'All notifications marked as read'})
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def unread_notification_count(request):
+    """Get count of unread notifications"""
+    count = Notification.objects.filter(user=request.user, is_read=False).count()
+    return Response({'count': count})
 
 
 class CollectionListView(generics.ListCreateAPIView):
@@ -159,11 +170,28 @@ class FollowToggleView(APIView):
             except ContentType.DoesNotExist:
                 return Response({'error': 'Invalid target type'}, status=status.HTTP_400_BAD_REQUEST)
 
-            Follow.objects.get_or_create(
+            follow, created = Follow.objects.get_or_create(
                 follower=request.user,
                 content_type=content_type,
                 object_id=object_id
             )
+
+            # 🔔 Tạo thông báo khi follow user
+            if created and content_type.model == 'user' and object_id != request.user.id:
+                try:
+                    target_user = User.objects.get(pk=object_id)
+                    Notification.objects.create(
+                        user=target_user,
+                        notification_type='follow',
+                        content_type=ContentType.objects.get_for_model(request.user),
+                        object_id=request.user.id,
+                        payload={
+                            'message': f'{request.user.username} đã bắt đầu theo dõi bạn.'
+                        }
+                    )
+                except User.DoesNotExist:
+                    pass
+
             return Response({'message': 'Followed successfully'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

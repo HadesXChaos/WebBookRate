@@ -334,6 +334,39 @@
     });
   };
 
+    // ===================================
+    // Notification Badge
+    // ===================================
+    const initNotificationBadge = function() {
+        const badge = document.getElementById('notification-count');
+        if (!badge) return; // user chưa login
+
+        const updateBadge = function() {
+            fetch('/api/social/notifications/unread-count/')
+                .then(res => {
+                    if (!res.ok) throw new Error('Network error');
+                    return res.json();
+                })
+                .then(data => {
+                    const count = data.count || 0;
+                    if (count > 0) {
+                        badge.textContent = count > 9 ? '9+' : count;
+                        badge.style.display = 'inline-flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                })
+                .catch(err => {
+                    console.error('Notification count error:', err);
+                });
+        };
+
+        updateBadge();
+        // Poll mỗi 60s
+        setInterval(updateBadge, 60000);
+    };
+
+
   // sửa đổi method cập nhật hồ sơ người dùng từ POST thành PUT
   document.addEventListener("DOMContentLoaded", () => {
     const csrftoken = utils.getCsrfToken();
@@ -445,6 +478,7 @@
     initSearchAutocomplete();
     initAlerts();
     initLikeButtons();
+    initNotificationBadge();
 
     // Render stars for all rating elements
     document.querySelectorAll("[data-rating]").forEach((element) => {

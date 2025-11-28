@@ -3,7 +3,7 @@ from .views import (
     FollowToggleView,
     NotificationListView, mark_notification_read, mark_all_notifications_read,
     CollectionListView, CollectionDetailView, collection_item_view,
-    feed_view,
+    feed_view, unread_notification_count,
 )
 
 app_name = 'social'
@@ -16,6 +16,9 @@ urlpatterns = [
     path('notifications/', NotificationListView.as_view(), name='notification_list'),
     path('notifications/<int:pk>/read/', mark_notification_read, name='notification_read'),
     path('notifications/read-all/', mark_all_notifications_read, name='notification_read_all'),
+    # alias cho template cũ
+    path('notifications/mark-all-read/', mark_all_notifications_read, name='notification_mark_all'),
+    path('notifications/unread-count/', unread_notification_count, name='notification_unread_count'),
     
     # Collections
     path('collections/', CollectionListView.as_view(), name='collection_list'),

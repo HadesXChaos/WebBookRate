@@ -60,12 +60,18 @@ class FollowSerializer(serializers.ModelSerializer):
 
 class NotificationSerializer(serializers.ModelSerializer):
     content_object = serializers.SerializerMethodField()
+    message = serializers.SerializerMethodField()
 
     class Meta:
         model = Notification
-        fields = ['id', 'notification_type', 'content_object', 'payload', 
-                 'is_read', 'created_at']
+        fields = ['id', 'notification_type', 'message', 'content_object',
+                  'payload', 'is_read', 'created_at']
         read_only_fields = ['id', 'created_at']
+
+    def get_message(self, obj):
+        if isinstance(obj.payload, dict):
+            return obj.payload.get('message')
+        return None
 
     def get_content_object(self, obj):
         if obj.content_object:
