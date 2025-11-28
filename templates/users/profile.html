@@ -39,13 +39,20 @@
                     
                     {% if profile_user.role != 'reader' %}
                     <div>
-                        <strong>{{ profile_user.profile.follower_count|default:0 }}</strong>
+                        <strong id="followers-count"
+                                class="follow-count"
+                                data-username="{{ profile_user.username }}">
+                            {{ profile_user.profile.follower_count|default:0 }}
+                        </strong>
                         <span style="color: #64748b; font-size: 0.875rem;"> người theo dõi</span>
                     </div>
-                    {% endif %}
-                    
+                    {% endif %}            
                     <div>
-                        <strong>{{ profile_user.profile.following_count|default:0 }}</strong>
+                        <strong id="following-count"
+                                class="follow-count"
+                                data-username="{{ profile_user.username }}">
+                            {{ profile_user.profile.following_count|default:0 }}
+                        </strong>
                         <span style="color: #64748b; font-size: 0.875rem;"> đang theo dõi</span>
                     </div>
                 </div>
@@ -113,6 +120,38 @@
         <div style="display: flex; gap: 1rem; justify-content: flex-end;">
             <button id="cancel-unfollow-btn" class="btn btn-outline" style="border: none; background: #f1f5f9;">Huỷ</button>
             <button id="confirm-unfollow-btn" class="btn btn-primary" style="background: #ef4444; border-color: #ef4444;">Đồng ý</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal danh sách người theo dõi -->
+<div id="followers-modal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 style="margin-top:0; margin-bottom: 1rem; font-size: 1.25rem;">
+            Người theo dõi {{ profile_user.username }}
+        </h3>
+        <div id="followers-list" class="modal-list"></div>
+        <div style="text-align: right; margin-top: 1rem;">
+            <button id="close-followers-btn" class="btn btn-outline"
+                    style="border:none; background:#f1f5f9;">
+                Đóng
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal danh sách đang theo dõi -->
+<div id="following-modal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 style="margin-top:0; margin-bottom: 1rem; font-size: 1.25rem;">
+            {{ profile_user.username }} đang theo dõi
+        </h3>
+        <div id="following-list" class="modal-list"></div>
+        <div style="text-align: right; margin-top: 1rem;">
+            <button id="close-following-btn" class="btn btn-outline"
+                    style="border:none; background:#f1f5f9;">
+                Đóng
+            </button>
         </div>
     </div>
 </div>
@@ -187,6 +226,130 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const userId = {{ profile_user.id }};
+
+    const username = "{{ profile_user.username|escapejs }}";
+
+    // Elements liên quan đến followers/following
+    const followersCountEl = document.getElementById('followers-count');
+    const followingCountEl = document.getElementById('following-count');
+
+    const followersModal = document.getElementById('followers-modal');
+    const followingModal = document.getElementById('following-modal');
+
+    const followersListEl = document.getElementById('followers-list');
+    const followingListEl = document.getElementById('following-list');
+
+    const closeFollowersBtn = document.getElementById('close-followers-btn');
+    const closeFollowingBtn = document.getElementById('close-following-btn');
+
+    // Hàm render 1 user trong list
+    function renderUserItem(user) {
+        const avatar = user.profile?.avatar || '{% static "images/default-avatar.svg" %}';
+        const displayName = (user.first_name || user.last_name)
+            ? `${user.first_name || ''} ${user.last_name || ''}`.trim()
+            : user.username;
+
+        const roleBadge = user.role === 'reviewer'
+            ? '<span class="badge">Reviewer</span>'
+            : '';
+
+        return `
+            <a class="follow-user-item" href="/users/${user.username}/">
+                <img src="${avatar}" alt="${displayName}">
+                <div>
+                    <div class="name">
+                        ${displayName} ${roleBadge}
+                    </div>
+                    <div class="username">@${user.username}</div>
+                </div>
+            </a>
+        `;
+    }
+
+    async function loadFollowers() {
+        if (!followersListEl) return;
+        followersListEl.innerHTML = '<p>Đang tải...</p>';
+
+        try {
+            const res = await fetch(`/api/social/users/${encodeURIComponent(username)}/followers/`);
+            const data = await res.json();
+            const items = data.results || data;
+
+            if (!items || items.length === 0) {
+                followersListEl.innerHTML = '<p>Chưa có ai theo dõi.</p>';
+                return;
+            }
+
+            followersListEl.innerHTML = items
+                .map(item => renderUserItem(item.follower))
+                .join('');
+        } catch (err) {
+            console.error(err);
+            followersListEl.innerHTML = '<p>Có lỗi xảy ra. Vui lòng thử lại sau.</p>';
+        }
+    }
+
+    async function loadFollowing() {
+        if (!followingListEl) return;
+        followingListEl.innerHTML = '<p>Đang tải...</p>';
+
+        try {
+            const res = await fetch(`/api/social/users/${encodeURIComponent(username)}/following/`);
+            const data = await res.json();
+            const items = data.results || data;
+
+            if (!items || items.length === 0) {
+                followingListEl.innerHTML = '<p>Chưa đang theo dõi ai.</p>';
+                return;
+            }
+
+            followingListEl.innerHTML = items
+                .map(item => renderUserItem(item.target))  // target là user được theo dõi
+                .join('');
+        } catch (err) {
+            console.error(err);
+            followingListEl.innerHTML = '<p>Có lỗi xảy ra. Vui lòng thử lại sau.</p>';
+        }
+    }
+
+    // Mở modal khi click
+    if (followersCountEl && followersModal) {
+        followersCountEl.addEventListener('click', () => {
+            followersModal.classList.add('show');
+            loadFollowers();
+        });
+    }
+
+    if (followingCountEl && followingModal) {
+        followingCountEl.addEventListener('click', () => {
+            followingModal.classList.add('show');
+            loadFollowing();
+        });
+    }
+
+    // Đóng modal
+    if (closeFollowersBtn && followersModal) {
+        closeFollowersBtn.addEventListener('click', () => {
+            followersModal.classList.remove('show');
+        });
+        followersModal.addEventListener('click', (e) => {
+            if (e.target === followersModal) {
+                followersModal.classList.remove('show');
+            }
+        });
+    }
+
+    if (closeFollowingBtn && followingModal) {
+        closeFollowingBtn.addEventListener('click', () => {
+            followingModal.classList.remove('show');
+        });
+        followingModal.addEventListener('click', (e) => {
+            if (e.target === followingModal) {
+                followingModal.classList.remove('show');
+            }
+        });
+    }
+
     
     // --- START: MODAL & FOLLOW LOGIC (ĐÃ SỬA) ---
     const followBtn = document.getElementById('follow-btn');

@@ -219,3 +219,42 @@ class FollowToggleView(APIView):
             return Response({'error': 'Invalid target type'}, status=status.HTTP_400_BAD_REQUEST)
         except Follow.DoesNotExist:
             return Response({'error': 'Not following'}, status=status.HTTP_404_NOT_FOUND)
+        
+class UserFollowersListView(generics.ListAPIView):
+    """
+    Danh sách người theo dõi (followers) của 1 user
+    Trả về các bản ghi Follow, trong đó field `follower` là người theo dõi.
+    """
+    serializer_class = FollowSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        username = self.kwargs['username']
+        user = get_object_or_404(User, username=username)
+
+        user_ct = ContentType.objects.get_for_model(User)
+
+        return Follow.objects.filter(
+            content_type=user_ct,
+            object_id=user.id
+        ).select_related('follower').order_by('-created_at')
+
+
+class UserFollowingListView(generics.ListAPIView):
+    """
+    Danh sách user mà 1 user đang theo dõi (following)
+    Trả về các bản ghi Follow, trong đó field `target` là user được theo dõi.
+    """
+    serializer_class = FollowSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        username = self.kwargs['username']
+        user = get_object_or_404(User, username=username)
+
+        user_ct = ContentType.objects.get_for_model(User)
+
+        return Follow.objects.filter(
+            follower=user,
+            content_type=user_ct
+        ).select_related('follower').order_by('-created_at')
