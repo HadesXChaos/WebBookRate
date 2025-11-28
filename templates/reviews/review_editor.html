@@ -6,11 +6,11 @@
 
 {% block content %}
 <div class="container editor-container" style="max-width: 1200px;">
-    <div class="editor-page-header">
+    <div class="editor-page-header mb-8">
         <div>
-            <p class="eyebrow-label">Trình biên tập review</p>
-            <h1>{% if existing_review %}Chỉnh sửa review{% else %}Viết review mới{% endif %}</h1>
-            <p class="sub-text">Hỗ trợ Markdown, xem trước trực tiếp và tự động lưu bản nháp.</p>
+            <p class="text-sm text-gray-500 uppercase tracking-wide mb-2">Trình biên tập review</p>
+            <h1 class="section-title mb-3">{% if existing_review %}Chỉnh sửa review{% else %}Viết review mới{% endif %}</h1>
+            <p class="text-gray-600">Hỗ trợ Markdown, xem trước trực tiếp và tự động lưu bản nháp.</p>
         </div>
         <div class="editor-meta">
             <span class="status-chip" id="editor-status-chip">
@@ -120,9 +120,9 @@
                     </div>
                 </div>
 
-                <div class="form-actions">
+                <div class="form-actions flex justify-between items-center gap-4 mt-8">
                     <button type="button" class="btn btn-outline" id="editor-cancel-btn">Hủy</button>
-                    <div class="action-group">
+                    <div class="flex gap-3">
                         <button type="button" class="btn btn-outline" data-submit-intent="draft">Lưu nháp</button>
                         <button type="button" class="btn btn-primary" data-submit-intent="publish">Xuất bản</button>
                     </div>

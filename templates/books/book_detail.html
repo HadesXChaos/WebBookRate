@@ -115,21 +115,21 @@
     
     <!-- Book Description -->
     {% if book.description %}
-    <section class="book-description" style="margin-bottom: 2rem;">
+    <section class="book-description mb-8">
         <div class="card">
             <div class="card-body">
-                <h2 style="margin-bottom: 1rem;">Giới thiệu</h2>
-                <p style="line-height: 1.8; color: #475569;">{{ book.description|linebreaks }}</p>
+                <h2 class="text-2xl font-bold mb-4">Giới thiệu</h2>
+                <p class="text-gray-700 leading-relaxed">{{ book.description|linebreaks }}</p>
             </div>
         </div>
     </section>
     {% endif %}
     
     <!-- Rating Distribution -->
-    <section class="rating-distribution" style="margin-bottom: 2rem;">
+    <section class="rating-distribution mb-8">
         <div class="card">
             <div class="card-body">
-                <h2 style="margin-bottom: 1rem;">Phân bố điểm</h2>
+                <h2 class="text-2xl font-bold mb-4">Phân bố điểm</h2>
                 <div id="rating-chart" style="min-height: 200px;">
                     <!-- Chart will be rendered via JavaScript -->
                 </div>
@@ -139,9 +139,9 @@
     
     <!-- Reviews Section -->
     <section class="reviews-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h2>Đánh giá ({{ book.rating_count|default:0 }})</h2>
-            <div style="display: flex; gap: 0.5rem;">
+        <div class="section-header mb-6">
+            <h2 class="section-title">Đánh giá ({{ book.rating_count|default:0 }})</h2>
+            <div class="flex gap-2">
                 <button class="btn btn-sm btn-outline" data-sort="latest">Mới nhất</button>
                 <button class="btn btn-sm btn-outline" data-sort="rating">Điểm cao</button>
                 <button class="btn btn-sm btn-outline" data-sort="helpful">Hữu ích nhất</button>

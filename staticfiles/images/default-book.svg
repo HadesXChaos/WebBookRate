@@ -1,0 +1,9 @@
+<svg width="400" height="600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="600" fill="#1e293b"/>
+  <rect x="50" y="50" width="300" height="500" fill="#334155" rx="4"/>
+  <line x1="200" y1="150" x2="200" y2="450" stroke="#64748b" stroke-width="2"/>
+  <rect x="80" y="180" width="120" height="180" fill="#475569" rx="2"/>
+  <rect x="200" y="180" width="120" height="180" fill="#475569" rx="2"/>
+  <text x="200" y="400" text-anchor="middle" fill="#94a3b8" font-family="Arial" font-size="24">BOOK</text>
+</svg>
+

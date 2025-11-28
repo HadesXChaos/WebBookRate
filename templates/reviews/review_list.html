@@ -122,53 +122,51 @@ nhất từ cộng đồng BookReview.vn{% endblock %} {% block extra_css %}
   }
 </style>
 {% endblock %} {% block content %}
-<section class="section">
+<section class="section page-transition review-list-page">
   <div class="container" style="max-width: 1100px">
     <div
-      class="section-header"
+      class="section-header animate-slide-up"
       style="
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
         gap: 1rem;
+        margin-bottom: 2rem;
       "
+      data-aos="fade-up"
     >
       <div>
-        <h1 class="section-title">Reviews</h1>
-        <p class="sub-text">
+        <h1 class="section-title mb-3">Reviews</h1>
+        <p class="text-gray-600 text-lg">
           Khám phá các đánh giá sách mới nhất từ cộng đồng.
         </p>
       </div>
     </div>
 
     <!-- Thanh filter / sort -->
-    <div class="filters-bar">
+    <div class="filters-bar animate-fade-in" data-aos="fade-up" data-aos-delay="100">
       <div class="filter-pills">
         <a
           href="?sort=newest"
-          class="filter-pill {% if sort == 'newest' %}active{% endif %} hover-lift transition-all duration-300"
-          style="transition: all 0.3s ease;"
+          class="tag {% if sort == 'newest' %}active{% endif %}"
         >
           Mới nhất
         </a>
         <a
           href="?sort=top_rated"
-          class="filter-pill {% if sort == 'top_rated' %}active{% endif %} hover-lift transition-all duration-300"
-          style="transition: all 0.3s ease;"
+          class="tag {% if sort == 'top_rated' %}active{% endif %}"
         >
           Điểm cao nhất
         </a>
         <a
           href="?sort=most_liked"
-          class="filter-pill {% if sort == 'most_liked' %}active{% endif %} hover-lift transition-all duration-300"
-          style="transition: all 0.3s ease;"
+          class="tag {% if sort == 'most_liked' %}active{% endif %}"
         >
           Nhiều lượt thích
         </a>
         <a
           href="?sort=most_commented"
-          class="filter-pill {% if sort == 'most_commented' %}active{% endif %} hover-lift transition-all duration-300"
-          style="transition: all 0.3s ease;"
+          class="tag {% if sort == 'most_commented' %}active{% endif %}"
         >
           Nhiều bình luận
         </a>
@@ -178,7 +176,7 @@ nhất từ cộng đồng BookReview.vn{% endblock %} {% block extra_css %}
     {% if reviews %}
     <div class="reviews-list">
       {% for review in reviews %}
-      <article class="card review-card stagger-item interactive-card hover-lift" data-aos="fade-up" data-aos-delay="{% widthratio forloop.counter0 1 100 %}">
+      <article class="card review-card stagger-item interactive-card hover-lift animate-slide-up" data-aos="fade-up" data-aos-delay="{% widthratio forloop.counter0 1 100 %}">
         <div class="card-body">
           <div class="review-meta">
             <div class="review-user">
@@ -276,8 +274,24 @@ nhất từ cộng đồng BookReview.vn{% endblock %} {% block extra_css %}
         {% endif %}
       </ul>
     </nav>
-    {% endif %} {% else %}
-    <p style="color: #64748b">Chưa có review nào.</p>
+    {% endif %} 
+    {% else %}
+    <div class="empty-state animate-fade-in" data-aos="fade-up">
+      <div class="empty-state-icon">
+        <i class="fas fa-book-open" style="font-size: 4rem; color: #cbd5e1;"></i>
+      </div>
+      <h3 class="empty-state-title">Chưa có review nào</h3>
+      <p class="empty-state-description">Hãy là người đầu tiên chia sẻ đánh giá về cuốn sách yêu thích của bạn!</p>
+      {% if user.is_authenticated %}
+      <a href="{% url 'review_editor' %}" class="btn btn-primary btn-animated hover-lift" style="margin-top: 1rem;">
+        <i class="fas fa-pen mr-2"></i>Viết review đầu tiên
+      </a>
+      {% else %}
+      <a href="{% url 'login' %}" class="btn btn-primary btn-animated hover-lift" style="margin-top: 1rem;">
+        <i class="fas fa-sign-in-alt mr-2"></i>Đăng nhập để viết review
+      </a>
+      {% endif %}
+    </div>
     {% endif %}
   </div>
 </section>

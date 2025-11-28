@@ -4,45 +4,47 @@
 {% block title %}Danh sách sách - BookReview.vn{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-  <div class="mb-8" data-aos="fade-up">
-    <h1 class="text-4xl font-bold text-gray-700 mb-2">Danh sách sách</h1>
-    <p class="text-gray-600">Khám phá hàng ngàn cuốn sách hay từ cộng đồng</p>
+<div class="container mx-auto px-4 py-8 book-list-page">
+  <div class="mb-12 section-header" data-aos="fade-up">
+    <div>
+      <h1 class="section-title mb-3">Danh sách sách</h1>
+      <p class="text-gray-600 text-lg">Khám phá hàng ngàn cuốn sách hay từ cộng đồng</p>
+    </div>
   </div>
 
   <!-- Loading State -->
-  <div id="book-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 min-h-[500px]">
+  <div id="book-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 min-h-[500px]">
     <!-- Skeleton Loading -->
     {% for i in "123456789012" %}
-    <div class="animate-pulse">
-      <div class="bg-gray-200 rounded-lg aspect-[2/3] mb-2"></div>
-      <div class="h-4 bg-gray-200 rounded mb-2"></div>
-      <div class="h-3 bg-gray-200 rounded w-3/4"></div>
+    <div class="book-card animate-pulse">
+      <div class="skeleton aspect-[2/3] rounded-xl mb-3"></div>
+      <div class="skeleton h-4 rounded mb-2"></div>
+      <div class="skeleton h-3 rounded w-3/4"></div>
     </div>
     {% endfor %}
   </div>
 
   <!-- Pagination -->
-  <div class="mt-12 flex flex-col items-center space-y-4" id="pagination-container">
+  <div class="pagination" id="pagination-container">
     <div class="flex items-center space-x-2" id="pagination-controls">
-      <button id="btn-first" class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-md btn-animated" disabled>
+      <button id="btn-first" class="btn btn-outline btn-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>
         <i class="fas fa-angle-double-left"></i>
       </button>
-      <button id="btn-prev" class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-md btn-animated" disabled>
-        <i class="fas fa-angle-left mr-1"></i> Trước
+      <button id="btn-prev" class="btn btn-outline btn-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+        <i class="fas fa-angle-left"></i> Trước
       </button>
       <span id="page-info" class="px-4 py-2 text-gray-700 font-medium">
         Trang <b id="current-page-num">1</b> / <b id="total-pages">--</b>
       </span>
-      <button id="btn-next" class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-md btn-animated" disabled>
-        Sau <i class="fas fa-angle-right ml-1"></i>
+      <button id="btn-next" class="btn btn-outline btn-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+        Sau <i class="fas fa-angle-right"></i>
       </button>
-      <button id="btn-last" class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-md btn-animated" disabled>
+      <button id="btn-last" class="btn btn-outline btn-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>
         <i class="fas fa-angle-double-right"></i>
       </button>
     </div>
 
-    <div class="flex items-center space-x-2" id="jump-to-page">
+    <div class="flex items-center space-x-2 mt-4" id="jump-to-page">
       <input 
         type="number" 
         id="page-input" 
@@ -50,7 +52,7 @@
         min="1" 
         class="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
       >
-      <button id="btn-go" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-all duration-300 font-medium btn-animated hover:scale-105 shadow-md hover:shadow-lg">
+      <button id="btn-go" class="btn btn-primary btn-sm">
         Đi
       </button>
     </div>

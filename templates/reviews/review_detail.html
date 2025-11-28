@@ -46,34 +46,38 @@
 {% block content %}
 <div class="container" style="max-width: 900px;">
     <!-- Breadcrumb -->
-    <nav style="margin-bottom: 1rem; color: #64748b; font-size: 0.875rem;">
-        <a href="/">Trang chủ</a> / 
-        <a href="/books/{{ review.book.slug }}/">{{ review.book.title }}</a> / 
+    <nav class="breadcrumb mb-6">
+        <a href="/">Trang chủ</a>
+        <span class="breadcrumb-separator">/</span>
+        <a href="/books/{{ review.book.slug }}/">{{ review.book.title }}</a>
+        <span class="breadcrumb-separator">/</span>
         <span>Review</span>
     </nav>
     
     <!-- Review Header -->
-    <article class="review-header" style="margin-bottom: 2rem;">
+    <article class="review-header mb-8">
         <div class="card">
             <div class="card-body">
-                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <div class="flex items-center gap-4 mb-4">
                     <img src="{% if review.user.profile.avatar %}{{ review.user.profile.avatar.url }}{% else %}{% static 'images/default-avatar.svg' %}{% endif %}" 
                          alt="{{ review.user.username }}" 
-                         style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover;">
-                    <div style="flex: 1;">
-                        <div><strong><a href="/users/{{ review.user.username }}/">{{ review.user.username }}</a></strong></div>
-                        <div style="color: #64748b; font-size: 0.875rem;">
-                            đánh giá <a href="/books/{{ review.book.slug }}/">{{ review.book.title }}</a>
+                         class="user-avatar">
+                    <div class="flex-1">
+                        <div class="font-bold text-lg mb-1">
+                            <a href="/users/{{ review.user.username }}/" class="text-gray-900 hover:text-primary transition-colors">{{ review.user.username }}</a>
                         </div>
-                        <div style="color: #64748b; font-size: 0.875rem;">
+                        <div class="text-gray-600 text-sm mb-1">
+                            đánh giá <a href="/books/{{ review.book.slug }}/" class="text-primary hover:text-primary-hover">{{ review.book.title }}</a>
+                        </div>
+                        <div class="text-gray-500 text-xs">
                             {{ review.created_at|date:"d/m/Y H:i" }}
                         </div>
                     </div>
                 </div>
                 
-                <div class="rating-stars" data-rating="{{ review.rating }}"></div>
+                <div class="rating-stars mb-4" data-rating="{{ review.rating }}"></div>
                 
-                <h1 style="margin-top: 1rem; margin-bottom: 1rem;">{{ review.title }}</h1>
+                <h1 class="section-title mb-4">{{ review.title }}</h1>
                 
                 {% if user == review.user %}
                 <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">

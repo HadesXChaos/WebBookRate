@@ -3,11 +3,66 @@
 
 {% block title %}BookReview.vn - Đánh giá sách{% endblock %} 
 
+{% block body_class %}home-page{% endblock %}
+
+{% block extra_css %}
+<style>
+  body.home-page {
+    position: relative;
+  }
+  body.home-page::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+      radial-gradient(circle at 20% 50%, rgba(37, 99, 235, 0.02) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.02) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  body.home-page main {
+    position: relative;
+    z-index: 1;
+  }
+  body.home-page .decorative-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.1;
+    pointer-events: none;
+    z-index: 0;
+  }
+  body.home-page .decorative-blob-1 {
+    width: 400px;
+    height: 400px;
+    background: #2563eb;
+    top: -200px;
+    right: -200px;
+    animation: float 20s ease-in-out infinite;
+  }
+  body.home-page .decorative-blob-2 {
+    width: 300px;
+    height: 300px;
+    background: #8b5cf6;
+    bottom: -150px;
+    left: -150px;
+    animation: float 25s ease-in-out infinite reverse;
+  }
+</style>
+{% endblock %} 
+
 {% block meta_description %}Khám phá, đánh giá và chia sẻ sách hay cùng cộng đồng yêu sách{% endblock %} 
 
 {% block content %}
+<!-- Decorative Background Blobs - Only on Home -->
+<div class="decorative-blob decorative-blob-1"></div>
+<div class="decorative-blob decorative-blob-2"></div>
+
 <!-- Hero Section -->
-<section class="relative bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white py-20 overflow-hidden gradient-animated" data-aos="fade">
+<section class="relative hero-gradient text-white py-20 overflow-hidden" data-aos="fade">
   <div class="absolute inset-0 bg-black opacity-10"></div>
   <div class="container mx-auto px-4 relative z-10">
     <div class="max-w-3xl mx-auto text-center animate-slide-up" data-aos="fade-up">
@@ -36,7 +91,7 @@
 </section>
 
 <!-- Trending Books Section -->
-<section class="py-16 bg-white">
+<section class="py-16 section">
   <div class="container mx-auto px-4">
     <div class="flex justify-between items-center mb-8" data-aos="fade-up">
       <h2 class="text-3xl font-bold text-gray-700">Thịnh hành tuần</h2>
@@ -59,7 +114,7 @@
 </section>
 
 <!-- New Reviews Section -->
-<section class="py-16 bg-gray-50">
+<section class="py-16 section">
   <div class="container mx-auto px-4">
     <div class="flex justify-between items-center mb-8" data-aos="fade-up">
       <h2 class="text-3xl font-bold text-gray-700">Reviews mới nhất</h2>
@@ -89,7 +144,7 @@
 
 <!-- Recommended Books Section -->
 {% if user.is_authenticated %}
-<section class="py-16 bg-white">
+<section class="py-16 section">
   <div class="container mx-auto px-4">
     <div class="flex justify-between items-center mb-8" data-aos="fade-up">
       <h2 class="text-3xl font-bold text-gray-700">Đề xuất cho bạn</h2>
@@ -113,7 +168,7 @@
 {% endif %}
 
 <!-- Popular Genres Section -->
-<section class="py-16 bg-gray-50">
+<section class="py-16 section">
   <div class="container mx-auto px-4">
     <div class="flex justify-between items-center mb-8" data-aos="fade-up">
       <h2 class="text-3xl font-bold text-gray-700">Thể loại phổ biến</h2>

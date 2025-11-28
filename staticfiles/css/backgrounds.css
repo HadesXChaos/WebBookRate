@@ -1,0 +1,519 @@
+/* ===================================
+   Beautiful Backgrounds & Patterns
+   =================================== */
+
+/* ===================================
+   Main Body Background - iOS 26 Glass White
+   =================================== */
+
+body {
+  background: #ffffff !important;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Subtle texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(37, 99, 235, 0.015) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.015) 0%, transparent 50%);
+  background-size: 100% 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Main content wrapper */
+main {
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+}
+
+/* Ensure all interactive elements are above background */
+main > * {
+  position: relative;
+  z-index: 2;
+}
+
+main .section {
+  position: relative;
+  z-index: 2;
+  background: transparent !important;
+}
+
+/* ===================================
+   Section Backgrounds - iOS 26 Glass
+   =================================== */
+
+.home-page .section {
+  position: relative;
+  padding: 3rem 0;
+}
+
+.home-page .section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 0;
+  border-radius: 0;
+  pointer-events: none;
+}
+
+.home-page .section:nth-child(even)::before {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.home-page .section > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===================================
+   Card Backgrounds - iOS 26 Glass
+   =================================== */
+
+.card {
+  background: rgba(255, 255, 255, 0.65) !important;
+  backdrop-filter: blur(30px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(200%) !important;
+  border: 1px solid rgba(226, 232, 240, 0.6) !important;
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.08) !important;
+  position: relative;
+  overflow: visible;
+  z-index: 1;
+}
+
+/* Glass effect on hover */
+.card:hover {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(35px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(35px) saturate(200%) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.12) !important;
+  border-color: rgba(226, 232, 240, 0.8) !important;
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+.card-body {
+  position: relative;
+  z-index: 2;
+  background: transparent !important;
+}
+
+/* ===================================
+   Hero Section Background
+   =================================== */
+
+.hero-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background-size: 200% 200%;
+  animation: gradientShift 15s ease infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-gradient::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  animation: float 20s ease-in-out infinite;
+}
+
+.hero-gradient::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(255, 255, 255, 0.03) 10px,
+      rgba(255, 255, 255, 0.03) 20px
+    );
+  animation: slide 30s linear infinite;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes slide {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(50px, 50px);
+  }
+}
+
+/* ===================================
+   Pattern Backgrounds
+   =================================== */
+
+.bg-pattern-dots {
+  background-image: radial-gradient(circle, #cbd5e1 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+}
+
+.bg-pattern-grid {
+  background-image: 
+    linear-gradient(rgba(203, 213, 225, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(203, 213, 225, 0.1) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+.bg-pattern-waves {
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(37, 99, 235, 0.02) 10px,
+      rgba(37, 99, 235, 0.02) 20px
+    );
+}
+
+/* ===================================
+   Glass Morphism Background
+   =================================== */
+
+.bg-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+}
+
+.bg-glass-dark {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ===================================
+   Animated Backgrounds
+   =================================== */
+
+.bg-animated-gradient {
+  background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
+}
+
+.bg-animated-shimmer {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 0%,
+    #ffffff 50%,
+    #f0f0f0 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+}
+
+/* ===================================
+   Container Backgrounds - Removed
+   =================================== */
+
+.container {
+  position: relative;
+}
+
+/* ===================================
+   Book Card Backgrounds - iOS 26 Glass
+   =================================== */
+
+.book-card-animated {
+  background: rgba(255, 255, 255, 0.65) !important;
+  backdrop-filter: blur(30px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(200%) !important;
+  border: 1px solid rgba(226, 232, 240, 0.6) !important;
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.08) !important;
+  position: relative;
+  overflow: visible;
+  z-index: 1;
+}
+
+.book-card-animated:hover {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(35px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(35px) saturate(200%) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.12) !important;
+}
+
+.book-card-animated > * {
+  position: relative;
+  z-index: 2;
+  background: transparent !important;
+}
+
+/* ===================================
+   Review Card Backgrounds - iOS 26 Glass
+   =================================== */
+
+.review-card {
+  background: rgba(255, 255, 255, 0.65) !important;
+  backdrop-filter: blur(30px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(200%) !important;
+  border: 1px solid rgba(226, 232, 240, 0.6) !important;
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.08) !important;
+  position: relative;
+  z-index: 1;
+}
+
+.review-card:hover {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(35px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(35px) saturate(200%) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.12) !important;
+}
+
+.review-card .card-body {
+  background: transparent !important;
+  position: relative;
+  z-index: 2;
+}
+
+/* ===================================
+   Navigation Background - iOS 26 Glass
+   =================================== */
+
+nav {
+  background: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(30px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(200%) !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08) !important;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.6) !important;
+  position: relative;
+}
+
+nav::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.8) 100%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Nav links hover - glass effect */
+nav a:hover,
+nav button:hover {
+  background-color: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Dropdown menu - glass effect */
+nav .dropdown-menu,
+nav [x-show] {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
+}
+
+/* ===================================
+   Footer - Removed
+   =================================== */
+
+footer {
+  display: none !important;
+}
+
+/* ===================================
+   Page Specific Backgrounds - iOS 26 Glass White
+   =================================== */
+
+/* Home Page - White with subtle gradient */
+.home-page {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%);
+}
+
+/* Explore Page - Pure white */
+.explore-page {
+  background: #ffffff;
+}
+
+/* Book List Page - Pure white */
+.book-list-page {
+  background: #ffffff;
+}
+
+/* Review List Page - Pure white */
+.review-list-page {
+  background: #ffffff;
+}
+
+/* ===================================
+   Decorative Elements - Only on Home Page
+   =================================== */
+
+.home-page .decorative-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.home-page .decorative-blob-1 {
+  width: 400px;
+  height: 400px;
+  background: #2563eb;
+  top: -200px;
+  right: -200px;
+  animation: float 20s ease-in-out infinite;
+}
+
+.home-page .decorative-blob-2 {
+  width: 300px;
+  height: 300px;
+  background: #8b5cf6;
+  bottom: -150px;
+  left: -150px;
+  animation: float 25s ease-in-out infinite reverse;
+}
+
+/* ===================================
+   Responsive Backgrounds
+   =================================== */
+
+@media (max-width: 768px) {
+  body::before {
+    background-image: 
+      radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.03) 0%, transparent 70%);
+  }
+  
+  .decorative-blob {
+    display: none;
+  }
+}
+
+/* ===================================
+   Dark Mode Support (Future)
+   =================================== */
+
+/* ===================================
+   Additional Glass Elements
+   =================================== */
+
+/* Input fields with glass effect */
+input[type="text"],
+input[type="search"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+textarea,
+select {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(226, 232, 240, 0.5) !important;
+}
+
+input[type="text"]:focus,
+input[type="search"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+textarea:focus,
+select:focus {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
+/* Buttons with glass effect */
+.btn-outline {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(203, 213, 225, 0.5) !important;
+}
+
+.btn-outline:hover {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
+/* Modal and overlays */
+.modal-backdrop {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.modal-content {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  box-shadow: 0 20px 60px 0 rgba(0, 0, 0, 0.15);
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  }
+  
+  .card {
+    background: rgba(30, 41, 59, 0.7) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
+}
+
+/* ===================================
+   Performance Optimizations
+   =================================== */
+
+/* Reduce animations on low-end devices */
+@media (prefers-reduced-motion: reduce) {
+  body::before,
+  .hero-gradient::before,
+  .hero-gradient::after,
+  .decorative-blob {
+    animation: none !important;
+  }
+}
+

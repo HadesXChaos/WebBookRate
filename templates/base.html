@@ -55,14 +55,17 @@
     <link rel="stylesheet" href="{% static 'css/daisyui-custom.css' %}">
     <link rel="stylesheet" href="{% static 'css/animations.css' %}">
     <link rel="stylesheet" href="{% static 'css/color-improvements.css' %}">
+    <link rel="stylesheet" href="{% static 'css/backgrounds.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ios-glass.css' %}">
+    <link rel="stylesheet" href="{% static 'css/modern-ui.css' %}">
     <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
     <link rel="alternate icon" type="image/x-icon" href="{% static 'images/favicon.svg' %}">
     
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
     <!-- Navigation Header -->
-    <nav class="bg-white shadow-sm sticky top-0 z-50 backdrop-blur-sm bg-opacity-95 animate-slide-down" role="navigation" aria-label="Main navigation" data-aos="fade-down">
+    <nav class="shadow-sm sticky top-0 z-50 animate-slide-down" role="navigation" aria-label="Main navigation" data-aos="fade-down" style="background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(30px) saturate(200%); -webkit-backdrop-filter: blur(30px) saturate(200%);">
         <div class="container mx-auto px-4">
             <div class="flex items-center justify-between h-16">
                 <!-- Logo -->
@@ -78,10 +81,10 @@
                 
                 <!-- Desktop Menu -->
                 <div class="hidden md:flex items-center space-x-1">
-                    <a href="{% url 'home' %}" class="px-4 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition-all duration-300 font-medium nav-link-animated hover:scale-105">Trang chủ</a>
-                    <a href="{% url 'explore' %}" class="px-4 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition-all duration-300 font-medium nav-link-animated hover:scale-105">Khám phá</a>
-                    <a href="{% url 'book_list_view' %}" class="px-4 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition-all duration-300 font-medium nav-link-animated hover:scale-105">Sách</a>
-                    <a href="{% url 'reviews:review_list' %}" class="px-4 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition-all duration-300 font-medium nav-link-animated hover:scale-105">Reviews</a>
+                    <a href="{% url 'home' %}" class="px-4 py-2 text-gray-700 hover:text-primary hover:bg-white rounded-lg transition-all duration-300 font-medium nav-link-animated hover:scale-105">Trang chủ</a>
+                    <a href="{% url 'explore' %}" class="px-4 py-2 text-gray-700 hover:text-primary hover:bg-white rounded-lg transition-all duration-300 font-medium nav-link-animated hover:scale-105">Khám phá</a>
+                    <a href="{% url 'book_list_view' %}" class="px-4 py-2 text-gray-700 hover:text-primary hover:bg-white rounded-lg transition-all duration-300 font-medium nav-link-animated hover:scale-105">Sách</a>
+                    <a href="{% url 'review_list_frontend' %}" class="px-4 py-2 text-gray-700 hover:text-primary hover:bg-white rounded-lg transition-all duration-300 font-medium nav-link-animated hover:scale-105">Reviews</a>
                 </div>
                 
                 <!-- Search Bar -->
@@ -92,7 +95,8 @@
                             name="q" 
                             placeholder="Tìm kiếm sách, tác giả..." 
                             aria-label="Tìm kiếm"
-                            class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all text-gray-700 placeholder-gray-400"
+                            class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all text-gray-700 placeholder-gray-400"
+                            style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px) saturate(200%); -webkit-backdrop-filter: blur(20px) saturate(200%); border-color: rgba(226, 232, 240, 0.6);"
                             id="main-search"
                         >
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -104,12 +108,12 @@
                 <!-- User Actions -->
                 <div class="flex items-center space-x-3">
                     {% if user.is_authenticated %}
-                        <a href="{% url 'notifications' %}" class="relative p-2 text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg transition-all" aria-label="Thông báo">
+                        <a href="{% url 'notifications' %}" class="relative p-2 text-gray-600 hover:text-primary hover:bg-white rounded-lg transition-all" aria-label="Thông báo">
                             <i class="fas fa-bell text-xl"></i>
                             <span class="absolute top-0 right-0 block h-2 w-2 bg-red-500 rounded-full notification-badge" id="notification-count" style="display: none;"></span>
                         </a>
                         <div class="relative" x-data="{ open: false }">
-                            <button @click="open = !open" @click.away="open = false" class="flex items-center space-x-2 p-1 rounded-lg hover:bg-gray-50 transition-all" aria-label="Menu người dùng">
+                            <button @click="open = !open" @click.away="open = false" class="flex items-center space-x-2 p-1 rounded-lg hover:bg-white transition-all" aria-label="Menu người dùng">
                                 <img src="{% if user.profile.avatar %}{{ user.profile.avatar.url }}{% else %}{% static 'images/default-avatar.svg' %}{% endif %}" 
                                      alt="{{ user.username }}" class="w-8 h-8 rounded-full object-cover">
                                 <i class="fas fa-chevron-down text-xs text-gray-500"></i>
@@ -121,7 +125,8 @@
                                  x-transition:leave="transition ease-in duration-75"
                                  x-transition:leave-start="transform opacity-100 scale-100"
                                  x-transition:leave-end="transform opacity-0 scale-95"
-                                 class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-200">
+                                 class="absolute right-0 mt-2 w-48 rounded-lg shadow-xl py-1 z-50"
+                                 style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(30px) saturate(200%); -webkit-backdrop-filter: blur(30px) saturate(200%); border: 1px solid rgba(226, 232, 240, 0.6);">
                                 <a href="{% url 'user_profile' user.username %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"><i class="fas fa-user mr-2"></i>Hồ sơ của tôi</a>
                                 <a href="{% url 'user_shelves' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"><i class="fas fa-book mr-2"></i>Kệ sách</a>
                                 <a href="{% url 'settings' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"><i class="fas fa-cog mr-2"></i>Cài đặt</a>
@@ -135,7 +140,7 @@
                     {% endif %}
                     
                     <!-- Mobile Menu Toggle -->
-                    <button class="md:hidden p-2 text-gray-600 hover:text-primary hover:bg-gray-50 rounded-lg transition-all" aria-label="Toggle menu" aria-expanded="false" id="mobile-menu-btn">
+                    <button class="md:hidden p-2 text-gray-600 hover:text-primary hover:bg-white rounded-lg transition-all" aria-label="Toggle menu" aria-expanded="false" id="mobile-menu-btn">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
                 </div>
@@ -144,19 +149,19 @@
             <!-- Mobile Menu -->
             <div class="hidden md:hidden border-t border-gray-200" id="mobile-menu">
                 <div class="px-4 py-3 space-y-1">
-                    <a href="{% url 'home' %}" class="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors font-medium">Trang chủ</a>
-                    <a href="{% url 'explore' %}" class="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors font-medium">Khám phá</a>
-                    <a href="{% url 'book_list_view' %}" class="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors font-medium">Sách</a>
-                    <a href="{% url 'reviews:review_list' %}" class="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors font-medium">Reviews</a>
+                    <a href="{% url 'home' %}" class="block px-3 py-2 text-gray-700 hover:bg-white rounded-lg transition-colors font-medium">Trang chủ</a>
+                    <a href="{% url 'explore' %}" class="block px-3 py-2 text-gray-700 hover:bg-white rounded-lg transition-colors font-medium">Khám phá</a>
+                    <a href="{% url 'book_list_view' %}" class="block px-3 py-2 text-gray-700 hover:bg-white rounded-lg transition-colors font-medium">Sách</a>
+                    <a href="{% url 'review_list_frontend' %}" class="block px-3 py-2 text-gray-700 hover:bg-white rounded-lg transition-colors font-medium">Reviews</a>
                     {% if user.is_authenticated %}
                         <hr class="my-2">
-                        <a href="{% url 'user_profile' user.username %}" class="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">Hồ sơ</a>
-                        <a href="{% url 'user_shelves' %}" class="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">Kệ sách</a>
-                        <a href="{% url 'settings' %}" class="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">Cài đặt</a>
+                        <a href="{% url 'user_profile' user.username %}" class="block px-3 py-2 text-gray-700 hover:bg-white rounded-lg transition-colors">Hồ sơ</a>
+                        <a href="{% url 'user_shelves' %}" class="block px-3 py-2 text-gray-700 hover:bg-white rounded-lg transition-colors">Kệ sách</a>
+                        <a href="{% url 'settings' %}" class="block px-3 py-2 text-gray-700 hover:bg-white rounded-lg transition-colors">Cài đặt</a>
                         <a href="{% url 'logout' %}" class="block px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">Đăng xuất</a>
                     {% else %}
                         <hr class="my-2">
-                        <a href="{% url 'login' %}" class="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">Đăng nhập</a>
+                        <a href="{% url 'login' %}" class="block px-3 py-2 text-gray-700 hover:bg-white rounded-lg transition-colors">Đăng nhập</a>
                         <a href="{% url 'register' %}" class="block px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors text-center">Đăng ký</a>
                     {% endif %}
                 </div>
@@ -165,7 +170,7 @@
     </nav>
     
     <!-- Main Content -->
-    <main class="min-h-screen bg-gray-50">
+    <main class="min-h-screen">
         {% if messages %}
             <div class="fixed top-20 right-4 z-50 space-y-2 max-w-md" id="messages-container">
                 {% for message in messages %}
@@ -193,63 +198,6 @@
         {% block content %}{% endblock %}
     </main>
     
-    <!-- Footer -->
-    <footer class="bg-gradient-to-br from-gray-800 to-gray-900 text-gray-200 mt-16 animate-fade-in" role="contentinfo" data-aos="fade-up">
-        <div class="container mx-auto px-4 py-12">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div>
-                    <h3 class="text-white text-xl font-bold mb-4">BookReview.vn</h3>
-                    <p class="text-gray-400">Khám phá, đánh giá và chia sẻ sách hay cùng cộng đồng yêu sách.</p>
-                </div>
-                
-                <div>
-                    <h4 class="text-white font-semibold mb-4">Khám phá</h4>
-                    <ul class="space-y-2">
-                        <li><a href="{% url 'explore' %}" class="hover:text-white transition-colors">Khám phá sách</a></li>
-                        <li><a href="{% url 'book_list_view' %}" class="hover:text-white transition-colors">Danh sách sách</a></li>
-                        <li><a href="{% url 'reviews:review_list' %}" class="hover:text-white transition-colors">Reviews mới</a></li>
-                        <li><a href="{% url 'books:author_list' %}" class="hover:text-white transition-colors">Tác giả</a></li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h4 class="text-white font-semibold mb-4">Tài khoản</h4>
-                    <ul class="space-y-2">
-                        {% if user.is_authenticated %}
-                            <li><a href="{% url 'user_profile' user.username %}" class="hover:text-white transition-colors">Hồ sơ</a></li>
-                            <li><a href="{% url 'user_shelves' %}" class="hover:text-white transition-colors">Kệ sách</a></li>
-                            <li><a href="{% url 'settings' %}" class="hover:text-white transition-colors">Cài đặt</a></li>
-                        {% else %}
-                            <li><a href="{% url 'login' %}" class="hover:text-white transition-colors">Đăng nhập</a></li>
-                            <li><a href="{% url 'register' %}" class="hover:text-white transition-colors">Đăng ký</a></li>
-                        {% endif %}
-                    </ul>
-                </div>
-                
-                <div>
-                    <h4 class="text-white font-semibold mb-4">Thông tin</h4>
-                    <ul class="space-y-2">
-                        <li><a href="/about" class="hover:text-white transition-colors">Về chúng tôi</a></li>
-                        <li><a href="/terms" class="hover:text-white transition-colors">Điều khoản</a></li>
-                        <li><a href="/privacy" class="hover:text-white transition-colors">Chính sách</a></li>
-                        <li><a href="/contact" class="hover:text-white transition-colors">Liên hệ</a></li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-                <p class="text-gray-400">&copy; {% now "Y" %} BookReview.vn. All rights reserved.</p>
-                <div class="flex space-x-4 mt-4 md:mt-0">
-                    <a href="#" aria-label="Facebook" class="text-gray-400 hover:text-white transition-colors">
-                        <i class="fab fa-facebook text-2xl"></i>
-                    </a>
-                    <a href="#" aria-label="Twitter" class="text-gray-400 hover:text-white transition-colors">
-                        <i class="fab fa-twitter text-2xl"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </footer>
     
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>

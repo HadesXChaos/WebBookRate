@@ -128,6 +128,7 @@ def review_list_frontend(request):
         'page_obj': page_obj,
         'reviews': page_obj.object_list,
         'sort': sort,
+        'user': request.user,  # Add user to context
     }
     return render(request, 'reviews/review_list.html', context)
 
