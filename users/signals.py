@@ -14,7 +14,6 @@ def create_moderator_group(sender, **kwargs):
     try:
         group_name = 'Moderators'
         group, created = Group.objects.get_or_create(name=group_name)
-
         moderator_permissions = [
             'view_report', 'change_report',
             'add_moderatoraction', 'view_moderatoraction',

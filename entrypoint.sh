@@ -71,6 +71,7 @@ users_to_create = [
     {'username': 'phi', 'role': 'reviewer', 'email': 'phi@gmail.com', 'name': 'Nguyen Hoang Phi'},
     {'username': 'toai', 'role': 'reviewer', 'email': 'toai@gmail.com', 'name': 'Nguyen Anh Toai'},
     {'username': 'tho', 'role': 'reviewer', 'email': 'tho@gmail.com', 'name': 'Truong Le Bao Tho'},
+    {'username': 'nv1', 'role': 'moderator', 'email': 'staff@gmail.com', 'name': 'Quan Tri Vien 1'},
 ]
 
 for u_data in users_to_create:

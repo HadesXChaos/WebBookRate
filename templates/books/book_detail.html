@@ -59,7 +59,7 @@
             <div class="book-authors" style="margin-bottom: 1rem;">
                 <span style="color: #64748b;">Bởi</span>
                 {% for author in book.authors.all %}
-                    <a href="/api/books/authors/{{ author.slug }}/" style="color: #2563eb; font-weight: 500;">{{ author.name }}</a>{% if not forloop.last %}, {% endif %}
+                    <a href="/books/authors/{{ author.slug }}/" style="color: #2563eb; font-weight: 500;">{{ author.name }}</a>{% if not forloop.last %}, {% endif %}
                 {% endfor %}
             </div>
             
@@ -72,11 +72,11 @@
             <div class="book-meta" style="margin-bottom: 1.5rem; color: #64748b; font-size: 0.9375rem;">
                 {% if book.year %}Năm xuất bản: {{ book.year }}<br>{% endif %}
                 {% if book.pages %}Số trang: {{ book.pages }}<br>{% endif %}
-                {% if book.publisher %}Nhà xuất bản: <a href="/api/books/publishers/{{ book.publisher.slug }}/">{{ book.publisher.name }}</a><br>{% endif %}
+                {% if book.publisher %}Nhà xuất bản: <a href="/books/publishers/{{ book.publisher.slug }}/">{{ book.publisher.name }}</a><br>{% endif %}
                 {% if book.genres.all %}
                     Thể loại: 
                     {% for genre in book.genres.all %}
-                        <a href="/api/books/genres/{{ genre.slug }}/">{{ genre.name }}</a>{% if not forloop.last %}, {% endif %}
+                        <a href="/books/genres/{{ genre.slug }}/">{{ genre.name }}</a>{% if not forloop.last %}, {% endif %}
                     {% endfor %}
                 {% endif %}
             </div>

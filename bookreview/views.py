@@ -201,6 +201,7 @@ def logout_view_frontend(request):
 
 
 def book_list_view(request):
+    """Public book list page that hydrates data via REST API"""
     return render(request, 'books/book_list.html')
 
 

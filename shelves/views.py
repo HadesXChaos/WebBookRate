@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from django.contrib.auth import get_user_model
 from django.db.models import Exists, OuterRef
+from rest_framework.permissions import IsAuthenticated
 
 from .models import Shelf, ShelfItem, ReadingProgress
 from .serializers import ShelfSerializer, ShelfItemSerializer, ReadingProgressSerializer
@@ -111,14 +112,5 @@ class UserShelvesView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        user_id = self.kwargs.get("user_id")  # LẤY user_id từ URL
+        user_id = self.kwargs.get("user_id")
         return Shelf.objects.filter(user_id=user_id).order_by("-id")
-        
-        if self.request.user == user:
-            # Own shelves - show all
-            return Shelf.objects.filter(user=user).prefetch_related('items__book')
-        else:
-            # Public shelves only
-            return Shelf.objects.filter(
-                user=user, visibility='public', is_active=True
-            ).prefetch_related('items__book')

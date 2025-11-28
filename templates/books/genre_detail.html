@@ -77,13 +77,28 @@
                 <p class="sub-text">Chúng tôi phân loại bảng xếp hạng để bạn dễ chọn lựa.</p>
             </div>
             <div class="insight-tags" id="genre-insight-tags">
-                <!-- populated via JS -->
-            </div>
+                </div>
         </div>
     </div>
 </section>
 
 {{ genre.slug|json_script:"genre-slug" }}
+
+{% if user.is_authenticated %}
+<div id="shelf-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
+    <div class="card" style="max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
+        <div class="card-header">
+            <h3>Thêm vào kệ sách</h3>
+        </div>
+        <div class="card-body" id="shelf-list">
+            <div class="loading">Đang tải...</div>
+        </div>
+        <div class="card-footer">
+            <button class="btn btn-outline" id="close-shelf-modal">Đóng</button>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
@@ -100,7 +115,148 @@ document.addEventListener('DOMContentLoaded', function() {
     const insightTags = document.getElementById('genre-insight-tags');
 
     const apiBase = `/api/books/genres/${slug}/`;
+    
+    // --- 1. KHỞI TẠO BIẾN DÙNG CHUNG ---
+    const isAuthenticated = {% if user.is_authenticated %}true{% else %}false{% endif %};
+    let shelfModal = null; // Sẽ khởi tạo nếu user đã đăng nhập
+    let shelfListContainer = null;
+    let currentBookId = null;
 
+    // Helper CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // --- 2. LOGIC CẬP NHẬT TRẠNG THÁI NÚT (QUAN TRỌNG) ---
+    // Hàm này sẽ chạy sau khi sách được render để kiểm tra trạng thái "Đã lưu"
+    function checkAndUpdateButton(bookId) {
+        if (!isAuthenticated) return;
+
+        const btn = document.querySelector(`button[data-book="${bookId}"]`);
+        if (!btn) return;
+
+        // Gọi API kiểm tra sách này
+        fetch(`/api/shelves/?check_book_id=${bookId}`)
+            .then(res => res.json())
+            .then(data => {
+                const shelves = Array.isArray(data) ? data : (data.results || []);
+                // Kiểm tra xem sách có trong ít nhất 1 kệ nào không
+                const isSaved = shelves.some(shelf => shelf.has_book);
+
+                if (isSaved) {
+                    btn.innerHTML = '✓ Đã lưu';
+                    btn.classList.add('btn-success');
+                    btn.classList.remove('btn-outline');
+                } else {
+                    btn.innerHTML = '+ Kệ sách';
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline');
+                }
+            })
+            .catch(() => {});
+    }
+
+    // --- 3. LOGIC MODAL & TOGGLE ---
+    if (isAuthenticated) {
+        // Tạo Modal HTML động một lần duy nhất
+        document.body.insertAdjacentHTML('beforeend', `
+            <div id="shelf-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
+                <div class="card" style="max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                    <div class="card-header"><h3>Thêm vào kệ sách</h3></div>
+                    <div class="card-body" id="shelf-list"><div class="loading">Đang tải...</div></div>
+                    <div class="card-footer"><button class="btn btn-outline" id="close-shelf-modal">Đóng</button></div>
+                </div>
+            </div>
+        `);
+        
+        shelfModal = document.getElementById('shelf-modal');
+        shelfListContainer = document.getElementById('shelf-list');
+
+        // Đóng modal
+        document.getElementById('close-shelf-modal').addEventListener('click', () => {
+            shelfModal.style.display = 'none';
+            // Khi đóng modal, cập nhật lại nút bấm bên ngoài cho chính xác
+            if(currentBookId) checkAndUpdateButton(currentBookId);
+        });
+
+        // Bắt sự kiện click nút "+ Kệ sách"
+        document.body.addEventListener('click', function(e) {
+            const btn = e.target.closest('button[data-action="shelf"]');
+            if (btn) {
+                e.preventDefault();
+                currentBookId = btn.dataset.book;
+                
+                shelfListContainer.innerHTML = '<div class="loading">Đang tải...</div>';
+                shelfModal.style.display = 'flex';
+
+                fetch(`/api/shelves/?check_book_id=${currentBookId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        const shelves = Array.isArray(data) ? data : (data.results || []);
+                        if (shelves.length > 0) {
+                            shelfListContainer.innerHTML = shelves.map(shelf => `
+                                <label class="shelf-item-row" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; cursor: pointer;">
+                                    <input type="checkbox" 
+                                           style="width: 18px; height: 18px; margin-right: 12px; cursor: pointer;"
+                                           ${shelf.has_book ? 'checked' : ''} 
+                                           onchange="toggleShelf(${shelf.id}, ${currentBookId}, this)">
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 600; font-size: 15px;">${shelf.name}</div>
+                                        <div style="font-size: 13px; color: #666;">
+                                            ${shelf.visibility === 'private' ? '🔒 Riêng tư' : '🌐 Công khai'} • ${shelf.book_count} cuốn
+                                        </div>
+                                    </div>
+                                </label>
+                            `).join('');
+                        } else {
+                            shelfListContainer.innerHTML = '<p>Bạn chưa có kệ nào. <a href="/shelves/">Tạo ngay!</a></p>';
+                        }
+                    });
+            }
+        });
+
+        window.toggleShelf = function(shelfId, bookId, checkbox) {
+            checkbox.disabled = true;
+            const originalState = !checkbox.checked;
+            const method = checkbox.checked ? 'POST' : 'DELETE';
+            
+            fetch(`/api/shelves/${shelfId}/books/${bookId}/`, {
+                method: method,
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Lỗi server');
+                // Thành công thì gọi hàm update nút bên ngoài ngay lập tức để đồng bộ
+                checkAndUpdateButton(bookId); 
+            })
+            .catch(err => {
+                console.error(err);
+                checkbox.checked = originalState;
+            })
+            .finally(() => { checkbox.disabled = false; });
+        }
+    } else {
+        // Chưa đăng nhập -> Chuyển hướng
+        document.body.addEventListener('click', function(e) {
+            if (e.target.closest('button[data-action="shelf"]')) {
+                e.preventDefault();
+                window.location.href = '/login/?next=' + window.location.pathname;
+            }
+        });
+    }
+
+    // --- 4. LOGIC RENDER SÁCH ---
     const state = {
         nextUrl: apiBase,
         items: [],
@@ -110,11 +266,8 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     function setLoading(isLoading) {
-        if (isLoading) {
-            grid.classList.add('is-loading');
-        } else {
-            grid.classList.remove('is-loading');
-        }
+        if (isLoading) grid.classList.add('is-loading');
+        else grid.classList.remove('is-loading');
     }
 
     function formatAuthors(authors) {
@@ -136,10 +289,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const tag = document.createElement('a');
             tag.href = `/books/${book.slug}/`;
             tag.className = 'insight-pill';
-            tag.innerHTML = `
-                <strong>${book.title}</strong>
-                <span>${book.avg_rating || '0.0'} ★</span>
-            `;
+            tag.innerHTML = `<strong>${book.title}</strong><span>${book.avg_rating || '0.0'} ★</span>`;
             insightTags.appendChild(tag);
         });
     }
@@ -178,15 +328,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
         grid.appendChild(fragment);
 
-        // Re-render stars if needed
+        // Re-render stars
         grid.querySelectorAll('[data-rating]').forEach(el => {
             BookReview.renderStars(parseFloat(el.dataset.rating), el);
         });
+
+        // --- CẬP NHẬT TRẠNG THÁI NÚT "ĐÃ LƯU" ---
+        if (isAuthenticated) {
+            books.forEach(book => {
+                checkAndUpdateButton(book.id);
+            });
+        }
     }
 
     function applyFilters() {
         const term = state.search.toLowerCase();
-
         state.filtered = state.items.filter(book => {
             const matchTitle = book.title?.toLowerCase().includes(term);
             const matchAuthor = book.authors?.some(author => author.name?.toLowerCase().includes(term));
@@ -195,12 +351,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         state.filtered.sort((a, b) => {
             switch (state.order) {
-                case '-created_at':
-                    return new Date(b.created_at) - new Date(a.created_at);
-                case '-rating_count':
-                    return (b.rating_count || 0) - (a.rating_count || 0);
-                default:
-                    return (parseFloat(b.avg_rating) || 0) - (parseFloat(a.avg_rating) || 0);
+                case '-created_at': return new Date(b.created_at) - new Date(a.created_at);
+                case '-rating_count': return (b.rating_count || 0) - (a.rating_count || 0);
+                default: return (parseFloat(b.avg_rating) || 0) - (parseFloat(a.avg_rating) || 0);
             }
         });
 
@@ -214,14 +367,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const res = await fetch(url);
             const data = await res.json();
             const payload = data.results ? data.results : data;
-            const genreData = payload.genre || {};
             const booksData = payload.books || payload.results || [];
 
-            if (append) {
-                state.items = state.items.concat(booksData);
-            } else {
-                state.items = booksData;
-            }
+            if (append) state.items = state.items.concat(booksData);
+            else state.items = booksData;
 
             applyFilters();
             state.nextUrl = data.next || null;
@@ -234,12 +383,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    loadMoreBtn.addEventListener('click', () => {
-        if (state.nextUrl) {
-            fetchBooks(state.nextUrl, true);
-        }
-    });
-
+    loadMoreBtn.addEventListener('click', () => { if (state.nextUrl) fetchBooks(state.nextUrl, true); });
+    
     searchInput.addEventListener('input', BookReview.utils.debounce(event => {
         state.search = event.target.value.trim();
         applyFilters();
@@ -258,4 +403,3 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endblock %}
-

@@ -10,6 +10,7 @@ app_name = 'reviews'
 urlpatterns = [
     # Reviews
     path('', ReviewListView.as_view(), name='review_list'),
+    
     path('write/', ReviewByBookView.as_view(), name='reviews_by_book'),
     path('<int:pk>/', ReviewDetailView.as_view(), name='review_detail'),
     path('<int:pk>/like/', review_like_view, name='review_like'),
