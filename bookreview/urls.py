@@ -15,7 +15,7 @@ from .views import (
     user_profile_view, user_shelves_view, settings_view, shelf_detail_view,
     search_view, notifications_view, logout_view_frontend,
     book_list_view, genre_directory_view, genre_detail_view, review_editor_view,
-    change_password_view,
+    change_password_view, review_list_frontend,
 )
 from books.models import Book
 from reviews.models import Review
@@ -60,6 +60,7 @@ urlpatterns = [
     path('books/', book_list_view, name='book_list_view'),
     path('books/genres/', genre_directory_view, name='genre_directory'),
     path('books/genres/<str:slug>/', genre_detail_view, name='genre_detail'),
+    path('reviews/', review_list_frontend, name='review_list_frontend'),
     path('reviews/write/', review_editor_view, name='review_editor'),
     
     path('password-change/',change_password_view, name='password_change_page'),
