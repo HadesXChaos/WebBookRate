@@ -58,6 +58,10 @@
     <link rel="stylesheet" href="{% static 'css/backgrounds.css' %}">
     <link rel="stylesheet" href="{% static 'css/ios-glass.css' %}">
     <link rel="stylesheet" href="{% static 'css/modern-ui.css' %}">
+    <link rel="stylesheet" href="{% static 'css/genre-pages.css' %}">
+    <link rel="stylesheet" href="{% static 'css/global-improvements.css' %}">
+    <link rel="stylesheet" href="{% static 'css/hero-search.css' %}">
+    <link rel="stylesheet" href="{% static 'css/comments.css' %}">
     <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
     <link rel="alternate icon" type="image/x-icon" href="{% static 'images/favicon.svg' %}">
     
@@ -89,19 +93,20 @@
                 
                 <!-- Search Bar -->
                 <div class="hidden lg:flex flex-1 max-w-md mx-8">
-                    <form class="relative w-full" action="{% url 'search' %}" method="get" role="search">
-                        <input 
-                            type="search" 
-                            name="q" 
-                            placeholder="Tìm kiếm sách, tác giả..." 
-                            aria-label="Tìm kiếm"
-                            class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all text-gray-700 placeholder-gray-400"
-                            style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px) saturate(200%); -webkit-backdrop-filter: blur(20px) saturate(200%); border-color: rgba(226, 232, 240, 0.6);"
-                            id="main-search"
-                        >
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-search text-gray-400"></i>
+                    <form class="relative w-full flex items-center gap-2" action="{% url 'search' %}" method="get" role="search">
+                        <div class="relative flex-1">
+                            <input 
+                                type="search" 
+                                name="q" 
+                                placeholder="Tìm kiếm sách, tác giả..." 
+                                aria-label="Tìm kiếm"
+                                class="form-input w-full pl-4 pr-4"
+                                id="main-search"
+                            >
                         </div>
+                        <button type="submit" class="btn btn-primary btn-sm flex-shrink-0">
+                            <span class="hidden xl:inline">Tìm kiếm</span>
+                        </button>
                     </form>
                 </div>
                 
@@ -135,8 +140,12 @@
                             </div>
                         </div>
                     {% else %}
-                        <a href="{% url 'login' %}" class="px-4 py-2 text-gray-700 hover:text-primary font-medium transition-colors hidden sm:block">Đăng nhập</a>
-                        <a href="{% url 'register' %}" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover font-medium transition-all duration-300 shadow-sm hover:shadow-lg btn-animated hover:scale-105">Đăng ký</a>
+                        <a href="{% url 'login' %}" class="btn btn-outline hidden sm:inline-flex">
+                            <span>Đăng nhập</span>
+                        </a>
+                        <a href="{% url 'register' %}" class="btn btn-primary">
+                            <span>Đăng ký</span>
+                        </a>
                     {% endif %}
                     
                     <!-- Mobile Menu Toggle -->
@@ -161,8 +170,8 @@
                         <a href="{% url 'logout' %}" class="block px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">Đăng xuất</a>
                     {% else %}
                         <hr class="my-2">
-                        <a href="{% url 'login' %}" class="block px-3 py-2 text-gray-700 hover:bg-white rounded-lg transition-colors">Đăng nhập</a>
-                        <a href="{% url 'register' %}" class="block px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors text-center">Đăng ký</a>
+                        <a href="{% url 'login' %}" class="btn btn-outline w-full justify-center">Đăng nhập</a>
+                        <a href="{% url 'register' %}" class="btn btn-primary w-full justify-center">Đăng ký</a>
                     {% endif %}
                 </div>
             </div>

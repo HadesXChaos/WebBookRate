@@ -58,7 +58,7 @@ h3 {
 
 .btn-primary {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  color: white;
+  color: #ffffff !important;
   box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.3);
 }
 
@@ -66,6 +66,15 @@ h3 {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px 0 rgba(37, 99, 235, 0.4);
   background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  color: #ffffff !important;
+}
+
+.btn-primary a,
+.btn-primary span,
+.btn-primary i,
+a.btn-primary,
+a.btn-primary * {
+  color: #ffffff !important;
 }
 
 .btn-outline {
@@ -73,15 +82,28 @@ h3 {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1.5px solid rgba(226, 232, 240, 0.8);
-  color: #475569;
+  color: #475569 !important;
 }
 
 .btn-outline:hover {
   background: rgba(255, 255, 255, 0.95);
   border-color: #2563eb;
-  color: #2563eb;
+  color: #2563eb !important;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.btn-outline a,
+.btn-outline span,
+.btn-outline i,
+a.btn-outline,
+a.btn-outline * {
+  color: inherit !important;
+}
+
+a.btn-outline:hover,
+a.btn-outline:hover * {
+  color: #2563eb !important;
 }
 
 .btn-sm {

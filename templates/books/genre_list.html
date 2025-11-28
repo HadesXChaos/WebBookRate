@@ -1,16 +1,16 @@
 {% extends 'base.html' %} {% load static %} {% block title %}Thể loại sách -
 BookReview.vn{% endblock %} {% block content %}
-<section class="genre-hero">
+<section class="genre-hero" data-aos="fade">
   <div class="container">
-    <p class="eyebrow-label">Khám phá thể loại</p>
-    <div class="genre-hero__header">
+    <p class="text-sm text-gray-500 uppercase tracking-wide mb-4" data-aos="fade-right">Khám phá thể loại</p>
+    <div class="genre-hero__header" data-aos="fade-up">
       <div>
         <h1>Kho thể loại sách</h1>
         <p class="sub-text">
           Tìm cảm hứng cho cuốn sách tiếp theo dựa trên chủ đề bạn hứng thú.
         </p>
       </div>
-      <div class="hero-stats">
+      <div class="hero-stats" data-aos="fade-left">
         <div>
           <span class="stat-label">Tổng thể loại</span>
           <strong id="genre-total">--</strong>
@@ -21,9 +21,8 @@ BookReview.vn{% endblock %} {% block content %}
         </div>
       </div>
     </div>
-    <div class="genre-search-bar">
+    <div class="genre-search-bar" data-aos="fade-up" data-aos-delay="100">
       <div class="input-icon">
-        <!-- <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M9 17a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm10 2-4.35-4.35"/></svg> -->
         <input
           type="search"
           placeholder="Tìm tên thể loại..."
@@ -70,11 +69,11 @@ BookReview.vn{% endblock %} {% block content %}
 
     <div class="genre-content">
       <div id="genre-grid" class="genre-grid">
-        {% for _ in "123456" %}
-        <div class="genre-card skeleton">
-          <div class="skeleton-line skeleton-title"></div>
-          <div class="skeleton-line"></div>
-          <div class="skeleton-line short"></div>
+        {% for i in "123456" %}
+        <div class="genre-card skeleton" data-aos="fade-up" data-aos-delay="{% widthratio forloop.counter0 1 50 %}">
+          <div class="skeleton h-6 rounded mb-3"></div>
+          <div class="skeleton h-4 rounded mb-2"></div>
+          <div class="skeleton h-4 rounded w-3/4"></div>
         </div>
         {% endfor %}
       </div>
@@ -84,7 +83,7 @@ BookReview.vn{% endblock %} {% block content %}
           id="load-more-genres"
           style="display: none"
         >
-          Tải thêm
+          <i class="fas fa-chevron-down mr-2"></i>Tải thêm
         </button>
       </div>
     </div>
@@ -158,10 +157,11 @@ BookReview.vn{% endblock %} {% block content %}
       data.forEach((genre) => {
         const card = document.createElement("article");
         card.className = "genre-card";
+        card.setAttribute('data-aos', 'fade-up');
         card.innerHTML = `
                 <div class="genre-card__header">
                     <div>
-                        <p class="eyebrow-label">Thể loại</p>
+                        <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Thể loại</p>
                         <h3>${genre.name}</h3>
                     </div>
                     <span class="genre-badge">${
@@ -172,12 +172,16 @@ BookReview.vn{% endblock %} {% block content %}
                   genre.description
                 )}</p>
                 <div class="genre-card__actions">
-                    <a href="/explore/?genre=${
+                    <a href="/books/genres/${
                       genre.slug
-                    }" class="btn btn-sm btn-primary">Khám phá sách</a>
+                    }/" class="btn btn-sm btn-primary">
+                        <i class="fas fa-book-open mr-1"></i>Khám phá sách
+                    </a>
                     <a href="/search/?q=${encodeURIComponent(
                       genre.name
-                    )}" class="btn btn-sm btn-outline">Tìm thêm</a>
+                    )}" class="btn btn-sm btn-outline">
+                        <i class="fas fa-search mr-1"></i>Tìm thêm
+                    </a>
                 </div>
             `;
         fragment.appendChild(card);

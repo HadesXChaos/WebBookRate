@@ -1,15 +1,15 @@
 {% extends 'base.html' %} {% load static %} {% block title %}{{ genre.name }} -
 Thể loại sách{% endblock %} {% block meta_description %}Khám phá {{ genre.name
 }} – {{ genre.description|truncatewords:25 }}{% endblock %} {% block content %}
-<section class="genre-detail-hero">
+<section class="genre-detail-hero" data-aos="fade">
   <div class="container">
-    <a href="{% url 'genre_directory' %}" class="back-link">
-      ← Trở lại danh sách thể loại
+    <a href="{% url 'genre_directory' %}" class="back-link" data-aos="fade-right">
+      <i class="fas fa-arrow-left"></i> Trở lại danh sách thể loại
     </a>
 
-    <div class="genre-detail-header">
+    <div class="genre-detail-header" data-aos="fade-up">
       <div>
-        <p class="eyebrow-label">Thể loại</p>
+        <p class="text-sm text-gray-500 uppercase tracking-wide mb-2">Thể loại</p>
         <h1>{{ genre.name }}</h1>
         {% if genre.description %}
         <p class="sub-text">{{ genre.description }}</p>
@@ -19,7 +19,7 @@ Thể loại sách{% endblock %} {% block meta_description %}Khám phá {{ genre
         </p>
         {% endif %}
       </div>
-      <div class="genre-detail-stats" id="genre-detail-stats">
+      <div class="genre-detail-stats" id="genre-detail-stats" data-aos="fade-left">
         <div>
           <span class="stat-label">Sách có trong thể loại</span>
           <strong id="stat-book-count">--</strong>
@@ -35,9 +35,8 @@ Thể loại sách{% endblock %} {% block meta_description %}Khám phá {{ genre
       </div>
     </div>
 
-    <div class="genre-detail-controls">
-      <div class="input-icon" style="max-width: 320px">
-        <!-- <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M9 17a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm10 2-4.35-4.35"/></svg> -->
+    <div class="genre-detail-controls" data-aos="fade-up" data-aos-delay="100">
+      <div class="input-icon">
         <input
           type="search"
           placeholder="Lọc theo tên sách hoặc tác giả..."
@@ -59,10 +58,13 @@ Thể loại sách{% endblock %} {% block meta_description %}Khám phá {{ genre
   <div class="container">
     <div id="genre-book-grid" class="genre-book-grid">
       {% for _ in "1234" %}
-      <article class="book-card skeleton">
-        <div class="skeleton-line skeleton-title"></div>
-        <div class="skeleton-line"></div>
-        <div class="skeleton-line short"></div>
+      <article class="book-card--genre skeleton" data-aos="fade-up">
+        <div class="skeleton aspect-[2/3] rounded-xl w-32"></div>
+        <div class="flex-1">
+          <div class="skeleton h-6 rounded mb-3"></div>
+          <div class="skeleton h-4 rounded w-3/4 mb-2"></div>
+          <div class="skeleton h-4 rounded w-1/2"></div>
+        </div>
       </article>
       {% endfor %}
     </div>
@@ -72,7 +74,7 @@ Thể loại sách{% endblock %} {% block meta_description %}Khám phá {{ genre
         id="genre-load-more"
         style="display: none"
       >
-        Tải thêm sách
+        <i class="fas fa-chevron-down mr-2"></i>Tải thêm sách
       </button>
     </div>
   </div>
@@ -80,7 +82,7 @@ Thể loại sách{% endblock %} {% block meta_description %}Khám phá {{ genre
 
 <section class="genre-insights">
   <div class="container">
-    <div class="insight-card">
+    <div class="insight-card" data-aos="fade-up">
       <div>
         <h2>Gợi ý đọc nhanh</h2>
         <p class="sub-text">
@@ -324,17 +326,18 @@ Thể loại sách{% endblock %} {% block meta_description %}Khám phá {{ genre
           const fragment = document.createDocumentFragment();
           books.forEach(book => {
               const card = document.createElement('article');
-              card.className = 'book-card book-card--genre';
+              card.className = 'book-card--genre';
+              card.setAttribute('data-aos', 'fade-up');
               card.innerHTML = `
                   <a href="/books/${book.slug}/" class="book-card__cover">
-                      <img src="${book.cover || '{% static "images/default-book.svg" %}'}" alt="${book.title}">
+                      <img src="${book.cover || '{% static "images/default-book.svg" %}'}" alt="${book.title}" loading="lazy">
                   </a>
                   <div class="book-card__body">
                       <a href="/books/${book.slug}/"><h3>${book.title}</h3></a>
                       <p class="book-card__meta">${formatAuthors(book.authors)}</p>
                       <div class="book-card__stats">
-                          <span>${book.avg_rating || '0.0'} ★</span>
-                          <span>${book.rating_count || 0} đánh giá</span>
+                          <span><i class="fas fa-star text-yellow-400"></i> ${book.avg_rating || '0.0'}</span>
+                          <span><i class="fas fa-comment text-gray-400"></i> ${book.rating_count || 0} đánh giá</span>
                       </div>
                       <div class="book-card__actions">
                           <a href="/books/${book.slug}/" class="btn btn-sm btn-primary">Xem chi tiết</a>

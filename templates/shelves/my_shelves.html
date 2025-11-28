@@ -6,19 +6,15 @@
 {% block content %}
 <div class="container" style="max-width: 1200px;">
     <!-- Page Header -->
-    <div style="margin-bottom: 2rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <div>
-                <h1>Kệ sách của tôi</h1>
-                <p style="color: #64748b;">Quản lý và tổ chức sách của bạn</p>
-            </div>
-            <button class="btn btn-primary" id="create-shelf-btn">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="margin-right: 0.5rem;">
-                    <path d="M10 4V16M4 10H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Tạo kệ sách mới
-            </button>
+    <div class="section-header mb-8" data-aos="fade-up">
+        <div>
+            <h1 class="section-title mb-3">Kệ sách của tôi</h1>
+            <p class="sub-text">Quản lý và tổ chức sách của bạn</p>
         </div>
+        <button class="btn btn-primary" id="create-shelf-btn">
+            <i class="fas fa-plus mr-2"></i>
+            <span>Tạo kệ sách mới</span>
+        </button>
     </div>
 
     <!-- Shelves Grid -->

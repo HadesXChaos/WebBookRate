@@ -68,21 +68,19 @@
     <div class="max-w-3xl mx-auto text-center animate-slide-up" data-aos="fade-up">
       <h1 class="text-5xl md:text-6xl font-bold mb-6 animate-fade-in" style="animation-delay: 0.2s;">Khám phá thế giới sách</h1>
       <p class="text-xl md:text-2xl mb-8 text-blue-100 animate-fade-in" style="animation-delay: 0.4s;">Chia sẻ đánh giá, khám phá sách hay và kết nối với cộng đồng yêu sách</p>
-      <form class="max-w-2xl mx-auto animate-fade-in" action="{% url 'search' %}" method="get" role="search" data-aos="fade-up" data-aos-delay="200" style="animation-delay: 0.6s;">
-        <div class="relative">
+      <form class="hero-search-container animate-fade-in" action="{% url 'search' %}" method="get" role="search" data-aos="fade-up" data-aos-delay="200" style="animation-delay: 0.6s;">
+        <div class="hero-search-wrapper">
           <input
             type="search"
             name="q"
-            placeholder="Tìm kiếm sách, tác giả..."
+            placeholder="Tìm kiếm sách, tác giả, thể loại..."
             aria-label="Tìm kiếm"
-            class="w-full pl-12 pr-4 py-4 bg-white text-gray-700 rounded-lg focus:ring-2 focus:ring-white focus:outline-none shadow-lg hover:shadow-xl transition-all duration-300 focus:scale-105 placeholder-gray-400 border border-gray-200"
+            class="hero-search-input"
             id="main-search"
           />
-          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <i class="fas fa-search text-gray-400 text-xl animate-pulse"></i>
-          </div>
-          <button type="submit" class="absolute right-2 top-2 bottom-2 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-300 font-medium btn-animated hover:scale-105 shadow-md hover:shadow-lg">
-            Tìm kiếm
+          <button type="submit" class="hero-search-button">
+            <span>Tìm kiếm</span>
+            <i class="fas fa-arrow-right"></i>
           </button>
         </div>
       </form>
@@ -202,23 +200,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
       if (books.length > 0) {
         container.innerHTML = books.slice(0, 8).map((book, index) => {
-          let badgeClass = 'bg-gray-600';
-          let badgeIcon = `#${index + 1}`;
+          const badgeNumber = index + 1;
+          let badgeText = `#${badgeNumber}`;
+          
+          // Thêm cúp cho top 1, 2, 3
           if (index === 0) {
-            badgeClass = 'bg-yellow-500';
-            badgeIcon = '🏆 1';
+            badgeText = '🏆 1';
           } else if (index === 1) {
-            badgeClass = 'bg-gray-400';
-            badgeIcon = '🥈 2';
+            badgeText = '🥈 2';
           } else if (index === 2) {
-            badgeClass = 'bg-orange-400';
-            badgeIcon = '🥉 3';
+            badgeText = '🥉 3';
           }
 
           return `
             <div class="group relative stagger-item book-card-animated" data-aos="fade-up" data-aos-delay="${index * 50}">
-              <div class="absolute -top-2 -right-2 ${badgeClass} text-white text-xs font-bold px-2 py-1 rounded-full z-10 shadow-lg animate-bounce">
-                ${badgeIcon}
+              <div class="absolute -top-2 -right-2 bg-white border-2 border-gray-800 text-gray-900 text-xs font-bold px-2 py-1 rounded-full z-10 shadow-lg">
+                ${badgeText}
               </div>
               <a href="/books/${book.slug}/" class="block">
                 <div class="bg-white rounded-lg shadow-sm overflow-hidden group-hover:shadow-xl transition-all duration-300 transform group-hover:-translate-y-2 hover-glow">
