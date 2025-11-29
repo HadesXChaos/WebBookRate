@@ -6,6 +6,7 @@ from .views import (
     PublisherListView, PublisherDetailView,
     TagListView, TagDetailView, TrendingBookListView,
     ExploreBooks, BookYearsAPIView,
+    BookRatingDistributionAPIView,
 )
 
 app_name = 'books'
@@ -42,5 +43,7 @@ urlpatterns = [
     # Books detail (catch-all pattern must come last)
     path('<str:slug>/', BookDetailView.as_view(), name='book_detail'),
 
-    
+    # Phân bố điểm sách
+   path('<int:pk>/rating-distribution/', BookRatingDistributionAPIView.as_view(), name='book_rating_distribution'),
+
 ]

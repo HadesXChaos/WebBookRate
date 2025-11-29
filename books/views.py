@@ -12,6 +12,9 @@ from datetime import timedelta
 from django.db.models.functions import Coalesce
 from django.db.models import Count, Q, F, FloatField, ExpressionWrapper
 from django.core.paginator import Paginator  # NEW
+from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
+from reviews.models import Review
 
 from .models import Author, Genre, Publisher, Tag, Book, BookView
 from .serializers import (
@@ -156,6 +159,44 @@ class AuthorListView(generics.ListAPIView):
     @method_decorator(cache_page(300))  # Cache for 5 minutes
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
+
+class BookRatingDistributionAPIView(APIView):
+    """Trả về phân bố điểm 1–5 cho 1 cuốn sách"""
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, pk):
+        book = get_object_or_404(Book, pk=pk, is_active=True)
+
+        qs = Review.objects.filter(
+            book=book,
+            status='public',
+            is_active=True,
+            rating__isnull=False
+        )
+
+        # Group theo rating
+        from django.db.models import Count
+        raw = qs.values('rating').annotate(count=Count('id'))
+
+        # Build đủ 5 mức điểm từ 5 -> 1
+        total = sum(item['count'] for item in raw)
+        distribution = []
+        for r in [5, 4, 3, 2, 1]:
+            c = 0
+            for item in raw:
+                # rating là Decimal (ví dụ 5.0), đổi về float rồi so sánh
+                if float(item['rating']) == float(r):
+                    c = item['count']
+                    break
+            distribution.append({
+                'rating': r,
+                'count': c,
+            })
+
+        return Response({
+            'total': total,
+            'distribution': distribution,
+        })
 
 
 class AuthorDetailView(generics.RetrieveAPIView):
