@@ -28,7 +28,7 @@ class BookListView(generics.ListAPIView):
     serializer_class = BookListSerializer
     permission_classes = [permissions.AllowAny]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['genres', 'tags', 'year', 'language']
+    filterset_fields = ['genres', 'tags', 'year', 'language', 'publisher']
     search_fields = ['title', 'description', 'authors__name', 'tags__name']
     ordering_fields = ['created_at', 'avg_rating', 'rating_count', 'review_count', 'title']
     ordering = ['-created_at']

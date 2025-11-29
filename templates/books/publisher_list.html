@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Danh bạ Nhà Xuất Bản - BookReview.vn{% endblock %}
+{% block meta_description %}
+Khám phá các nhà xuất bản đang hợp tác cùng BookReview.vn, xem nhanh mô tả, số lượng đầu sách và truy cập chi tiết từng đơn vị.
+{% endblock %}
+
+{% block content %}
+<section class="publisher-hero" data-aos="fade">
+  <div class="container">
+    <p class="text-sm text-gray-500 uppercase tracking-wide mb-4" data-aos="fade-right">
+      Nhà xuất bản
+    </p>
+    <div class="publisher-hero__header" data-aos="fade-up">
+      <div>
+        <h1>Danh bạ Nhà Xuất Bản</h1>
+        <p class="sub-text">
+          Tổng hợp các đối tác xuất bản cùng thông tin nhanh để bạn khám phá hệ sinh thái sách đa dạng.
+        </p>
+      </div>
+      <div class="hero-stats" data-aos="fade-left">
+        <div>
+          <span class="stat-label">Số nhà xuất bản</span>
+          <strong id="publisher-total">--</strong>
+        </div>
+        <div>
+          <span class="stat-label">Tổng đầu sách</span>
+          <strong id="publisher-books">--</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="publisher-search-bar" data-aos="fade-up" data-aos-delay="100">
+      <div class="input-icon">
+        <input
+          type="search"
+          placeholder="Tìm nhà xuất bản theo tên hoặc mô tả..."
+          id="publisher-search-input"
+          autocomplete="off"
+        />
+      </div>
+      <div class="publisher-filters">
+        <button class="chip chip--active" data-sort="name">A-Z</button>
+        <button class="chip" data-sort="-book_count">Nhiều sách nhất</button>
+        <button class="chip" data-sort="-created_at">Mới cập nhật</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="publisher-directory">
+  <div class="container">
+    <div id="publisher-grid" class="publisher-grid">
+      {% for _ in "1234" %}
+      <article class="publisher-card skeleton" data-aos="fade-up">
+        <div class="publisher-card__header">
+          <div class="skeleton h-16 w-16 rounded-full mb-3"></div>
+          <div class="flex-1">
+            <div class="skeleton h-6 rounded mb-2"></div>
+            <div class="skeleton h-4 rounded w-3/4"></div>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    <div class="load-more-wrapper">
+      <button class="btn btn-outline" id="publisher-load-more" style="display: none">
+        <i class="fas fa-chevron-down mr-2"></i>Tải thêm nhà xuất bản
+      </button>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const API_BASE = '/api/books/publishers/';
+    const grid = document.getElementById('publisher-grid');
+    const loadMoreBtn = document.getElementById('publisher-load-more');
+    const searchInput = document.getElementById('publisher-search-input');
+    const sortButtons = document.querySelectorAll('[data-sort]');
+    const statTotal = document.getElementById('publisher-total');
+    const statBooks = document.getElementById('publisher-books');
+
+    const state = {
+      nextUrl: API_BASE,
+      results: [],
+      search: '',
+      sort: 'name',
+    };
+
+    function setLoading(isLoading) {
+      if (isLoading) {
+        grid.classList.add('is-loading');
+      } else {
+        grid.classList.remove('is-loading');
+      }
+    }
+
+    function formatDescription(text) {
+      if (!text) return 'Chưa có mô tả cho nhà xuất bản này.';
+      return text.length > 160 ? text.slice(0, 157) + '...' : text;
+    }
+
+    function renderStats(data) {
+      statTotal.textContent = data.length || '0';
+      const totalBooks = data.reduce((sum, item) => sum + (item.book_count || 0), 0);
+      statBooks.textContent = totalBooks;
+    }
+
+    function renderPublishers(data, reset = false) {
+      if (reset) {
+        grid.innerHTML = '';
+      }
+
+      if (!data.length) {
+        grid.innerHTML = '<div class="empty-state">Không tìm thấy nhà xuất bản nào phù hợp.</div>';
+        return;
+      }
+
+      const fragment = document.createDocumentFragment();
+      data.forEach((publisher) => {
+        const card = document.createElement('article');
+        card.className = 'publisher-card';
+        card.setAttribute('data-aos', 'fade-up');
+        const initial = publisher.name ? publisher.name.charAt(0).toUpperCase() : '?';
+        card.innerHTML = `
+          <div class="publisher-card__header">
+            <div class="publisher-logo${publisher.logo ? '' : ' publisher-logo--fallback'}">
+              ${
+                publisher.logo
+                  ? `<img src="${publisher.logo}" alt="${publisher.name}" loading="lazy">`
+                  : `<span>${initial}</span>`
+              }
+            </div>
+            <div>
+              <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Nhà xuất bản</p>
+              <h3>${publisher.name || 'Đang cập nhật'}</h3>
+              <p class="publisher-card__meta">${publisher.book_count || 0} đầu sách</p>
+            </div>
+          </div>
+          <p class="publisher-card__description">${formatDescription(publisher.description)}</p>
+          <div class="publisher-card__actions">
+            <a href="/books/publishers/${publisher.slug}/" class="btn btn-sm btn-primary">
+              <i class="fas fa-building mr-1"></i>Xem chi tiết
+            </a>
+            ${
+              publisher.website
+                ? `<a href="${publisher.website}" target="_blank" rel="noopener" class="btn btn-sm btn-text">
+                    <i class="fas fa-external-link-alt mr-1"></i>Website
+                  </a>`
+                : ''
+            }
+          </div>
+        `;
+        fragment.appendChild(card);
+      });
+
+      grid.appendChild(fragment);
+    }
+
+    function applyFilters() {
+      let filtered = [...state.results];
+
+      if (state.search) {
+        const term = state.search.toLowerCase();
+        filtered = filtered.filter((item) => {
+          const name = item.name?.toLowerCase() || '';
+          const desc = item.description?.toLowerCase() || '';
+          return name.includes(term) || desc.includes(term);
+        });
+      }
+
+      filtered.sort((a, b) => {
+        switch (state.sort) {
+          case '-book_count':
+            return (b.book_count || 0) - (a.book_count || 0);
+          case '-created_at':
+            return new Date(b.created_at) - new Date(a.created_at);
+          default:
+            return (a.name || '').localeCompare(b.name || '', 'vi');
+        }
+      });
+
+      renderStats(filtered);
+      renderPublishers(filtered, true);
+    }
+
+    async function fetchPublishers(url = API_BASE, reset = false) {
+      try {
+        setLoading(true);
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const results = Array.isArray(data) ? data : data.results || [];
+
+        if (reset) {
+          state.results = results;
+        } else {
+          state.results = state.results.concat(results);
+        }
+
+        applyFilters();
+        state.nextUrl = data.next || null;
+        loadMoreBtn.style.display = state.nextUrl ? 'inline-flex' : 'none';
+      } catch (error) {
+        console.error('Failed to load publishers', error);
+        grid.innerHTML = '<div class="empty-state">Không thể tải dữ liệu. Vui lòng thử lại sau.</div>';
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadMoreBtn.addEventListener('click', () => {
+      if (state.nextUrl) {
+        fetchPublishers(state.nextUrl);
+      }
+    });
+
+    searchInput.addEventListener(
+      'input',
+      BookReview.utils.debounce((event) => {
+        state.search = event.target.value.trim();
+        applyFilters();
+      }, 200)
+    );
+
+    sortButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        sortButtons.forEach((btn) => btn.classList.remove('chip--active'));
+        button.classList.add('chip--active');
+        state.sort = button.dataset.sort;
+        applyFilters();
+      });
+    });
+
+    fetchPublishers(API_BASE, true);
+  });
+</script>
+{% endblock %}
+

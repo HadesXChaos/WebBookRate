@@ -12,7 +12,7 @@ from django.contrib.auth import logout
 from django.core.paginator import Paginator  # NEW
 
 from users.models import User
-from books.models import Book, Genre
+from books.models import Book, Genre, Publisher
 from reviews.models import Review
 from social.models import Follow
 
@@ -249,3 +249,17 @@ def genre_detail_view(request, slug):
         'genre': genre,
     }
     return render(request, 'books/genre_detail.html', context)
+
+
+def publisher_directory_view(request):
+    """Public publisher directory page that hydrates via REST API"""
+    return render(request, 'books/publisher_list.html')
+
+
+def publisher_detail_view(request, slug):
+    """Publisher detail landing page"""
+    publisher = get_object_or_404(Publisher, slug=slug, is_active=True)
+    context = {
+        'publisher': publisher,
+    }
+    return render(request, 'books/publisher_detail.html', context)

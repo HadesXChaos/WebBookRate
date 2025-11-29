@@ -63,12 +63,13 @@
     <link rel="stylesheet" href="{% static 'css/hero-search.css' %}">
     <link rel="stylesheet" href="{% static 'css/comments.css' %}">
     <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
+    <link rel="stylesheet" href="{% static 'css/holiday-theme.css' %}">
     <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
     <link rel="alternate icon" type="image/x-icon" href="{% static 'images/favicon.svg' %}">
     
     {% block extra_css %}{% endblock %}
 </head>
-<body class="{% block body_class %}{% endblock %}">
+<body class="christmas-mode {% block body_class %}{% endblock %}">
     <!-- Navigation Header -->
     <nav class="shadow-sm sticky top-0 z-50 animate-slide-down" role="navigation" aria-label="Main navigation" data-aos="fade-down" style="background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(30px) saturate(200%); -webkit-backdrop-filter: blur(30px) saturate(200%);">
         <div class="container mx-auto px-4">
@@ -185,6 +186,28 @@
             </div>
         </div>
     </nav>
+    
+    <div class="holiday-banner" role="status" aria-live="polite">
+        <div class="container mx-auto px-4">
+            <div class="holiday-banner__content">
+                <div>
+                    <p class="holiday-badge">🎄 Mùa lễ hội</p>
+                    <h2>Lan tỏa tinh thần Giáng sinh cùng BookReview.vn</h2>
+                    <p>Trang trí kệ sách, chia sẻ review ấm áp và khám phá quà tặng tri thức cho người thân.</p>
+                </div>
+                <div class="holiday-banner__actions">
+                    <a href="{% url 'explore' %}" class="btn btn-primary btn-sm">Khám phá quà tặng</a>
+                    <a href="{% url 'review_list_frontend' %}" class="btn btn-outline btn-sm">Viết đánh giá</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="holiday-snow" aria-hidden="true">
+        {% for _ in "12345678901234567890" %}
+        <span></span>
+        {% endfor %}
+    </div>
     
     <!-- Main Content -->
     <main class="min-h-screen">

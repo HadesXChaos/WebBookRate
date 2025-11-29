@@ -1,0 +1,324 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ publisher.name }} - Nhà Xuất Bản{% endblock %}
+{% block meta_description %}
+Thông tin chi tiết về {{ publisher.name }} – mô tả, liên kết website và các đầu sách nổi bật trên BookReview.vn.
+{% endblock %}
+
+{% block content %}
+<section class="publisher-detail-hero" data-aos="fade">
+  <div class="container">
+    <a href="{% url 'publisher_directory' %}" class="back-link" data-aos="fade-right">
+      <i class="fas fa-arrow-left"></i> Trở lại danh sách nhà xuất bản
+    </a>
+
+    <div class="publisher-detail-header" data-aos="fade-up">
+      <div class="publisher-detail__profile">
+        <div class="publisher-detail__logo">
+          {% if publisher.logo %}
+          <img src="{{ publisher.logo.url }}" alt="{{ publisher.name }}" loading="lazy" />
+          {% else %}
+          <span>{{ publisher.name|slice:":1" }}</span>
+          {% endif %}
+        </div>
+        <div>
+          <p class="text-sm text-gray-500 uppercase tracking-wide mb-2">Nhà xuất bản</p>
+          <h1>{{ publisher.name }}</h1>
+          {% if publisher.description %}
+          <p class="sub-text">{{ publisher.description }}</p>
+          {% else %}
+          <p class="sub-text">
+            Thông tin đang được cộng đồng BookReview.vn cập nhật. Bạn vẫn có thể khám phá danh sách sách thuộc nhà xuất bản này bên dưới.
+          </p>
+          {% endif %}
+          {% if publisher.website %}
+          <div class="mt-4">
+            <a
+              href="{{ publisher.website }}"
+              target="_blank"
+              rel="noopener"
+              class="btn btn-outline btn-sm"
+            >
+              <i class="fas fa-globe mr-2"></i>Website chính thức
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="publisher-detail-stats" data-aos="fade-left">
+        <div>
+          <span class="stat-label">Tổng đầu sách</span>
+          <strong id="publisher-stat-books">--</strong>
+        </div>
+        <div>
+          <span class="stat-label">Điểm trung bình</span>
+          <strong id="publisher-stat-rating">--</strong>
+        </div>
+        <div>
+          <span class="stat-label">Năm phát hành mới nhất</span>
+          <strong id="publisher-stat-year">--</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="publisher-detail-controls" data-aos="fade-up" data-aos-delay="100">
+      <div class="input-icon">
+        <input
+          type="search"
+          placeholder="Tìm sách theo tên hoặc tác giả..."
+          id="publisher-book-search"
+        />
+      </div>
+      <div class="publisher-filters">
+        <button class="chip chip--active" data-order="-avg_rating">Điểm cao</button>
+        <button class="chip" data-order="-created_at">Mới nhất</button>
+        <button class="chip" data-order="-rating_count">Nhiều đánh giá</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="publisher-books-section">
+  <div class="container">
+    <div id="publisher-book-grid" class="genre-book-grid">
+      {% for _ in "1234" %}
+      <article class="book-card--genre skeleton" data-aos="fade-up">
+        <div class="skeleton aspect-[2/3] rounded-xl w-32"></div>
+        <div class="flex-1">
+          <div class="skeleton h-6 rounded mb-3"></div>
+          <div class="skeleton h-4 rounded w-3/4 mb-2"></div>
+          <div class="skeleton h-4 rounded w-1/2"></div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    <div class="load-more-wrapper">
+      <button class="btn btn-outline" id="publisher-books-load-more" style="display: none">
+        <i class="fas fa-chevron-down mr-2"></i>Tải thêm sách
+      </button>
+    </div>
+  </div>
+</section>
+
+<section class="publisher-insights">
+  <div class="container">
+    <div class="insight-card" data-aos="fade-up">
+      <div>
+        <h2>Top lựa chọn nên đọc</h2>
+        <p class="sub-text">
+          Dựa trên đánh giá cộng đồng. Danh sách sẽ tự động cập nhật khi bạn lọc hoặc xem thêm sách.
+        </p>
+      </div>
+      <div class="insight-tags" id="publisher-insight-tags"></div>
+    </div>
+  </div>
+</section>
+
+{{ publisher.slug|json_script:"publisher-slug" }}
+{{ publisher.id|json_script:"publisher-id" }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const slug = JSON.parse(document.getElementById('publisher-slug').textContent);
+    const publisherId = JSON.parse(document.getElementById('publisher-id').textContent);
+    const grid = document.getElementById('publisher-book-grid');
+    const loadMoreBtn = document.getElementById('publisher-books-load-more');
+    const searchInput = document.getElementById('publisher-book-search');
+    const filterButtons = document.querySelectorAll('[data-order]');
+    const statBooks = document.getElementById('publisher-stat-books');
+    const statRating = document.getElementById('publisher-stat-rating');
+    const statYear = document.getElementById('publisher-stat-year');
+    const insightTags = document.getElementById('publisher-insight-tags');
+
+    const apiPublisher = `/api/books/publishers/${slug}/`;
+    const apiBooksBase = `/api/books/?publisher=${publisherId}`;
+
+    const state = {
+      nextUrl: apiBooksBase,
+      books: [],
+      order: '-avg_rating',
+      search: '',
+    };
+
+    function setLoading(isLoading) {
+      if (isLoading) {
+        grid.classList.add('is-loading');
+      } else {
+        grid.classList.remove('is-loading');
+      }
+    }
+
+    function formatAuthors(authors) {
+      if (!Array.isArray(authors) || !authors.length) {
+        return 'Đang cập nhật tác giả';
+      }
+      return authors.map((author) => author.name).join(', ');
+    }
+
+    function updateStats(books) {
+      const count = books.length;
+      const ratingSum = books.reduce((sum, book) => sum + (parseFloat(book.avg_rating) || 0), 0);
+      const latestYear = books.reduce(
+        (max, book) => (book.year && book.year > max ? book.year : max),
+        0
+      );
+      statBooks.textContent = count;
+      statRating.textContent = count ? (ratingSum / count).toFixed(1) : '—';
+      statYear.textContent = latestYear || '—';
+
+      const topBooks = [...books]
+        .sort((a, b) => (parseFloat(b.avg_rating) || 0) - (parseFloat(a.avg_rating) || 0))
+        .slice(0, 3);
+      insightTags.innerHTML = '';
+      if (!topBooks.length) {
+        insightTags.innerHTML = '<div class="empty-state text-left">Chưa có dữ liệu nổi bật.</div>';
+        return;
+      }
+      topBooks.forEach((book) => {
+        const tag = document.createElement('a');
+        tag.href = `/books/${book.slug}/`;
+        tag.className = 'insight-pill';
+        tag.innerHTML = `<strong>${book.title}</strong><span>${book.avg_rating || '0.0'} ★</span>`;
+        insightTags.appendChild(tag);
+      });
+    }
+
+    function renderBooks(books, reset = false) {
+      if (reset) {
+        grid.innerHTML = '';
+      }
+
+      if (!books.length) {
+        grid.innerHTML = '<div class="empty-state">Chưa có cuốn sách nào phù hợp.</div>';
+        return;
+      }
+
+      const fragment = document.createDocumentFragment();
+      books.forEach((book) => {
+        const card = document.createElement('article');
+        card.className = 'book-card--genre';
+        card.setAttribute('data-aos', 'fade-up');
+        card.innerHTML = `
+          <a href="/books/${book.slug}/" class="book-card__cover">
+            <img src="${book.cover || '{% static "images/default-book.svg" %}'}" alt="${book.title}" loading="lazy">
+          </a>
+          <div class="book-card__body">
+            <a href="/books/${book.slug}/"><h3>${book.title}</h3></a>
+            <p class="book-card__meta">${formatAuthors(book.authors)}</p>
+            <div class="book-card__stats">
+              <span><i class="fas fa-star text-yellow-400"></i> ${book.avg_rating || '0.0'}</span>
+              <span><i class="fas fa-comment text-gray-400"></i> ${book.rating_count || 0} đánh giá</span>
+            </div>
+            <div class="book-card__actions">
+              <a href="/books/${book.slug}/" class="btn btn-sm btn-primary">Xem chi tiết</a>
+              <a href="/search/?q=${encodeURIComponent(book.title)}" class="btn btn-sm btn-outline">
+                <i class="fas fa-search mr-1"></i>Tìm thêm
+              </a>
+            </div>
+          </div>
+        `;
+        fragment.appendChild(card);
+      });
+
+      grid.appendChild(fragment);
+
+    }
+
+    function applyFilters() {
+      const term = state.search.toLowerCase();
+      let filtered = state.books.filter((book) => {
+        if (!term) return true;
+        const matchTitle = book.title?.toLowerCase().includes(term);
+        const matchAuthor = book.authors?.some((author) =>
+          author.name?.toLowerCase().includes(term)
+        );
+        return matchTitle || matchAuthor;
+      });
+
+      filtered.sort((a, b) => {
+        switch (state.order) {
+          case '-created_at':
+            return new Date(b.created_at) - new Date(a.created_at);
+          case '-rating_count':
+            return (b.rating_count || 0) - (a.rating_count || 0);
+          default:
+            return (parseFloat(b.avg_rating) || 0) - (parseFloat(a.avg_rating) || 0);
+        }
+      });
+
+      updateStats(filtered);
+      renderBooks(filtered, true);
+    }
+
+    async function fetchPublisher() {
+      try {
+        const response = await fetch(apiPublisher);
+        if (!response.ok) return;
+        const data = await response.json();
+        if (data.book_count !== undefined) {
+          statBooks.textContent = data.book_count;
+        }
+      } catch (error) {
+        console.warn('Không thể tải thông tin nhà xuất bản', error);
+      }
+    }
+
+    async function fetchBooks(url = apiBooksBase, append = false) {
+      try {
+        setLoading(true);
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        const results = data.results || data.books || (Array.isArray(data) ? data : []);
+
+        if (append) {
+          state.books = state.books.concat(results);
+        } else {
+          state.books = results;
+        }
+
+        applyFilters();
+        state.nextUrl = data.next || null;
+        loadMoreBtn.style.display = state.nextUrl ? 'inline-flex' : 'none';
+      } catch (error) {
+        console.error('Failed to load books', error);
+        grid.innerHTML = '<div class="empty-state">Không thể tải sách. Vui lòng thử lại sau.</div>';
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadMoreBtn.addEventListener('click', () => {
+      if (state.nextUrl) {
+        fetchBooks(state.nextUrl, true);
+      }
+    });
+
+    searchInput.addEventListener(
+      'input',
+      BookReview.utils.debounce((event) => {
+        state.search = event.target.value.trim();
+        applyFilters();
+      }, 250)
+    );
+
+    filterButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        filterButtons.forEach((btn) => btn.classList.remove('chip--active'));
+        button.classList.add('chip--active');
+        state.order = button.dataset.order;
+        applyFilters();
+      });
+    });
+
+    fetchPublisher();
+    fetchBooks(apiBooksBase);
+  });
+</script>
+{% endblock %}
+
