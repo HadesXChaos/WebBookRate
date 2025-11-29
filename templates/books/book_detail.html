@@ -101,9 +101,6 @@
                 <a href="{% url 'review_editor' %}?slug={{ book.slug }}" class="btn btn-outline btn-animated hover-lift" style="transition: all 0.3s ease;">
                     Viết review
                 </a>
-                <button class="btn btn-outline btn-animated hover-lift" id="follow-book-btn" data-book-id="{{ book.id }}" style="transition: all 0.3s ease;">
-                    <span id="follow-text">Theo dõi</span>
-                </button>
             {% else %}
                 <div class="book-actions">
                     <a href="/login/" class="btn btn-primary btn-animated hover-lift" style="transition: all 0.3s ease;">Đăng nhập để đánh giá</a>
@@ -182,6 +179,52 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const bookId = {{ book.id }};
+
+        // ----- Phân bố điểm -----
+    function renderRatingDistribution(data) {
+        const container = document.getElementById('rating-chart');
+        if (!container) return;
+
+        const dist = data.distribution || [];
+        const total = data.total || 0;
+
+        if (!total) {
+            container.innerHTML = '<p>Chưa có dữ liệu đánh giá.</p>';
+            return;
+        }
+
+        container.innerHTML = dist.map(item => {
+            const percent = total ? Math.round(item.count * 100 / total) : 0;
+            return `
+                <div style="display:flex; align-items:center; margin-bottom:6px;">
+                    <div style="width:40px; font-weight:600;">${item.rating}★</div>
+                    <div style="flex:1; background:#e5e7eb; border-radius:999px; overflow:hidden; margin-right:8px;">
+                        <div style="height:8px; width:${percent}%; background:#facc15;"></div>
+                    </div>
+                    <div style="width:80px; text-align:right; font-size:0.875rem; color:#64748b;">
+                        ${percent}% (${item.count})
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    async function loadRatingDistribution() {
+        const container = document.getElementById('rating-chart');
+        if (!container) return;
+
+        container.innerHTML = '<p>Đang tải...</p>';
+        try {
+            const res = await fetch(`/api/books/${bookId}/rating-distribution/`);
+            if (!res.ok) throw new Error('Bad response');
+            const data = await res.json();
+            renderRatingDistribution(data);
+        } catch (err) {
+            console.error(err);
+            container.innerHTML = '<p>Không tải được dữ liệu phân bố điểm.</p>';
+        }
+    }
+
     
     // Render stars
     document.querySelectorAll('[data-rating]').forEach(el => {
@@ -288,6 +331,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initial load
     loadReviews();
+    // Gọi khi load trang
+    loadRatingDistribution();
     
 
 {% if user.is_authenticated %}
