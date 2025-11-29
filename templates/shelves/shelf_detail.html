@@ -166,22 +166,37 @@ BookReview.vn{% endblock %} {% block content %}
           fetch(`/api/shelves/${shelfId}/`)
               .then(res => {
                   if (res.status === 404) {
-                      headerEl.innerHTML = '<h1>Kệ sách không tồn tại hoặc bạn không có quyền xem.</h1>';
+                      headerEl.innerHTML = `
+                          <div style="padding: 3rem; text-align: center; color: #ef4444;">
+                              <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                              <h1 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Kệ sách không tồn tại</h1>
+                              <p style="color: #64748b;">Kệ sách này không tồn tại hoặc bạn không có quyền xem.</p>
+                          </div>
+                      `;
                       return null;
                   }
                   if (!res.ok) {
-                      throw new Error('Lỗi khi tải kệ sách');
+                      throw new Error(`HTTP error! status: ${res.status}`);
                   }
                   return res.json();
               })
               .then(data => {
                   if (!data) return;
                   renderShelfHeader(data);
-                  renderBooks(data.items || []);
+                  // Handle both direct items array and nested structure
+                  const items = data.items || data.shelf_items || [];
+                  renderBooks(Array.isArray(items) ? items : []);
               })
               .catch(err => {
-                  console.error(err);
-                  headerEl.innerHTML = '<p>Có lỗi xảy ra khi tải dữ liệu kệ sách.</p>';
+                  console.error('Error loading shelf:', err);
+                  headerEl.innerHTML = `
+                      <div style="padding: 3rem; text-align: center; color: #ef4444;">
+                          <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                          <h1 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Có lỗi xảy ra</h1>
+                          <p style="color: #64748b;">Không thể tải dữ liệu kệ sách. Vui lòng thử lại sau.</p>
+                      </div>
+                  `;
+                  booksEl.innerHTML = '';
               });
       }
 

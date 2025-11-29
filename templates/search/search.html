@@ -47,21 +47,32 @@
 document.addEventListener('DOMContentLoaded', function() {
     const query = '{{ query }}';
     
+    const container = document.getElementById('search-results');
+    if (!container) return;
+    
     // Search across books, authors, reviews
     Promise.all([
-        fetch(`/api/search/?q=${encodeURIComponent(query)}`),
-        fetch(`/api/books/?search=${encodeURIComponent(query)}&page_size=10`),
-        fetch(`/api/reviews/?search=${encodeURIComponent(query)}&page_size=10`)
+        fetch(`/api/search/?q=${encodeURIComponent(query)}`).then(r => {
+            if (!r.ok) throw new Error(`Search API error: ${r.status}`);
+            return r.json();
+        }),
+        fetch(`/api/books/?search=${encodeURIComponent(query)}&page_size=10`).then(r => {
+            if (!r.ok) throw new Error(`Books API error: ${r.status}`);
+            return r.json();
+        }),
+        fetch(`/api/reviews/?search=${encodeURIComponent(query)}&page_size=10&status=public`).then(r => {
+            if (!r.ok) throw new Error(`Reviews API error: ${r.status}`);
+            return r.json();
+        })
     ])
-    .then(responses => Promise.all(responses.map(r => r.json())))
     .then(([searchResults, books, reviews]) => {
-        const container = document.getElementById('search-results');
         let html = '';
         
-        // Books
-        if (books.results && books.results.length > 0) {
+        // Books - Handle both paginated and non-paginated responses
+        const booksList = books.results || books || [];
+        if (Array.isArray(booksList) && booksList.length > 0) {
             html += '<section style="margin-bottom: 2rem;"><h2 style="margin-bottom: 1rem;">Sách</h2><div class="grid grid-4">';
-            books.results.forEach(book => {
+            booksList.forEach(book => {
                 html += `
                     <div class="book-card">
                         <a href="/books/${book.slug}/">
@@ -84,10 +95,11 @@ document.addEventListener('DOMContentLoaded', function() {
             html += '</div></section>';
         }
         
-        // Reviews
-        if (reviews.results && reviews.results.length > 0) {
+        // Reviews - Handle both paginated and non-paginated responses
+        const reviewsList = reviews.results || reviews || [];
+        if (Array.isArray(reviewsList) && reviewsList.length > 0) {
             html += '<section><h2 style="margin-bottom: 1rem;">Reviews</h2>';
-            reviews.results.forEach(review => {
+            reviewsList.forEach(review => {
                 html += `
                     <div class="card" style="margin-bottom: 1rem;">
                         <div class="card-body">
@@ -106,16 +118,33 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (html) {
             container.innerHTML = html;
-            container.querySelectorAll('[data-rating]').forEach(el => {
-                BookReview.renderStars(parseFloat(el.dataset.rating), el);
-            });
+            // Render stars after content is added
+            setTimeout(() => {
+                container.querySelectorAll('[data-rating]').forEach(el => {
+                    if (typeof BookReview !== 'undefined' && BookReview.renderStars) {
+                        BookReview.renderStars(parseFloat(el.dataset.rating), el);
+                    }
+                });
+            }, 100);
         } else {
-            container.innerHTML = '<p style="text-align: center; padding: 3rem; color: #64748b;">Không tìm thấy kết quả nào.</p>';
+            container.innerHTML = `
+                <div class="empty-state" style="padding: 3rem; text-align: center; color: #64748b;">
+                    <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                    <p style="font-size: 1.125rem; margin-bottom: 0.5rem;">Không tìm thấy kết quả nào</p>
+                    <p style="font-size: 0.875rem;">Thử tìm kiếm với từ khóa khác.</p>
+                </div>
+            `;
         }
     })
     .catch(err => {
         console.error('Search error:', err);
-        document.getElementById('search-results').innerHTML = '<p>Có lỗi xảy ra khi tìm kiếm.</p>';
+        container.innerHTML = `
+            <div class="empty-state" style="padding: 3rem; text-align: center; color: #ef4444;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <p style="font-size: 1.125rem; margin-bottom: 0.5rem;">Có lỗi xảy ra</p>
+                <p style="font-size: 0.875rem;">Không thể thực hiện tìm kiếm. Vui lòng thử lại sau.</p>
+            </div>
+        `;
     });
 });
 </script>

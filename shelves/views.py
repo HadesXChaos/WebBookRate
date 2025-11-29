@@ -113,4 +113,15 @@ class UserShelvesView(generics.ListAPIView):
 
     def get_queryset(self):
         user_id = self.kwargs.get("user_id")
-        return Shelf.objects.filter(user_id=user_id).order_by("-id")
+        queryset = Shelf.objects.filter(
+            user_id=user_id,
+            is_active=True
+        ).prefetch_related('items__book').order_by("-created_at")
+        
+        # Annotate book_count if not already set
+        from django.db.models import Count
+        queryset = queryset.annotate(
+            annotated_book_count=Count('items')
+        )
+        
+        return queryset

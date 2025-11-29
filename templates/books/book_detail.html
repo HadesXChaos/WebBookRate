@@ -190,12 +190,24 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Load reviews
     function loadReviews(sort = 'latest', page = 1) {
+        const container = document.getElementById('reviews-list');
+        if (!container) return;
+        
+        container.innerHTML = '<div class="loading">Đang tải...</div>';
+        
         const sortParam = sort === 'latest' ? '-created_at' : sort === 'rating' ? '-rating' : '-like_count';
-        fetch(`/api/reviews/?book=${bookId}&ordering=${sortParam}&page=${page}`)
-            .then(res => res.json())
+        fetch(`/api/reviews/?book=${bookId}&ordering=${sortParam}&page=${page}&status=public`)
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                return res.json();
+            })
             .then(data => {
-                const container = document.getElementById('reviews-list');
-                if (data.results && data.results.length > 0) {
+                // Handle both paginated and non-paginated responses
+                const reviews = data.results || data || [];
+                
+                if (Array.isArray(reviews) && reviews.length > 0) {
                     container.innerHTML = data.results.map(review => `
                         <div class="card" style="margin-bottom: 1rem;">
                             <div class="card-body">
@@ -244,12 +256,24 @@ document.addEventListener('DOMContentLoaded', function() {
                         });
                     });
                 } else {
-                    container.innerHTML = '<p>Chưa có đánh giá nào.</p>';
+                    container.innerHTML = `
+                        <div class="empty-state" style="padding: 3rem; text-align: center; color: #64748b;">
+                            <i class="fas fa-star" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                            <p style="font-size: 1.125rem; margin-bottom: 0.5rem;">Chưa có đánh giá nào</p>
+                            <p style="font-size: 0.875rem;">Hãy là người đầu tiên đánh giá cuốn sách này!</p>
+                        </div>
+                    `;
                 }
             })
             .catch(err => {
                 console.error('Error loading reviews:', err);
-                document.getElementById('reviews-list').innerHTML = '<p>Có lỗi xảy ra khi tải dữ liệu.</p>';
+                container.innerHTML = `
+                    <div class="empty-state" style="padding: 3rem; text-align: center; color: #ef4444;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <p style="font-size: 1.125rem; margin-bottom: 0.5rem;">Có lỗi xảy ra</p>
+                        <p style="font-size: 0.875rem;">Không thể tải danh sách đánh giá. Vui lòng thử lại sau.</p>
+                    </div>
+                `;
             });
     }
     

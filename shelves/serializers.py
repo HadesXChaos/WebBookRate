@@ -17,16 +17,27 @@ class ShelfSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     items = ShelfItemSerializer(many=True, read_only=True)
     has_book = serializers.BooleanField(read_only=True, required=False)
+    book_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Shelf
         fields = ['id', 'user', 'name', 'system_type', 'description', 'visibility',
                  'cover_image', 'book_count', 'items', 'created_at', 'updated_at', 'has_book']
-        read_only_fields = ['id', 'user', 'book_count', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'created_at', 'updated_at']
 
         extra_kwargs = {
             'system_type': {'required': False, 'allow_null': True}
         }
+    
+    def get_book_count(self, obj):
+        # Use annotated count if available, otherwise use model field or count items
+        if hasattr(obj, 'annotated_book_count'):
+            return obj.annotated_book_count
+        elif hasattr(obj, 'book_count') and obj.book_count is not None:
+            return obj.book_count
+        elif hasattr(obj, 'items'):
+            return obj.items.count()
+        return 0
 
     
 

@@ -156,15 +156,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         fetch(`/api/books/explore/?${params.toString()}`)
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                return res.json();
+            })
             .then(data => {
                 const container = document.getElementById('books-list');
+                if (!container) return;
 
                 if (reset) {
                     container.innerHTML = '';
                 }
 
-                const books = data.results || [];
+                // Handle both paginated and non-paginated responses
+                const books = data.results || data || [];
 
                 if (books.length > 0) {
                     books.forEach(book => {
@@ -205,15 +212,36 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 } else {
                     if (reset) {
-                        container.innerHTML = '<p>Không tìm thấy sách nào.</p>';
+                        container.innerHTML = `
+                            <div class="empty-state" style="grid-column: 1 / -1; padding: 3rem; text-align: center; color: #64748b;">
+                                <i class="fas fa-book-open" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                                <p style="font-size: 1.125rem; margin-bottom: 0.5rem;">Không tìm thấy sách nào</p>
+                                <p style="font-size: 0.875rem;">Thử thay đổi bộ lọc để tìm thêm sách.</p>
+                            </div>
+                        `;
                     }
-                    document.getElementById('load-more-books').style.display = 'none';
+                    const loadMoreBtn = document.getElementById('load-more-books');
+                    if (loadMoreBtn) {
+                        loadMoreBtn.style.display = 'none';
+                    }
                 }
             })
             .catch(err => {
                 console.error('Error loading books:', err);
-                document.getElementById('books-list').innerHTML =
-                    '<p>Có lỗi xảy ra khi tải dữ liệu.</p>';
+                const container = document.getElementById('books-list');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1 / -1; padding: 3rem; text-align: center; color: #ef4444;">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                            <p style="font-size: 1.125rem; margin-bottom: 0.5rem;">Có lỗi xảy ra</p>
+                            <p style="font-size: 0.875rem;">Không thể tải danh sách sách. Vui lòng thử lại sau.</p>
+                        </div>
+                    `;
+                }
+                const loadMoreBtn = document.getElementById('load-more-books');
+                if (loadMoreBtn) {
+                    loadMoreBtn.style.display = 'none';
+                }
             });
     }
 
